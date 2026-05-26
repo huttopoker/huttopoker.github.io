@@ -1903,6 +1903,7 @@ let accounts = {};     // name -> {pin_hash,pin_length,cashapp,payment_opted_out
 let roster = [];       // CORE + custom registered players (sorted)
 let archivedPlayers = new Set(); // names hidden from player selection
 let todayPoll = [];    // array of player names who voted today
+let cachedPayments = []; // game_payments rows — pre-loaded so settle tab renders instantly
 let session = null;
 let chosenHost = null; // host chosen on setup screen
 let hostChosen = false;
@@ -2742,22 +2743,24 @@ async function bootApp() {
 
   // Load from cache first for instant display
   const cache = loadCache();
-  allSessions = cache.sessions || [];
-  accounts    = cache.accounts || {};
-  todayPoll   = cache.poll || [];
+  allSessions    = cache.sessions || [];
+  accounts       = cache.accounts || {};
+  todayPoll      = cache.poll || [];
+  cachedPayments = cache.payments || [];
   buildRoster();
 
   // Then try live DB — 7s timeout so mobile never hangs on slow network
   let dbOk = false;
   try {
     var _dbTimeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('db_timeout')); }, 7000); });
-    const [sess, accts, poll] = await Promise.race([
-      Promise.all([dbLoadSessions(), dbLoadAccounts(), dbLoadPoll(todayStr())]),
+    const [sess, accts, poll, pays] = await Promise.race([
+      Promise.all([dbLoadSessions(), dbLoadAccounts(), dbLoadPoll(todayStr()), dbLoadPayments(6)]),
       _dbTimeout
     ]);
     if (sess !== null)  { allSessions = sess; dbOk = true; }
     if (accts !== null) { accounts = accts; dbOk = true; }
     todayPoll = poll;
+    if (pays  !== null) { cachedPayments = pays; }
     buildRoster();
     // Auto-archive players inactive for 60+ days (non-CORE custom players only)
     autoArchiveInactive();
@@ -2939,7 +2942,7 @@ function setSyncPill(on) {
    CACHE
 ═══════════════════════════════════════ */
 function saveCache() {
-  try { localStorage.setItem('pn-v3', JSON.stringify({sessions:allSessions, accounts, poll:todayPoll, pollDate:todayStr(), archivedPlayers:[...archivedPlayers]})); } catch(e){}
+  try { localStorage.setItem('pn-v3', JSON.stringify({sessions:allSessions, accounts, poll:todayPoll, pollDate:todayStr(), archivedPlayers:[...archivedPlayers], payments:cachedPayments})); } catch(e){}
 }
 function loadCache() {
   try {
@@ -3500,15 +3503,20 @@ function setHTab(tab) {
   else if (tab==='history')   el.innerHTML = buildHistoryTab();
   else if (tab==='settle') {
     ledgerView = 'game';
-    el.innerHTML = '<div style="text-align:center;padding:28px;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">&#128260; Loading...</div>';
-    buildLedgerTab().then(h => {
-      if (homeTab==='settle') {
-        el.innerHTML = h;
-        setLedgerView(ledgerView); // apply correct tab visibility after HTML is injected
-      }
-    }).catch(()=>{
-      el.innerHTML = '<p style="color:var(--c-red);text-align:center;padding:24px;font-family:var(--font-mono);font-size:12px">Could not load. Check connection.</p>';
-    });
+    // If we have cached payment data, render instantly (no spinner needed)
+    if (cachedPayments.length) {
+      buildLedgerTab().then(h => {
+        if (homeTab==='settle') { el.innerHTML = h; setLedgerView(ledgerView); }
+      });
+    } else {
+      // No cache yet — show brief loading indicator while first fetch completes
+      el.innerHTML = '<div style="text-align:center;padding:28px;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">&#128260; Loading...</div>';
+      buildLedgerTab().then(h => {
+        if (homeTab==='settle') { el.innerHTML = h; setLedgerView(ledgerView); }
+      }).catch(()=>{
+        el.innerHTML = '<p style="color:var(--c-red);text-align:center;padding:24px;font-family:var(--font-mono);font-size:12px">Could not load. Check connection.</p>';
+      });
+    }
   }
   else                        el.innerHTML = buildAccountsTab();
 }
@@ -3822,8 +3830,23 @@ function _fmtTime(isoStr) {
 }
 
 async function buildLedgerTab() {
-  let rows = [];
-  try { rows = await dbLoadPayments(6); } catch(e) {}
+  // Use cachedPayments for instant render — then refresh in background if online
+  let rows = cachedPayments.length ? cachedPayments : [];
+  // Background-refresh: fetch fresh data with 5s timeout, update cache + re-render if changed
+  (async function() {
+    try {
+      var _t = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('pay_timeout')); }, 5000); });
+      const fresh = await Promise.race([dbLoadPayments(6), _t]);
+      if (fresh && JSON.stringify(fresh) !== JSON.stringify(cachedPayments)) {
+        cachedPayments = fresh;
+        saveCache();
+        const el = document.getElementById('home-body');
+        if (el && homeTab === 'settle') {
+          buildLedgerTab().then(h => { if (homeTab === 'settle') { el.innerHTML = h; setLedgerView(ledgerView); } });
+        }
+      }
+    } catch(e) {}
+  })();
 
   let localStatus = {};
   try { localStatus = JSON.parse(localStorage.getItem('pn-pay-status')||'{}'); } catch(e) {}
