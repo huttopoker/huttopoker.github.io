@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" media="(prefers-color-scheme:dark)"  content="#060816"/>
@@ -206,13 +206,13 @@ body { background:var(--c-bg); color:var(--c-txt); font-family:var(--font-body);
   -moz-osx-font-smoothing:grayscale; line-height:1.65; font-size:16px;
   font-feature-settings:'kern' 1,'liga' 1,'calt' 1; letter-spacing:0.01em; }
 /* Ambient glow — deep navy with violet/cyan atmosphere */
-body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background:
     radial-gradient(ellipse 80% 50% at 30% -5%,  var(--theme-amb1, rgba(124,58,237,.12))  0%, transparent 60%),
     radial-gradient(ellipse 60% 45% at 85% 95%,  var(--theme-amb2, rgba(6,182,212,.07))   0%, transparent 55%),
     radial-gradient(ellipse 40% 35% at 5%  80%,  var(--theme-amb1, rgba(124,58,237,.05))  0%, transparent 50%);
   transition: background 1.2s ease; }
-body::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   opacity:.6; }
 /* theme-bg pattern removed — clean gradient background only */
@@ -285,9 +285,10 @@ body::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:
 .ah-right-stack { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
 .wrap { position:relative; z-index:1; max-width:490px; margin:0 auto;
   padding:calc(env(safe-area-inset-top,0px) + 72px) 18px calc(env(safe-area-inset-bottom,0px) + 100px); }
-.screen { display:none; animation:fadeUp .22s cubic-bezier(.4,0,.2,1); }
-.screen.active { display:block; }
-@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+.screen { display:none; }
+.screen.active { display:block; animation:fadeIn .18s ease; }
+/* No transform in animation — transform creates stacking context that breaks position:fixed children on iOS Safari */
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 /* ── CONFETTI ── */
 .confetti-piece { position:fixed; top:-10px; border-radius:2px; z-index:9998; pointer-events:none;
   animation:confettiFall var(--dur,3s) ease-in var(--delay,0s) forwards; }
@@ -309,7 +310,7 @@ body::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:
 #notif.info { background:rgba(17,24,39,.95); color:var(--c-txt); border:1px solid rgba(255,255,255,.12);
   backdrop-filter:blur(16px); }
 /* ── LOADING ── */
-#loading { position:fixed; inset:0; background:var(--c-bg); z-index:9000;
+#loading { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--c-bg); z-index:9000;
   display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;
   transition:opacity .4s ease; }
 #loading.out { opacity:0; pointer-events:none; }
@@ -319,7 +320,7 @@ body::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:
 #load-msg { font-family:var(--font-body); font-size:11px; color:var(--c-muted);
   letter-spacing:3px; text-transform:uppercase; font-weight:500; }
 /* ── MODALS (bottom sheet) ── */
-.modal-overlay { position:fixed; inset:0; z-index:6000;
+.modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; z-index:6000;
   display:flex; align-items:flex-end; justify-content:center;
   background:rgba(0,0,0,.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
 @media(prefers-color-scheme:light) { .modal-overlay { background:rgba(0,0,0,.42); } }
@@ -644,9 +645,14 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
   background-size:20px 20px; z-index:0;
 }
 /* ── Mobile touch optimizations — iOS & Android ── */
-button, a, select, input, textarea, .hnav-btn, .p-card, .settle-tile {
-  touch-action: manipulation;
+/* Use * to cover ALL elements — dynamically created buttons must also get manipulation */
+* {
   -webkit-tap-highlight-color: transparent;
+}
+button, a, [onclick], select, input, textarea, label,
+.hnav-btn, .p-card, .settle-tile, .p-btn, .eco-trigger {
+  touch-action: manipulation;
+  cursor: pointer;
 }
 /* Minimum 44px touch targets for iOS HIG / Android Material compliance */
 .btn, .hnav-btn { min-height:44px; }
@@ -1479,7 +1485,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- MORE SHEET -->
   <div id="more-sheet-bg" onclick="closeHomeMore()"
-    style="display:none;position:fixed;inset:0;z-index:3200;background:rgba(0,0,0,.5);
+    style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:3200;background:rgba(0,0,0,.5);
       backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:opacity .2s"></div>
   <div id="more-sheet" role="dialog" aria-modal="true" aria-label="More options"
     style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:3300;
@@ -1902,10 +1908,16 @@ let pollRefreshTimer = null;
 
 // ── Device identity (persists across sessions)
 // DEVICE_ID: browser-profile scoped (localStorage). Same browser = same ID.
+// Wrapped in try/catch for iOS private browsing mode (localStorage throws SecurityError)
 const DEVICE_ID = (()=>{
-  let id = localStorage.getItem('pn-device-id');
-  if (!id) { id='dev-'+Date.now()+'-'+Math.random().toString(36).slice(2,8); localStorage.setItem('pn-device-id',id); }
-  return id;
+  try {
+    let id = localStorage.getItem('pn-device-id');
+    if (!id) { id='dev-'+Date.now()+'-'+Math.random().toString(36).slice(2,8); localStorage.setItem('pn-device-id',id); }
+    return id;
+  } catch(e) {
+    // Private browsing / localStorage disabled — generate ephemeral ID
+    return 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+  }
 })();
 
 // ── Game host control & timer
@@ -2835,9 +2847,37 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', saveActiveSession);
 window.addEventListener('beforeunload', saveActiveSession);
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (maybeShowVotePage()) return;
-  bootApp().then(() => maybeAutoJoinView());
+// Safety: if bootApp hangs (Supabase timeout on mobile), force-dismiss loading after 10s
+function _forceDismissLoading() {
+  var ld = document.getElementById('loading');
+  if (ld && ld.style.display !== 'none' && !ld.classList.contains('out')) {
+    ld.classList.add('out');
+    setTimeout(function(){ ld.style.display = 'none'; }, 380);
+  }
+}
+// Global error handler: crash in any function should never leave loading screen up
+window.onerror = function(msg, src, line, col, err) {
+  _forceDismissLoading();
+  console.error('App error:', msg, 'at', src+':'+line);
+};
+window.onunhandledrejection = function(e) {
+  _forceDismissLoading();
+  console.error('Unhandled promise rejection:', e.reason);
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+  // Safety timeout — iOS with slow/offline network can hang indefinitely in bootApp()
+  var loadTimeout = setTimeout(_forceDismissLoading, 10000);
+
+  if (maybeShowVotePage()) { clearTimeout(loadTimeout); return; }
+  bootApp().then(function() {
+    clearTimeout(loadTimeout);
+    maybeAutoJoinView();
+  }).catch(function(e) {
+    clearTimeout(loadTimeout);
+    _forceDismissLoading();
+    console.error('bootApp failed:', e);
+  });
 });
 
 async function maybeAutoJoinView() {
