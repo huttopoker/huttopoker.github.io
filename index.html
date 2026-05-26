@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" media="(prefers-color-scheme:dark)"  content="#060816"/>
@@ -311,9 +311,9 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
   backdrop-filter:blur(16px); }
 /* ── LOADING ── */
 #loading { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--c-bg); z-index:9000;
-  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;
-  transition:opacity .4s ease; }
-#loading.out { opacity:0; pointer-events:none; }
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; }
+/* No CSS transition — iOS Safari pointer-events:none unreliable during opacity transitions */
+#loading.out { display:none; }
 .spinner { width:36px; height:36px; border:2px solid rgba(255,255,255,.08);
   border-top-color:#7C3AED; border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -640,7 +640,7 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 }
 /* Subtle noise dots pattern */
 .hero-brand::after {
-  content:''; position:absolute; inset:0; border-radius:24px; pointer-events:none;
+  content:''; position:absolute; top:0; left:0; right:0; bottom:0; border-radius:24px; pointer-events:none;
   background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
   background-size:20px 20px; z-index:0;
 }
@@ -673,7 +673,7 @@ html { -webkit-text-size-adjust: 100%; }
 /* body safe-area handled by #app-header and .wrap padding-top */
 /* Full-page spotlight — accent top + complement bottom-right glow + vignette */
 body::before {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background:
     radial-gradient(ellipse 140% 50% at 50% -5%,
       rgba(var(--c-gold-rgb,245,158,11),.10) 0%,
@@ -1068,7 +1068,7 @@ body::before {
 .tog-sub { font-family:var(--font-mono); font-size:10px; color:var(--c-muted); }
 .tog { position:relative; display:inline-block; width:50px; height:28px; flex-shrink:0; }
 .tog input { opacity:0; width:0; height:0; }
-.tog-sl { position:absolute; cursor:pointer; inset:0; background:var(--c-bdr2); border-radius:50px; transition:.3s; }
+.tog-sl { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:var(--c-bdr2); border-radius:50px; transition:.3s; }
 .tog-sl::before { content:''; position:absolute; height:22px; width:22px; left:3px; bottom:3px;
   background:#fff; border-radius:50%; transition:.3s; box-shadow:0 1px 5px rgba(0,0,0,.25); }
 input:checked + .tog-sl { background:var(--c-green); }
@@ -1170,7 +1170,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 }
 .cfs-card-inner.flipped { transform:rotateY(180deg); }
 .cfs-card-face, .cfs-card-back {
-  position:absolute; inset:0; border-radius:8px;
+  position:absolute; top:0; left:0; right:0; bottom:0; border-radius:8px;
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
 }
 .cfs-card-back {
@@ -2671,8 +2671,9 @@ async function bootApp() {
   }
 
   const ld = document.getElementById('loading');
+  // Immediate hide — no delay, no CSS transition that could block touches on iOS Safari
+  ld.style.display = 'none';
   ld.classList.add('out');
-  setTimeout(()=> ld.style.display='none', 380);
 
   // Test live sync table in background (non-blocking)
   dbTestLiveSync().then(ok => {
@@ -2850,9 +2851,9 @@ window.addEventListener('beforeunload', saveActiveSession);
 // Safety: if bootApp hangs (Supabase timeout on mobile), force-dismiss loading after 10s
 function _forceDismissLoading() {
   var ld = document.getElementById('loading');
-  if (ld && ld.style.display !== 'none' && !ld.classList.contains('out')) {
+  if (ld && ld.style.display !== 'none') {
+    ld.style.display = 'none';
     ld.classList.add('out');
-    setTimeout(function(){ ld.style.display = 'none'; }, 380);
   }
 }
 // Global error handler: crash in any function should never leave loading screen up
@@ -2864,6 +2865,10 @@ window.onunhandledrejection = function(e) {
   _forceDismissLoading();
   console.error('Unhandled promise rejection:', e.reason);
 };
+
+// iOS Safari: ensure touches on buttons always fire their onclick
+// Some iOS versions suppress click when a parent has touch handlers
+document.addEventListener('touchstart', function(){}, {passive:true});
 
 window.addEventListener('DOMContentLoaded', function() {
   // Safety timeout — iOS with slow/offline network can hang indefinitely in bootApp()
@@ -4358,94 +4363,221 @@ function buildStatsTab() {
   /* ── SECTION 4: PLAYERS ──────────────────────── */
   let sPlayers = '';
   if (atEntries.length) {
-    const _allMoKeys = Object.keys(st.MO).sort();
-    const _allYrKeys = Object.keys(st.YR).sort();
 
-    function _barChart(data, H) {
-      if (!data.length) return '<div style="text-align:center;padding:12px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No data yet</div>';
-      const maxAbs = Math.max.apply(null, data.map(function(d){return Math.abs(d.v);})) || 1;
-      const n = data.length, gap = 3;
-      const bw = Math.max(10, Math.floor((288 - gap*(n+1)) / n));
-      const tw = n*(bw+gap)+gap, zY = H/2;
-      const bars = data.map(function(d,i) {
-        const pct=Math.abs(d.v)/maxAbs, bh=Math.max(pct*(H/2-4),1);
-        const x=gap+i*(bw+gap), col=d.v>=0?'#22C55E':'#EF4444', y=d.v>=0?zY-bh:zY;
-        return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+col+'" opacity=".8" rx="2"/>'+
-               '<text x="'+(x+bw/2)+'" y="'+(H+11)+'" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="8" font-family="monospace">'+escH(d.l)+'</text>';
-      }).join('');
-      return '<svg viewBox="0 0 '+tw+' '+(H+16)+'" width="100%" style="overflow:visible"><line x1="0" y1="'+zY+'" x2="'+tw+'" y2="'+zY+'" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'+bars+'</svg>';
-    }
-
-    function _monthChart(name) {
-      const keys=_allMoKeys.slice(-9);
-      const data=keys.map(function(mk){
-        const mo=st.MO[mk]&&st.MO[mk][name], d=new Date(mk+'-02');
-        const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-        return {l:lbl, v:mo?mo.net:0, s:mo?mo.sessions:0};
-      }).filter(function(d){return d.s>0;});
-      if (!data.length) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No games this period</div>';
-      return _barChart(data, 54);
-    }
-
-    function _yearChart(name) {
-      const data=_allYrKeys.map(function(yk){
-        const yr=st.YR[yk]&&st.YR[yk][name];
-        return {l:yk, v:yr?yr.net:0, s:yr?yr.sessions:0};
-      }).filter(function(d){return d.s>0;});
-      if (!data.length) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No games this year</div>';
-      return _barChart(data, 54);
-    }
-
-    function _overallChart(name) {
-      const sess=allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===name;});});
-      if (sess.length<2) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">Need 2+ games</div>';
-      let cum=0; const W=288,H=50;
-      const pts=sess.map(function(s,i){const p=s.players.find(function(pp){return pp.name===name;}); cum=rd(cum+rd(p.cashOut-p.buyins*(s.buyin||BUYIN))); return {x:Math.round(i*W/(sess.length-1)),y:cum};});
-      const maxV=Math.max.apply(null,pts.map(function(p){return p.y;})), minV=Math.min.apply(null,pts.map(function(p){return p.y;})), range=(maxV-minV)||1;
-      const toY=function(v){return Math.round(H-((v-minV)/range)*(H-8)-4);};
-      const zY=minV>=0?H:maxV<=0?0:toY(0), polyPts=pts.map(function(p){return p.x+','+toY(p.y);}).join(' ');
-      const last=pts[pts.length-1], col=last.y>=0?'#22C55E':'#EF4444';
-      return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+
-        '<defs><linearGradient id="og'+sess.length+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col+'" stop-opacity=".02"/></linearGradient></defs>'+
-        '<line x1="0" y1="'+zY+'" x2="'+W+'" y2="'+zY+'" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4,3"/>'+
-        '<polyline points="'+polyPts+' '+W+','+H+' 0,'+H+'" fill="url(#og'+sess.length+')" stroke="none"/>'+
-        '<polyline points="'+polyPts+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
-        '<circle cx="'+last.x+'" cy="'+toY(last.y)+'" r="3.5" fill="'+col+'" stroke="rgba(6,8,22,.8)" stroke-width="1.5"/>'+
+    // Build cumulative P&L sparkline for a player
+    function _plSparkline(playerSessions, col) {
+      if (playerSessions.length < 2) return '';
+      var cum=0, W=280, H=44;
+      var pts = playerSessions.map(function(s,i){
+        var p=s.players.find(function(pp){return pp.name===playerSessions[0]._name||pp.name===s._pname;});
+        // _pname set below per session
+        cum=rd(cum+rd((p?p.cashOut:0)-((p?p.buyins:1))*(s.buyin||BUYIN)));
+        return {x:Math.round(i*W/(playerSessions.length-1)), y:cum};
+      });
+      var maxV=Math.max.apply(null,pts.map(function(p){return p.y;}));
+      var minV=Math.min.apply(null,pts.map(function(p){return p.y;}));
+      var range=(maxV-minV)||1;
+      var toY=function(v){return Math.round(H-((v-minV)/range)*(H-6)-3);};
+      var zY=minV>=0?H:maxV<=0?0:toY(0);
+      var poly=pts.map(function(p){return p.x+','+toY(p.y);}).join(' ');
+      var last=pts[pts.length-1];
+      return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;margin-top:8px">'+
+        '<defs><linearGradient id="ps'+playerSessions.length+col.replace(/[^a-z0-9]/gi,'')+'\" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0%" stop-color="'+col+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+col+'" stop-opacity=".01"/></linearGradient></defs>'+
+        '<line x1="0" y1="'+zY+'" x2="'+W+'" y2="'+zY+'" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,2"/>'+
+        '<polyline points="'+poly+' '+W+','+H+' 0,'+H+'" fill="url(#ps'+playerSessions.length+col.replace(/[^a-z0-9]/gi,'')+')" stroke="none"/>'+
+        '<polyline points="'+poly+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'+
+        '<circle cx="'+last.x+'" cy="'+toY(last.y)+'" r="3" fill="'+col+'" stroke="rgba(6,8,22,.7)" stroke-width="1.5"/>'+
       '</svg>';
     }
 
-    function _playerCard(name, d, chartHtml, wr, rank) {
-      const nc=d.net>0?'#22C55E':d.net<0?'#EF4444':'rgba(255,255,255,.5)', ab=d.net>0?'rgba(34,197,94,.18)':d.net<0?'rgba(239,68,68,.14)':'rgba(100,100,100,.14)';
-      const rankColors=['#F59E0B','#94A3B8','#CD7F32'];
-      const rankBg=['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
-      const rankBadge = rank<3 ? '<span style="font-family:var(--font-mono);font-size:9px;font-weight:900;color:'+rankColors[rank]+';background:'+rankBg[rank]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(rank===0?'#1':rank===1?'#2':'#3')+'</span>' : '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);flex-shrink:0;min-width:18px">'+(rank+1)+'.</span>';
-      const avg=d.sessions>0?rd(d.net/d.sessions):0;
-      const ac=avg>0?'#22C55E':avg<0?'#EF4444':'rgba(255,255,255,.4)';
-      return '<div class="pperf-card">'+
-        '<div class="pperf-header">'+
+    // Build per-player card with 3 sub-tabs: This Month | Game Log | Career
+    function _buildPlayerCard(name, d, rank) {
+      var nc=d.net>0?'#22C55E':d.net<0?'#EF4444':'rgba(255,255,255,.5)';
+      var ab=d.net>0?'rgba(34,197,94,.18)':d.net<0?'rgba(239,68,68,.14)':'rgba(100,100,100,.14)';
+      var rankColors=['#F59E0B','#94A3B8','#CD7F32'];
+      var rankBg=['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
+      var rankBadge=rank<3?'<span style="font-family:var(--font-mono);font-size:9px;font-weight:900;color:'+rankColors[rank]+';background:'+rankBg[rank]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(rank===0?'🥇':rank===1?'🥈':'🥉')+'</span>':'<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);flex-shrink:0;min-width:20px">'+(rank+1)+'.</span>';
+      var avg=d.sessions>0?rd(d.net/d.sessions):0;
+      var wr=d.sessions>0?Math.round(d.wins/d.sessions*100):0;
+      var ac=avg>0?'#22C55E':avg<0?'#EF4444':'rgba(255,255,255,.4)';
+      var pid='pc_'+rank;
+
+      // All sessions for this player (sorted oldest→newest)
+      var pSess=allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===name;});});
+      // Tag each session with _pname for sparkline helper
+      pSess.forEach(function(s){s._pname=name;});
+
+      // ── TAB 1: THIS MONTH ──
+      var thisMoSessions=pSess.filter(function(s){return (s.month||mKey(new Date(s.id)))===mk;});
+      var moNet=thisMoSessions.reduce(function(sum,s){var p=s.players.find(function(pp){return pp.name===name;});return sum+rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN));},0);
+      var tab1='';
+      if (!thisMoSessions.length) {
+        var lastSess=pSess.length?pSess[pSess.length-1]:null;
+        tab1='<div style="text-align:center;padding:20px 12px">'+
+          '<div style="font-size:28px;margin-bottom:8px">🎯</div>'+
+          '<div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">No games this month</div>'+
+          (lastSess?'<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-top:4px">Last played: '+escH(lastSess.date||'—')+'</div>':'')+
+        '</div>';
+      } else {
+        tab1='<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          '<thead><tr style="border-bottom:1px solid var(--c-bdr)">'+
+            '<th style="padding:6px 10px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Date</th>'+
+            '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Buy-in</th>'+
+            '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Cashed</th>'+
+            '<th style="padding:6px 10px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
+          '</tr></thead><tbody>'+
+          thisMoSessions.slice().reverse().map(function(s){
+            var p=s.players.find(function(pp){return pp.name===name;});
+            var invested=p?p.buyins*(s.buyin||BUYIN):0, cashed=p?p.cashOut:0;
+            var net=rd(cashed-invested), nc2=net>0?'var(--c-green)':net<0?'var(--c-red)':'var(--c-muted)';
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">'+
+              '<td style="padding:8px 10px;font-size:11px;color:var(--c-txt)">'+escH(s.date||'—')+'</td>'+
+              '<td style="padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+fmt(invested)+'</td>'+
+              '<td style="padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+fmt(cashed)+'</td>'+
+              '<td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc2+'">'+fmtS(net)+'</td>'+
+            '</tr>';
+          }).join('')+
+          '<tr style="border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">'+
+            '<td colspan="3" style="padding:8px 10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+thisMoSessions.length+' game'+(thisMoSessions.length!==1?'s':'')+' this month</td>'+
+            '<td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:900;color:'+(moNet>0?'var(--c-green)':moNet<0?'var(--c-red)':'var(--c-muted)')+'">'+fmtS(rd(moNet))+'</td>'+
+          '</tr>'+
+          '</tbody></table>';
+      }
+
+      // ── TAB 2: GAME LOG (last 12 games + cumulative P&L chart) ──
+      var recentSess=pSess.slice(-12);
+      var tab2='';
+      if (!pSess.length) {
+        tab2='<div style="text-align:center;padding:20px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No games yet</div>';
+      } else {
+        // Cumulative P&L sparkline
+        var cum2=0;
+        var sparkPts=pSess.map(function(s,i){
+          var p=s.players.find(function(pp){return pp.name===name;});
+          cum2=rd(cum2+rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN)));
+          return {x:i, y:cum2};
+        });
+        var W2=280, H2=50;
+        var maxV2=Math.max.apply(null,sparkPts.map(function(p){return p.y;}));
+        var minV2=Math.min.apply(null,sparkPts.map(function(p){return p.y;}));
+        var rng2=(maxV2-minV2)||1;
+        var toX2=function(i){return Math.round(i*W2/(Math.max(sparkPts.length-1,1)));};
+        var toY2=function(v){return Math.round(H2-((v-minV2)/rng2)*(H2-8)-4);};
+        var zY2=minV2>=0?H2:maxV2<=0?0:toY2(0);
+        var col2=sparkPts[sparkPts.length-1].y>=0?'#22C55E':'#EF4444';
+        var poly2=sparkPts.map(function(p,i){return toX2(i)+','+toY2(p.y);}).join(' ');
+        var gid2='sg'+rank+name.replace(/[^a-z0-9]/gi,'').slice(0,6);
+        var sparkSvg='<div style="background:var(--c-bg3);border-radius:10px;padding:10px 8px 6px;margin-bottom:10px">'+
+          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:6px">Cumulative P&amp;L · '+pSess.length+' games</div>'+
+          '<svg viewBox="0 0 '+W2+' '+H2+'" width="100%" style="display:block;overflow:visible">'+
+            '<defs><linearGradient id="'+gid2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col2+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col2+'" stop-opacity=".02"/></linearGradient></defs>'+
+            '<line x1="0" y1="'+zY2+'" x2="'+W2+'" y2="'+zY2+'" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="3,2"/>'+
+            '<polyline points="'+poly2+' '+W2+','+H2+' 0,'+H2+'" fill="url(#'+gid2+')" stroke="none"/>'+
+            '<polyline points="'+poly2+'" fill="none" stroke="'+col2+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+            '<circle cx="'+toX2(sparkPts.length-1)+'" cy="'+toY2(sparkPts[sparkPts.length-1].y)+'" r="3" fill="'+col2+'" stroke="rgba(6,8,22,.8)" stroke-width="1.5"/>'+
+            '<text x="0" y="'+H2+'" dy="10" text-anchor="start" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+escH(pSess[0].date||'First')+'</text>'+
+            '<text x="'+W2+'" y="'+H2+'" dy="10" text-anchor="end" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+escH(pSess[pSess.length-1].date||'Latest')+'</text>'+
+          '</svg>'+
+        '</div>';
+        // Recent game rows
+        var gameRows=recentSess.slice().reverse().map(function(s,i){
+          var p=s.players.find(function(pp){return pp.name===name;});
+          var invested=p?p.buyins*(s.buyin||BUYIN):0, cashed=p?p.cashOut:0;
+          var net=rd(cashed-invested), nc3=net>0?'var(--c-green)':net<0?'var(--c-red)':'var(--c-muted)';
+          var isWin=net>0;
+          return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+            '<div style="width:20px;height:20px;border-radius:50%;background:'+(isWin?'rgba(34,197,94,.15)':'rgba(239,68,68,.12)')+';display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0">'+(isWin?'W':'L')+'</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:12px;font-weight:600;color:var(--c-txt)">'+escH(s.date||'—')+'</div>'+
+              '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+fmt(invested)+' in · '+fmt(cashed)+' out</div>'+
+            '</div>'+
+            '<div style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:'+nc3+';flex-shrink:0">'+fmtS(net)+'</div>'+
+          '</div>';
+        }).join('');
+        tab2=sparkSvg+'<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:4px">Recent Games</div>'+gameRows;
+      }
+
+      // ── TAB 3: CAREER STATS ──
+      var bestSess=null, worstSess=null, bestNet=-Infinity, worstNet=Infinity;
+      pSess.forEach(function(s){
+        var p=s.players.find(function(pp){return pp.name===name;});
+        var net=rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN));
+        if(net>bestNet){bestNet=net;bestSess=s;}
+        if(net<worstNet){worstNet=net;worstSess=s;}
+      });
+      // Win streak
+      var bestStreak=0, curStreak=0;
+      pSess.forEach(function(s){
+        var p=s.players.find(function(pp){return pp.name===name;});
+        var net=rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN));
+        if(net>0){curStreak++;if(curStreak>bestStreak)bestStreak=curStreak;}else{curStreak=0;}
+      });
+      // Yearly breakdown
+      var yrBreakdown='';
+      var allYrKeys2=Object.keys(st.YR).sort().reverse();
+      allYrKeys2.forEach(function(yk){
+        if(!st.YR[yk][name])return;
+        var yd=st.YR[yk][name];
+        var ywr=yd.sessions>0?Math.round(yd.wins/yd.sessions*100):0;
+        var ync=yd.net>0?'var(--c-green)':yd.net<0?'var(--c-red)':'var(--c-muted)';
+        yrBreakdown+='<tr style="border-bottom:1px solid rgba(255,255,255,.04)">'+
+          '<td style="padding:7px 10px;font-weight:700;color:var(--c-txt);font-size:12px">'+yk+'</td>'+
+          '<td style="padding:7px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+yd.sessions+'</td>'+
+          '<td style="padding:7px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+ywr+'%</td>'+
+          '<td style="padding:7px 10px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+ync+'">'+fmtS(yd.net)+'</td>'+
+        '</tr>';
+      });
+      var tab3='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+        '<div style="background:var(--c-bg3);border-radius:10px;padding:10px;text-align:center"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Games</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:'+accent+'">'+d.sessions+'</div></div>'+
+        '<div style="background:var(--c-bg3);border-radius:10px;padding:10px;text-align:center"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Win Rate</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-txt)">'+wr+'%</div></div>'+
+        '<div style="background:var(--c-bg3);border-radius:10px;padding:10px;text-align:center"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Avg/Game</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+ac+'">'+fmtS(avg)+'</div></div>'+
+        '<div style="background:var(--c-bg3);border-radius:10px;padding:10px;text-align:center"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px">Best Streak</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-txt)">'+bestStreak+'W</div></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+        (bestSess?'<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Best Session</div><div style="font-family:var(--font-mono);font-size:15px;font-weight:900;color:var(--c-green)">+'+fmt(bestNet)+'</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:2px">'+escH(bestSess.date||'—')+'</div></div>':'<div></div>')+
+        (worstSess?'<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px"><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Worst Session</div><div style="font-family:var(--font-mono);font-size:15px;font-weight:900;color:var(--c-red)">'+fmtS(worstNet)+'</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:2px">'+escH(worstSess.date||'—')+'</div></div>':'<div></div>')+
+      '</div>'+
+      (yrBreakdown?'<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:6px">Year by Year</div>'+
+        '<table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--c-bg3);border-radius:10px;overflow:hidden">'+
+        '<thead><tr style="border-bottom:1px solid var(--c-bdr)">'+
+          '<th style="padding:6px 10px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Year</th>'+
+          '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">GP</th>'+
+          '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Win%</th>'+
+          '<th style="padding:6px 10px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
+        '</tr></thead><tbody>'+yrBreakdown+'</tbody></table>':'');
+
+      // ── ASSEMBLE CARD ──
+      var tabBtnStyle='padding:6px 12px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent';
+      return '<div class="pperf-card" style="margin-bottom:12px">'+
+        // Header
+        '<div class="pperf-header" style="margin-bottom:10px">'+
           '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+rankBadge+
             '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
           '</div>'+
-          '<div style="flex:1;min-width:0"><div class="pperf-name">'+escH(name)+'</div><div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g</span></div></div>'+
-          '<div style="text-align:right;flex-shrink:0"><div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div><div class="pperf-meta">net</div></div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div class="pperf-name">'+escH(name)+'</div>'+
+            '<div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g avg</span></div>'+
+          '</div>'+
+          '<div style="text-align:right;flex-shrink:0">'+
+            '<div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div>'+
+            '<div class="pperf-meta">all-time net</div>'+
+          '</div>'+
         '</div>'+
-        '<div>'+chartHtml+'</div>'+
+        // Sub-tab bar
+        '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px">'+
+          '<button id="'+pid+'_btn_mo" style="'+tabBtnStyle+';background:rgba('+accentRgb+',.2);border-color:rgba('+accentRgb+',.5);color:'+accent+'" onclick="setPlayerTab(\''+pid+'\',\'mo\')">📅 This Month</button>'+
+          '<button id="'+pid+'_btn_log" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'log\')">📋 Game Log</button>'+
+          '<button id="'+pid+'_btn_career" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'career\')">🏅 Career</button>'+
+        '</div>'+
+        // Sub-tab content
+        '<div id="'+pid+'_mo">'+tab1+'</div>'+
+        '<div id="'+pid+'_log" style="display:none">'+tab2+'</div>'+
+        '<div id="'+pid+'_career" style="display:none">'+tab3+'</div>'+
       '</div>';
     }
 
-    const _moCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_monthChart(e[0]),wr,i);}).join('');
-    const _yrCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_yearChart(e[0]),wr,i);}).join('');
-    const _ovCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_overallChart(e[0]),wr,i);}).join('');
-
-    sPlayers =
-      '<div class="stat-tabs" style="margin-bottom:12px">'+
-        '<button class="stat-tab stat-tab-on" onclick="setStatsView(\'month\')">Monthly</button>'+
-        '<button class="stat-tab" onclick="setStatsView(\'year\')">Yearly</button>'+
-        '<button class="stat-tab" onclick="setStatsView(\'overall\')">All Time</button>'+
-      '</div>'+
-      '<div id="sview-month">'+_moCards+'</div>'+
-      '<div id="sview-year" style="display:none">'+_yrCards+'</div>'+
-      '<div id="sview-overall" style="display:none">'+_ovCards+'</div>';
+    sPlayers = atEntries.map(function(e,i){ return _buildPlayerCard(e[0], e[1], i); }).join('');
   } else {
     sPlayers = '<div style="text-align:center;padding:32px 20px;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">No player data yet</div>';
   }
@@ -4614,6 +4746,19 @@ function trendSwitch(mode) {
   });
   var wrap=document.getElementById('trend-svg-wrap');
   if (wrap) wrap.innerHTML=_buildTrendSVG(mode);
+}
+
+function setPlayerTab(pid, tab) {
+  var accent = currentTheme ? currentTheme.accent : 'var(--c-gold)';
+  var accentRgb = currentTheme ? currentTheme.accentRgb : '245,158,11';
+  var baseBtn = 'padding:6px 12px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent';
+  var activeBtn = baseBtn+';background:rgba('+accentRgb+',.2);border-color:rgba('+accentRgb+',.5);color:'+accent;
+  ['mo','log','career'].forEach(function(t) {
+    var el = document.getElementById(pid+'_'+t);
+    if (el) el.style.display = (t===tab) ? 'block' : 'none';
+    var btn = document.getElementById(pid+'_btn_'+t);
+    if (btn) btn.setAttribute('style', (t===tab) ? activeBtn : baseBtn);
+  });
 }
 
 function buildHistoryTab() {
@@ -6848,7 +6993,7 @@ function _showScreenshotModal(canvas) {
   modal.setAttribute('role', 'dialog');
   modal.setAttribute('aria-modal', 'true');
   modal.setAttribute('aria-label', 'Game results screenshot');
-  modal.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.85);'+
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:20000;background:rgba(0,0,0,.85);'+
     'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;'+
     'gap:12px;overflow-y:auto';
 
