@@ -4148,11 +4148,20 @@ function buildStatsTab() {
   const moPot = moSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
   const moTopEntry = moNow ? Object.entries(moNow).sort((a,b)=>b[1].net-a[1].net)[0] : null;
   const moDate = new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  // Last-month comparison
+  const prevD = new Date(); prevD.setMonth(prevD.getMonth()-1);
+  const prevMk = mKey(prevD);
+  const prevMoSessions = allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===prevMk);
+  const moDelta = moSessions.length - prevMoSessions.length;
+  const moDeltaHtml = prevMoSessions.length>0
+    ? '<span style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:10px;background:'+(moDelta>0?'rgba(34,197,94,.12)':moDelta<0?'rgba(239,68,68,.12)':'rgba(100,100,100,.12)')+';color:'+(moDelta>0?'var(--c-green)':moDelta<0?'var(--c-red)':'var(--c-muted)')+'">'+
+        (moDelta>0?'↑ +':moDelta<0?'↓ ':'')+moDelta+' vs last mo</span>'
+    : '';
   if (moSessions.length) {
     sOverview += '<div style="background:linear-gradient(135deg,rgba('+accentRgb+',.14),rgba('+accentRgb+',.06));border:1px solid rgba('+accentRgb+',.28);border-radius:16px;padding:14px 16px;margin-bottom:12px">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px">'+
         '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:6px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>'+escH(moDate)+'</div>'+
-        '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+moSessions.length+' game'+(moSessions.length!==1?'s':'')+'</div>'+
+        moDeltaHtml+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+
         '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:'+accent+'">'+moSessions.length+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Sessions</div></div>'+
@@ -4174,22 +4183,25 @@ function buildStatsTab() {
     '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Avg Pot</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(avgPot)+'</div></div>'+
   '</div>';
 
-  // Pot sparkline
-  const recent = allSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0)).slice(-12);
-  if (recent.length >= 2) {
-    const pots = recent.map(s=>s.players.reduce((a,p)=>a+p.buyins*(s.buyin||BUYIN),0));
-    const maxP=Math.max(...pots), minP=Math.min(...pots), range=maxP-minP||1;
-    const W=280, H=48;
-    const pts = pots.map((p,i)=>(Math.round(i*(W/(pots.length-1)))+','+Math.round(H-((p-minP)/range)*(H-10)-5))).join(' ');
+  // Interactive trend chart (Y-axis, tooltips, per-player mode)
+  const _trendAllSessions = allSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0));
+  const _trendPlayers = atEntries.slice(0,5).map(function(e){return e[0];});
+  // Store globally for interactive functions
+  window._trendData = { allSessions: _trendAllSessions, accent: accent, accentRgb: accentRgb };
+  window._trendMode = '__group__';
+  window._trendDots = [];
+  if (_trendAllSessions.length >= 2) {
+    const pillBase = 'padding:4px 10px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:9px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .18s;-webkit-tap-highlight-color:transparent';
+    let pills = '<button class="trend-pill trend-pill-on" data-mode="__group__" onclick="trendSwitch(this.dataset.mode)" style="'+pillBase+'">All</button>';
+    pills += _trendPlayers.map(function(p){return '<button class="trend-pill" data-mode="'+escH(p)+'" onclick="trendSwitch(this.dataset.mode)" style="'+pillBase+'">'+escH(p)+'</button>';}).join('');
     sOverview += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:12px">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Pot Trend · Last '+recent.length+' Games</div>'+
-      '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block">'+
-        '<defs><linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+accent+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+accent+'" stop-opacity=".02"/></linearGradient></defs>'+
-        '<polyline points="'+pts+' '+W+','+H+' 0,'+H+'" fill="url(#sg2)" stroke="none"/>'+
-        '<polyline points="'+pts+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
-        pots.map((p,i)=>{const x=Math.round(i*(W/(pots.length-1)));const y=Math.round(H-((p-minP)/range)*(H-10)-5);return '<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="'+accent+'"/>';}).join('')+
-      '</svg>'+
-      '<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[0].date||'')+'</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[recent.length-1].date||'')+'</span></div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+
+        '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:6px">'+
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Trend · '+_trendAllSessions.length+' Games</div>'+
+        '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch">'+pills+'</div>'+
+      '</div>'+
+      '<style>.trend-pill-on{background:rgba('+accentRgb+',.2)!important;border-color:rgba('+accentRgb+',.5)!important;color:'+accent+'!important}</style>'+
+      '<div id="trend-svg-wrap">'+_buildTrendSVG('__group__')+'</div>'+
     '</div>';
   }
 
@@ -4226,24 +4238,26 @@ function buildStatsTab() {
       '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--c-bdr)">'+
           '<th style="padding:6px 14px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase">Player</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">GP</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">W</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Win%</th>'+
+          '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">GP</th>'+
+          '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Win%</th>'+
+          '<th style="padding:6px 6px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Avg/G</th>'+
           '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
         '</tr></thead><tbody>'+
         atEntries.map(([n,d],i) => {
           const wr=d.sessions>0?Math.round(d.wins/d.sessions*100):0;
+          const avg=d.sessions>0?rd(d.net/d.sessions):0;
           const nc=d.net>0?'var(--c-green)':d.net<0?'var(--c-red)':'var(--c-muted)';
+          const ac=avg>0?'var(--c-green)':avg<0?'var(--c-red)':'var(--c-muted)';
           return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+'">'+
             '<td style="padding:9px 14px;font-weight:700;color:var(--c-txt)">'+escH(n)+'</td>'+
-            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
-            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.wins+'</td>'+
-            '<td style="padding:9px 8px;text-align:center">'+
-              '<div style="display:inline-flex;align-items:center;gap:4px">'+
-                '<div style="width:32px;height:4px;background:var(--c-bg3);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+wr+'%;background:'+accent+';border-radius:2px"></div></div>'+
+            '<td style="padding:9px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
+            '<td style="padding:9px 6px;text-align:center">'+
+              '<div style="display:inline-flex;align-items:center;gap:3px">'+
+                '<div style="width:28px;height:4px;background:var(--c-bg3);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+wr+'%;background:'+accent+';border-radius:2px"></div></div>'+
                 '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+wr+'%</span>'+
               '</div>'+
             '</td>'+
+            '<td style="padding:9px 6px;text-align:right;font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+ac+'">'+fmtS(avg)+'</td>'+
             '<td style="padding:9px 14px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+'">'+fmtS(d.net)+'</td>'+
           '</tr>';
         }).join('')+
@@ -4360,21 +4374,28 @@ function buildStatsTab() {
       '</svg>';
     }
 
-    function _playerCard(name, d, chartHtml, wr) {
+    function _playerCard(name, d, chartHtml, wr, rank) {
       const nc=d.net>0?'#22C55E':d.net<0?'#EF4444':'rgba(255,255,255,.5)', ab=d.net>0?'rgba(34,197,94,.18)':d.net<0?'rgba(239,68,68,.14)':'rgba(100,100,100,.14)';
+      const rankColors=['#F59E0B','#94A3B8','#CD7F32'];
+      const rankBg=['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
+      const rankBadge = rank<3 ? '<span style="font-family:var(--font-mono);font-size:9px;font-weight:900;color:'+rankColors[rank]+';background:'+rankBg[rank]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(rank===0?'#1':rank===1?'#2':'#3')+'</span>' : '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);flex-shrink:0;min-width:18px">'+(rank+1)+'.</span>';
+      const avg=d.sessions>0?rd(d.net/d.sessions):0;
+      const ac=avg>0?'#22C55E':avg<0?'#EF4444':'rgba(255,255,255,.4)';
       return '<div class="pperf-card">'+
         '<div class="pperf-header">'+
-          '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
-          '<div style="flex:1;min-width:0"><div class="pperf-name">'+escH(name)+'</div><div class="pperf-meta">'+d.sessions+' game'+(d.sessions!==1?'s':'')+' &middot; '+d.wins+' win'+(d.wins!==1?'s':'')+' &middot; '+wr+'%</div></div>'+
+          '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+rankBadge+
+            '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
+          '</div>'+
+          '<div style="flex:1;min-width:0"><div class="pperf-name">'+escH(name)+'</div><div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g</span></div></div>'+
           '<div style="text-align:right;flex-shrink:0"><div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div><div class="pperf-meta">net</div></div>'+
         '</div>'+
         '<div>'+chartHtml+'</div>'+
       '</div>';
     }
 
-    const _moCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_monthChart(e[0]),wr);}).join('');
-    const _yrCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_yearChart(e[0]),wr);}).join('');
-    const _ovCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_overallChart(e[0]),wr);}).join('');
+    const _moCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_monthChart(e[0]),wr,i);}).join('');
+    const _yrCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_yearChart(e[0]),wr,i);}).join('');
+    const _ovCards = atEntries.map(function(e,i){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_overallChart(e[0]),wr,i);}).join('');
 
     sPlayers =
       '<div class="stat-tabs" style="margin-bottom:12px">'+
@@ -4417,6 +4438,142 @@ function setStatSection(sec) {
     if (btn) btn.classList.toggle('sstat-on', s===sec);
   });
   window.scrollTo({top: document.getElementById('home-body') ? document.getElementById('home-body').offsetTop : 0, behavior:'smooth'});
+}
+
+/* ── TREND CHART INTERACTIVE FUNCTIONS ────────────── */
+function _buildTrendSVG(mode) {
+  const d = window._trendData;
+  if (!d || !d.allSessions) return '';
+  const W=292, H=80, PL=38, PB=18, PT=8, PR=6;
+  const CW=W-PL-PR, CH=H-PT-PB;
+  let pts=[], col=d.accent||'#F59E0B';
+
+  if (mode==='__group__') {
+    pts = d.allSessions.map(function(s,i){
+      return {i:i, v:s.players.reduce(function(a,p){return a+p.buyins*(s.buyin||BUYIN);},0), lbl:s.date||('Game '+(i+1))};
+    });
+    col = d.accent;
+  } else {
+    var playerSess = d.allSessions.filter(function(s){return s.players.some(function(p){return p.name===mode;});});
+    var cum=0;
+    pts = playerSess.map(function(s,i){
+      var p=s.players.find(function(pp){return pp.name===mode;});
+      cum=rd(cum+rd(p.cashOut-p.buyins*(s.buyin||BUYIN)));
+      return {i:i, v:cum, lbl:s.date||('Game '+(i+1))};
+    });
+    var last=pts.length?pts[pts.length-1].v:0;
+    col=last>=0?'#22C55E':'#EF4444';
+  }
+
+  if (pts.length<2) return '<div style="text-align:center;padding:18px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">Need 2+ games to show trend</div>';
+
+  window._trendDots = pts.map(function(p){return {lbl:p.lbl,v:p.v};});
+
+  var vals=pts.map(function(p){return p.v;}), maxV=Math.max.apply(null,vals), minV=Math.min.apply(null,vals);
+  var range=maxV-minV||1;
+  var toX=function(i){return PL+Math.round(i*CW/(pts.length-1));};
+  var toY=function(v){return PT+Math.round(CH-((v-minV)/range)*CH);};
+
+  // Y-axis: 3 grid levels
+  var gridLevels=[minV,(minV+maxV)/2,maxV];
+  var grid='';
+  gridLevels.forEach(function(v){
+    var y=toY(v), raw=rd(v);
+    var lbl=raw===0?'$0':(raw>0?'$'+Math.abs(raw):'-$'+Math.abs(raw));
+    grid+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="rgba(255,255,255,.07)" stroke-width="1"/>';
+    grid+='<text x="'+(PL-3)+'" y="'+(y+3)+'" text-anchor="end" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+lbl+'</text>';
+  });
+  // Zero line when range spans zero
+  var zeroLine='';
+  if (minV<0&&maxV>0) {
+    var zy=toY(0);
+    zeroLine='<line x1="'+PL+'" y1="'+zy+'" x2="'+(W-PR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-dasharray="3,2"/>';
+    grid+='<text x="'+(PL-3)+'" y="'+(zy+3)+'" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="7" font-family="monospace">$0</text>';
+  }
+  // Vertical axis line
+  var axisLine='<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+(H-PB)+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>';
+
+  // Polyline
+  var polyPts=pts.map(function(_,i){return toX(i)+','+toY(pts[i].v);}).join(' ');
+  var fillPts=polyPts+' '+(W-PR)+','+(H-PB)+' '+PL+','+(H-PB);
+
+  // Dots + hit areas
+  var dotsHtml=pts.map(function(p,i){
+    var x=toX(i),y=toY(p.v);
+    return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+col+'" stroke="rgba(6,8,22,.6)" stroke-width="1.5" id="tdot-'+i+'"/>'+
+           '<rect x="'+(x-14)+'" y="'+PT+'" width="28" height="'+CH+'" fill="transparent" style="cursor:crosshair"'+
+           ' ontouchstart="showTrendTip('+i+',event)" onmouseenter="showTrendTip('+i+',event)"'+
+           ' ontouchend="hideTrendTip()" onmouseleave="hideTrendTip()"/>';
+  }).join('');
+
+  // Crosshair line (initially hidden)
+  var crosshair='<line id="trend-xhair" x1="0" y1="'+PT+'" x2="0" y2="'+(H-PB)+'" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-dasharray="3,2" display="none"/>';
+
+  // X-axis labels
+  var safe=function(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+  var xAxis='<text x="'+PL+'" y="'+(H+3)+'" text-anchor="start" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+safe(pts[0].lbl)+'</text>'+
+            '<text x="'+(W-PR)+'" y="'+(H+3)+'" text-anchor="end" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+safe(pts[pts.length-1].lbl)+'</text>';
+
+  var gid='tg_'+(mode==='__group__'?'grp':mode.replace(/[^a-zA-Z0-9]/g,'_').slice(0,12));
+  return '<svg viewBox="0 0 '+W+' '+(H+6)+'" width="100%" style="display:block;overflow:visible">'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+col+'" stop-opacity=".2"/>'+
+      '<stop offset="100%" stop-color="'+col+'" stop-opacity=".01"/>'+
+    '</linearGradient></defs>'+
+    grid+zeroLine+axisLine+
+    '<polyline points="'+fillPts+'" fill="url(#'+gid+')" stroke="none"/>'+
+    '<polyline points="'+polyPts+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    crosshair+dotsHtml+xAxis+
+  '</svg>';
+}
+
+function showTrendTip(idx, evt) {
+  var dot = window._trendDots && window._trendDots[idx];
+  if (!dot) return;
+  if (evt && evt.cancelable) evt.preventDefault();
+
+  // Crosshair
+  var dotEl=document.getElementById('tdot-'+idx);
+  var xhair=document.getElementById('trend-xhair');
+  if (dotEl&&xhair) { var cx=dotEl.getAttribute('cx'); xhair.setAttribute('x1',cx); xhair.setAttribute('x2',cx); xhair.setAttribute('display',''); }
+
+  // Tooltip div
+  var tip=document.getElementById('trend-tooltip');
+  if (!tip) {
+    tip=document.createElement('div');
+    tip.id='trend-tooltip';
+    tip.style.cssText='position:fixed;background:rgba(10,12,26,.97);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:6px 11px;z-index:9999;pointer-events:none;white-space:nowrap;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5)';
+    document.body.appendChild(tip);
+  }
+  var mode=window._trendMode||'__group__';
+  var valStr=mode==='__group__'?'Pot: '+fmt(dot.v):fmtS(dot.v)+' cumulative';
+  var safe=function(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+  tip.innerHTML='<div style="font-family:monospace;font-size:11px;font-weight:700;color:rgba(255,255,255,.9)">'+safe(dot.lbl)+'</div>'+
+                '<div style="font-family:monospace;font-size:10px;color:rgba(255,255,255,.55);margin-top:1px">'+valStr+'</div>';
+  tip.style.display='block';
+  requestAnimationFrame(function(){
+    if (!dotEl) return;
+    var r=dotEl.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight;
+    var lx=Math.max(8, Math.min(r.left+r.width/2-tw/2, window.innerWidth-tw-8));
+    var ty=r.top-th-10; if(ty<8) ty=r.bottom+10;
+    tip.style.left=lx+'px'; tip.style.top=ty+'px';
+  });
+}
+
+function hideTrendTip() {
+  var tip=document.getElementById('trend-tooltip');
+  if (tip) tip.style.display='none';
+  var xhair=document.getElementById('trend-xhair');
+  if (xhair) xhair.setAttribute('display','none');
+}
+
+function trendSwitch(mode) {
+  window._trendMode=mode;
+  document.querySelectorAll('.trend-pill').forEach(function(b){
+    b.classList.toggle('trend-pill-on', b.dataset.mode===mode);
+  });
+  var wrap=document.getElementById('trend-svg-wrap');
+  if (wrap) wrap.innerHTML=_buildTrendSVG(mode);
 }
 
 function buildHistoryTab() {
