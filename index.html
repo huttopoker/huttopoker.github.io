@@ -4134,225 +4134,175 @@ function buildStatsTab() {
     '</div>';
 
   const tp = allSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
-  const tb = allSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins,0),0);
   const avgPot = rd(tp / tot);
-  const allPlayers = Object.keys(st.AT);
   const accent = currentTheme ? currentTheme.accent : 'var(--c-gold)';
   const accentRgb = currentTheme ? currentTheme.accentRgb : '245,158,11';
+  const atEntries = Object.entries(st.AT).sort((a,b)=>b[1].net-a[1].net);
 
-  let h = '';
+  /* ── SECTION 1: OVERVIEW ─────────────────────── */
+  let sOverview = '';
 
-  // ── THIS MONTH HIGHLIGHT
+  // This Month card
   const moNow = st.MO[mk];
   const moSessions = moNow ? allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===mk) : [];
   const moPot = moSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
   const moTopEntry = moNow ? Object.entries(moNow).sort((a,b)=>b[1].net-a[1].net)[0] : null;
   const moDate = new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   if (moSessions.length) {
-    h += '<div style="background:linear-gradient(135deg,rgba('+accentRgb+',.14),rgba('+accentRgb+',.06));border:1px solid rgba('+accentRgb+',.28);border-radius:16px;padding:14px 16px;margin-bottom:14px">'+
+    sOverview += '<div style="background:linear-gradient(135deg,rgba('+accentRgb+',.14),rgba('+accentRgb+',.06));border:1px solid rgba('+accentRgb+',.28);border-radius:16px;padding:14px 16px;margin-bottom:12px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
         '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:6px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>'+escH(moDate)+'</div>'+
         '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+moSessions.length+' game'+(moSessions.length!==1?'s':'')+'</div>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+
-        '<div style="text-align:center">'+
-          '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+accent+'">'+moSessions.length+'</div>'+
-          '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Sessions</div>'+
-        '</div>'+
-        '<div style="text-align:center;border-left:1px solid var(--c-bdr);border-right:1px solid var(--c-bdr)">'+
-          '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(moPot)+'</div>'+
-          '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Pot Total</div>'+
-        '</div>'+
+        '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:'+accent+'">'+moSessions.length+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Sessions</div></div>'+
+        '<div style="text-align:center;border-left:1px solid var(--c-bdr);border-right:1px solid var(--c-bdr)"><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(moPot)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Pot Total</div></div>'+
         '<div style="text-align:center">'+
           (moTopEntry ? '<div style="font-size:13px;font-weight:800;color:var(--c-green)">'+escH(moTopEntry[0])+'</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-green)">+'+fmt(moTopEntry[1].net)+'</div>' : '<div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">—</div>')+
           '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Top Winner</div>'+
         '</div>'+
       '</div>'+
     '</div>';
+  } else {
+    sOverview += '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:14px 16px;margin-bottom:12px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">No games this month yet</div>';
   }
 
-  // ── ALL-TIME KPI STRIP
-  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
-    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">All Games</div>'+
-      '<div style="font-family:var(--font-mono);font-size:22px;font-weight:900;color:'+accent+'">'+tot+'</div>'+
-    '</div>'+
-    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Total Pot</div>'+
-      '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(tp)+'</div>'+
-    '</div>'+
-    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Avg Pot</div>'+
-      '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(avgPot)+'</div>'+
-    '</div>'+
+  // All-time KPI strip
+  sOverview += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'+
+    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">All Games</div><div style="font-family:var(--font-mono);font-size:22px;font-weight:900;color:'+accent+'">'+tot+'</div></div>'+
+    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Total Pot</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(tp)+'</div></div>'+
+    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 10px;text-align:center"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Avg Pot</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(avgPot)+'</div></div>'+
   '</div>';
 
-  // ── P&L BAR CHART (all-time)
-  const atEntries = Object.entries(st.AT).sort((a,b)=>b[1].net-a[1].net);
+  // Pot sparkline
+  const recent = allSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0)).slice(-12);
+  if (recent.length >= 2) {
+    const pots = recent.map(s=>s.players.reduce((a,p)=>a+p.buyins*(s.buyin||BUYIN),0));
+    const maxP=Math.max(...pots), minP=Math.min(...pots), range=maxP-minP||1;
+    const W=280, H=48;
+    const pts = pots.map((p,i)=>(Math.round(i*(W/(pots.length-1)))+','+Math.round(H-((p-minP)/range)*(H-10)-5))).join(' ');
+    sOverview += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:12px">'+
+      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Pot Trend · Last '+recent.length+' Games</div>'+
+      '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block">'+
+        '<defs><linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+accent+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+accent+'" stop-opacity=".02"/></linearGradient></defs>'+
+        '<polyline points="'+pts+' '+W+','+H+' 0,'+H+'" fill="url(#sg2)" stroke="none"/>'+
+        '<polyline points="'+pts+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+        pots.map((p,i)=>{const x=Math.round(i*(W/(pots.length-1)));const y=Math.round(H-((p-minP)/range)*(H-10)-5);return '<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="'+accent+'"/>';}).join('')+
+      '</svg>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[0].date||'')+'</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[recent.length-1].date||'')+'</span></div>'+
+    '</div>';
+  }
+
+  /* ── SECTION 2: LEADERBOARD ────────────────────── */
+  let sLeaders = '';
+
+  // P&L bar chart
   if (atEntries.length) {
     const maxAbs = Math.max(...atEntries.map(([,d])=>Math.abs(d.net)), 1);
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px 14px 10px;margin-bottom:14px">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>All-Time P&L</div>'+
-      atEntries.map(([n,d], i) => {
-        const pct = Math.round(Math.abs(d.net) / maxAbs * 100);
-        const pos = d.net >= 0;
-        const wr = d.sessions > 0 ? Math.round(d.wins/d.sessions*100) : 0;
-        const medalColors = ['#F59E0B','#94A3B8','#CD7F32'];
-        const medalBg = ['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
-        const rankBadge = i < 3
-          ? '<span style="font-family:var(--font-mono);font-size:10px;font-weight:900;color:'+medalColors[i]+';background:'+medalBg[i]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(i===0?'#1':i===1?'#2':'#3')+'</span>'
-          : '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);flex-shrink:0">'+(i+1)+'.</span>';
+    sLeaders += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px 14px 10px;margin-bottom:12px">'+
+      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>All-Time P&amp;L</div>'+
+      atEntries.map(([n,d],i) => {
+        const pct = Math.round(Math.abs(d.net)/maxAbs*100), pos = d.net>=0;
+        const wr = d.sessions>0 ? Math.round(d.wins/d.sessions*100) : 0;
+        const mc=['#F59E0B','#94A3B8','#CD7F32'], mb=['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
+        const rank = i<3 ? '<span style="font-family:var(--font-mono);font-size:10px;font-weight:900;color:'+mc[i]+';background:'+mb[i]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(i===0?'#1':i===1?'#2':'#3')+'</span>'
+                         : '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);flex-shrink:0;min-width:20px">'+(i+1)+'.</span>';
         return '<div style="margin-bottom:9px">'+
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'+
-            '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'+
-              rankBadge+
-              '<span style="font-size:13px;font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(n)+'</span>'+
+            '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'+rank+
+              '<span style="font-size:13px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</span>'+
               '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);flex-shrink:0">'+wr+'%</span>'+
             '</div>'+
             '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+(pos?'var(--c-green)':'var(--c-red)')+';flex-shrink:0;margin-left:8px">'+fmtS(d.net)+'</span>'+
           '</div>'+
-          '<div style="height:6px;background:var(--c-bg3);border-radius:4px;overflow:hidden">'+
-            '<div style="height:100%;width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+';border-radius:4px;transition:width .6s ease;opacity:.85"></div>'+
-          '</div>'+
+          '<div style="height:6px;background:var(--c-bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+';border-radius:4px;opacity:.85"></div></div>'+
         '</div>';
       }).join('')+
     '</div>';
-  }
 
-  // ── WIN RATE + STATS TABLE
-  if (atEntries.length) {
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;overflow:hidden;margin-bottom:14px">'+
-      '<div style="padding:12px 14px 8px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Player Stats</div>'+
-      '<div style="overflow-x:auto">'+
-      '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    // Player stats table
+    sLeaders += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;overflow:hidden;margin-bottom:12px">'+
+      '<div style="padding:12px 14px 8px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Player Stats</div>'+
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--c-bdr)">'+
-          '<th style="padding:6px 14px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">Player</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">GP</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">W</th>'+
-          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">Win%</th>'+
-          '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">Net</th>'+
-        '</tr></thead>'+
-        '<tbody>'+
-        atEntries.map(([n,d], i) => {
-          const wr = d.sessions > 0 ? Math.round(d.wins/d.sessions*100) : 0;
-          const netCls = d.net>0?'var(--c-green)':d.net<0?'var(--c-red)':'var(--c-muted)';
-          const rowBg = i%2===0 ? 'transparent' : 'rgba(255,255,255,.02)';
-          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+rowBg+'">'+
-            '<td style="padding:8px 14px;font-weight:700;color:var(--c-txt)">'+escH(n)+'</td>'+
-            '<td style="padding:8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
-            '<td style="padding:8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.wins+'</td>'+
-            '<td style="padding:8px;text-align:center">'+
+          '<th style="padding:6px 14px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase">Player</th>'+
+          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">GP</th>'+
+          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">W</th>'+
+          '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Win%</th>'+
+          '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
+        '</tr></thead><tbody>'+
+        atEntries.map(([n,d],i) => {
+          const wr=d.sessions>0?Math.round(d.wins/d.sessions*100):0;
+          const nc=d.net>0?'var(--c-green)':d.net<0?'var(--c-red)':'var(--c-muted)';
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+'">'+
+            '<td style="padding:9px 14px;font-weight:700;color:var(--c-txt)">'+escH(n)+'</td>'+
+            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
+            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.wins+'</td>'+
+            '<td style="padding:9px 8px;text-align:center">'+
               '<div style="display:inline-flex;align-items:center;gap:4px">'+
-                '<div style="width:32px;height:4px;background:var(--c-bg3);border-radius:2px;overflow:hidden">'+
-                  '<div style="height:100%;width:'+wr+'%;background:'+accent+';border-radius:2px"></div>'+
-                '</div>'+
+                '<div style="width:32px;height:4px;background:var(--c-bg3);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+wr+'%;background:'+accent+';border-radius:2px"></div></div>'+
                 '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+wr+'%</span>'+
               '</div>'+
             '</td>'+
-            '<td style="padding:8px 14px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+netCls+'">'+fmtS(d.net)+'</td>'+
+            '<td style="padding:9px 14px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+'">'+fmtS(d.net)+'</td>'+
           '</tr>';
         }).join('')+
-        '</tbody>'+
-      '</table></div></div>';
-  }
-
-  // ── SESSION SPARKLINE (last 12 sessions)
-  const recent = allSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0)).slice(-12);
-  if (recent.length >= 2) {
-    const pots = recent.map(s => s.players.reduce((a,p)=>a+p.buyins*(s.buyin||BUYIN),0));
-    const maxP = Math.max(...pots), minP = Math.min(...pots);
-    const range = maxP - minP || 1;
-    const W = 280, H = 50;
-    const pts = pots.map((p,i) => {
-      const x = Math.round(i * (W/(pots.length-1)));
-      const y = Math.round(H - ((p-minP)/range)*(H-10) - 5);
-      return x+','+y;
-    }).join(' ');
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:14px">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);margin-bottom:10px;display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Pot Size Trend (Last '+recent.length+' Games)</div>'+
-      '<div style="position:relative;overflow:hidden">'+
-        '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block">'+
-          '<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">'+
-            '<stop offset="0%" stop-color="'+accent+'" stop-opacity=".25"/>'+
-            '<stop offset="100%" stop-color="'+accent+'" stop-opacity=".02"/>'+
-          '</linearGradient></defs>'+
-          '<polyline points="'+pts+' '+W+','+H+' 0,'+H+'" fill="url(#sg)" stroke="none"/>'+
-          '<polyline points="'+pts+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
-          pots.map((p,i) => {
-            const x = Math.round(i * (W/(pots.length-1)));
-            const y = Math.round(H - ((p-minP)/range)*(H-10) - 5);
-            return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+accent+'"/>';
-          }).join('')+
-        '</svg>'+
-        '<div style="display:flex;justify-content:space-between;margin-top:4px">'+
-          '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[0].date||'')+'</span>'+
-          '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+escH(recent[recent.length-1].date||'')+'</span>'+
-        '</div>'+
-      '</div>'+
+        '</tbody></table></div>'+
     '</div>';
   }
 
-  // ── MONTHLY BREAKDOWN TABLE
+  /* ── SECTION 3: RECORDS ──────────────────────── */
+  let sRecords = '';
+
+  // Records grid
+  try {
+    const {bigWin, bigPot, bigBust, streaks} = biggestEver();
+    const topStreak = Object.entries(streaks).sort((a,b)=>b[1].best-a[1].best)[0];
+    const curStreaks = Object.entries(streaks).filter(([,d])=>d.cur>=2).sort((a,b)=>b[1].cur-a[1].cur);
+    sRecords += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:12px">'+
+      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>All-Time Records</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+      (bigWin.name?'<div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🏆 Biggest Win</div><div style="font-weight:800;font-size:14px;color:var(--c-green)">'+escH(bigWin.name)+'</div><div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--c-green)">+'+fmt(bigWin.amt)+'</div></div>':'') +
+      (bigPot.amt?'<div style="background:rgba('+accentRgb+',.07);border:1px solid rgba('+accentRgb+',.2);border-radius:12px;padding:12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">💰 Biggest Pot</div><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+accent+'">'+fmt(bigPot.amt)+'</div></div>':'') +
+      (topStreak&&topStreak[1].best>1?'<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">⚡ Best Streak</div><div style="font-weight:800;font-size:14px;color:var(--c-red)">'+escH(topStreak[0])+'</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-red)">'+topStreak[1].best+' wins</div></div>':'') +
+      (bigBust.count>0?'<div style="background:rgba(100,100,100,.07);border:1px solid var(--c-bdr);border-radius:12px;padding:12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">💸 Most Busts</div><div style="font-weight:800;font-size:14px;color:var(--c-muted)">'+escH(bigBust.name)+'</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">&times;'+bigBust.count+'</div></div>':'') +
+      '</div>'+
+      (curStreaks.length ? '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--c-bdr)"><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-red);margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Hot Right Now</div>'+
+        curStreaks.slice(0,3).map(([n,d])=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(239,68,68,.06);border-radius:10px;margin-bottom:6px"><span style="font-weight:700;font-size:14px">'+escH(n)+'</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--c-red)">⚡ '+d.cur+' in a row</span></div>').join('')+'</div>' : '')+
+    '</div>';
+  } catch(e) {}
+
+  // Monthly breakdown
   const moKeys = Object.keys(st.MO).sort().reverse().slice(0,6);
   if (moKeys.length) {
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;overflow:hidden;margin-bottom:14px">'+
-      '<div style="padding:12px 14px 8px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Monthly Breakdown</div>'+
-      '<div style="overflow-x:auto">'+
-      '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    sRecords += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;overflow:hidden;margin-bottom:12px">'+
+      '<div style="padding:12px 14px 8px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Monthly Breakdown</div>'+
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--c-bdr)">'+
           '<th style="padding:6px 14px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase">Month</th>'+
           '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Games</th>'+
           '<th style="padding:6px 8px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Players</th>'+
           '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Top Winner</th>'+
-        '</tr></thead>'+
-        '<tbody>'+
-        moKeys.map((mk, i) => {
-          const moSessions = allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===mk);
-          const moPot = moSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
-          const moPlayers = Object.keys(st.MO[mk]).length;
-          const topEntry = Object.entries(st.MO[mk]).sort((a,b)=>b[1].net-a[1].net)[0];
-          const rowBg = i%2===0 ? 'transparent' : 'rgba(255,255,255,.02)';
-          const isCur = mk === mKey();
-          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+rowBg+(isCur?';border-left:3px solid '+accent:'')+'">'+
-            '<td style="padding:8px 14px">'+
-              '<div style="font-weight:700;color:var(--c-txt);font-size:12px">'+mk+'</div>'+
-              '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+fmt(moPot)+'</div>'+
-            '</td>'+
-            '<td style="padding:8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-txt)">'+moSessions.length+'</td>'+
-            '<td style="padding:8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">'+moPlayers+'</td>'+
-            '<td style="padding:8px 14px;text-align:right">'+
-              (topEntry ? '<div style="font-weight:700;font-size:12px;color:var(--c-green)">'+escH(topEntry[0])+'</div>'+
-                '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-green)">+'+fmt(topEntry[1].net)+'</div>' : '—')+
-            '</td>'+
+        '</tr></thead><tbody>'+
+        moKeys.map((k,i) => {
+          const ms=allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===k);
+          const mp=ms.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
+          const mpl=Object.keys(st.MO[k]).length;
+          const top=Object.entries(st.MO[k]).sort((a,b)=>b[1].net-a[1].net)[0];
+          const isCur=k===mKey();
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+(isCur?';border-left:3px solid '+accent:'')+'">'+
+            '<td style="padding:9px 14px"><div style="font-weight:700;color:var(--c-txt);font-size:12px">'+k+(isCur?' <span style="font-family:var(--font-mono);font-size:9px;color:'+accent+';background:rgba('+accentRgb+',.12);border-radius:10px;padding:1px 6px">now</span>':'')+'</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+fmt(mp)+'</div></td>'+
+            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-txt)">'+ms.length+'</td>'+
+            '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">'+mpl+'</td>'+
+            '<td style="padding:9px 14px;text-align:right">'+(top?'<div style="font-weight:700;font-size:12px;color:var(--c-green)">'+escH(top[0])+'</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--c-green)">+'+fmt(top[1].net)+'</div>':'—')+'</td>'+
           '</tr>';
         }).join('')+
-        '</tbody>'+
-      '</table></div></div>';
+        '</tbody></table></div>'+
+    '</div>';
   }
 
-  // ── RECORDS
-  try {
-    const {bigWin, bigPot, bigBust, streaks} = biggestEver();
-    const topStreak = Object.entries(streaks).sort((a,b)=>b[1].best-a[1].best)[0];
-    const curStreaks = Object.entries(streaks).filter(([,d])=>d.cur>=2).sort((a,b)=>b[1].cur-a[1].cur);
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:14px">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>Records</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-      (bigWin.name?'<div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:10px 12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;display:flex;align-items:center;gap:4px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Biggest Win</div><div style="font-weight:800;font-size:13px;color:var(--c-green)">'+escH(bigWin.name)+'</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-green)">+'+fmt(bigWin.amt)+'</div></div>':'') +
-      (bigPot.amt?'<div style="background:rgba('+accentRgb+',.07);border:1px solid rgba('+accentRgb+',.2);border-radius:12px;padding:10px 12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;display:flex;align-items:center;gap:4px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg>Biggest Pot</div><div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+accent+'">'+fmt(bigPot.amt)+'</div></div>':'') +
-      (topStreak&&topStreak[1].best>1?'<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:10px 12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;display:flex;align-items:center;gap:4px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Best Streak</div><div style="font-weight:800;font-size:13px;color:var(--c-red)">'+escH(topStreak[0])+'</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-red)">'+topStreak[1].best+' wins</div></div>':'') +
-      (bigBust.count>0?'<div style="background:rgba(100,100,100,.07);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 12px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;display:flex;align-items:center;gap:4px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Most Busts</div><div style="font-weight:800;font-size:13px;color:var(--c-muted)">'+escH(bigBust.name)+'</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">\xd7'+bigBust.count+'</div></div>':'') +
-      '</div>'+
-      (curStreaks.length?'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--c-bdr)"><div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Hot Right Now</div>'+
-        curStreaks.slice(0,3).map(([n,d])=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(239,68,68,.07);border-radius:8px;margin-bottom:5px">'+
-          '<span style="font-weight:700;font-size:13px">'+escH(n)+'</span>'+
-          '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-red);display:flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'+d.cur+' in a row</span>'+
-        '</div>').join('')+'</div>':'')
-    + '</div>';
-  } catch(e) {}
-
-
-  // ── PER-PLAYER PERFORMANCE GRAPHS
+  /* ── SECTION 4: PLAYERS ──────────────────────── */
+  let sPlayers = '';
   if (atEntries.length) {
     const _allMoKeys = Object.keys(st.MO).sort();
     const _allYrKeys = Object.keys(st.YR).sort();
@@ -4360,71 +4310,49 @@ function buildStatsTab() {
     function _barChart(data, H) {
       if (!data.length) return '<div style="text-align:center;padding:12px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No data yet</div>';
       const maxAbs = Math.max.apply(null, data.map(function(d){return Math.abs(d.v);})) || 1;
-      const n = data.length;
-      const gap = 3;
+      const n = data.length, gap = 3;
       const bw = Math.max(10, Math.floor((288 - gap*(n+1)) / n));
-      const tw = n * (bw + gap) + gap;
-      const zY = H / 2;
-      const bars = data.map(function(d, i) {
-        const pct = Math.abs(d.v) / maxAbs;
-        const bh = Math.max(pct * (H/2 - 4), 1);
-        const x = gap + i * (bw + gap);
-        const col = d.v >= 0 ? '#22C55E' : '#EF4444';
-        const y = d.v >= 0 ? zY - bh : zY;
+      const tw = n*(bw+gap)+gap, zY = H/2;
+      const bars = data.map(function(d,i) {
+        const pct=Math.abs(d.v)/maxAbs, bh=Math.max(pct*(H/2-4),1);
+        const x=gap+i*(bw+gap), col=d.v>=0?'#22C55E':'#EF4444', y=d.v>=0?zY-bh:zY;
         return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+col+'" opacity=".8" rx="2"/>'+
                '<text x="'+(x+bw/2)+'" y="'+(H+11)+'" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="8" font-family="monospace">'+escH(d.l)+'</text>';
       }).join('');
-      return '<svg viewBox="0 0 '+tw+' '+(H+16)+'" width="100%" style="overflow:visible">'+
-        '<line x1="0" y1="'+zY+'" x2="'+tw+'" y2="'+zY+'" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'+
-        bars+'</svg>';
+      return '<svg viewBox="0 0 '+tw+' '+(H+16)+'" width="100%" style="overflow:visible"><line x1="0" y1="'+zY+'" x2="'+tw+'" y2="'+zY+'" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'+bars+'</svg>';
     }
 
     function _monthChart(name) {
-      const keys = _allMoKeys.slice(-9);
-      const data = keys.map(function(mk) {
-        const mo = st.MO[mk] && st.MO[mk][name];
-        const d = new Date(mk+'-02');
-        const lbl = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-        return {l: lbl, v: mo ? mo.net : 0, s: mo ? mo.sessions : 0};
-      }).filter(function(d){ return d.s > 0; });
+      const keys=_allMoKeys.slice(-9);
+      const data=keys.map(function(mk){
+        const mo=st.MO[mk]&&st.MO[mk][name], d=new Date(mk+'-02');
+        const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+        return {l:lbl, v:mo?mo.net:0, s:mo?mo.sessions:0};
+      }).filter(function(d){return d.s>0;});
       if (!data.length) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No games this period</div>';
       return _barChart(data, 54);
     }
 
     function _yearChart(name) {
-      const data = _allYrKeys.map(function(yk) {
-        const yr = st.YR[yk] && st.YR[yk][name];
-        return {l: yk, v: yr ? yr.net : 0, s: yr ? yr.sessions : 0};
-      }).filter(function(d){ return d.s > 0; });
+      const data=_allYrKeys.map(function(yk){
+        const yr=st.YR[yk]&&st.YR[yk][name];
+        return {l:yk, v:yr?yr.net:0, s:yr?yr.sessions:0};
+      }).filter(function(d){return d.s>0;});
       if (!data.length) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">No games this year</div>';
       return _barChart(data, 54);
     }
 
     function _overallChart(name) {
-      const sess = allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);})
-        .filter(function(s){return s.players.some(function(p){return p.name===name;});});
-      if (sess.length < 2) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">Need 2+ games</div>';
-      let cum = 0;
-      const W = 288, H = 50;
-      const pts = sess.map(function(s, i) {
-        const p = s.players.find(function(pp){return pp.name===name;});
-        cum = rd(cum + rd(p.cashOut - p.buyins*(s.buyin||BUYIN)));
-        const x = Math.round(i * W / (sess.length - 1));
-        return {x: x, y: cum};
-      });
-      const maxV = Math.max.apply(null, pts.map(function(p){return p.y;}));
-      const minV = Math.min.apply(null, pts.map(function(p){return p.y;}));
-      const range = (maxV - minV) || 1;
-      const toY = function(v){ return Math.round(H - ((v - minV) / range) * (H - 8) - 4); };
-      const zY = minV >= 0 ? H : maxV <= 0 ? 0 : toY(0);
-      const polyPts = pts.map(function(p){return p.x+','+toY(p.y);}).join(' ');
-      const last = pts[pts.length-1];
-      const col = last.y >= 0 ? '#22C55E' : '#EF4444';
+      const sess=allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===name;});});
+      if (sess.length<2) return '<div style="text-align:center;padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">Need 2+ games</div>';
+      let cum=0; const W=288,H=50;
+      const pts=sess.map(function(s,i){const p=s.players.find(function(pp){return pp.name===name;}); cum=rd(cum+rd(p.cashOut-p.buyins*(s.buyin||BUYIN))); return {x:Math.round(i*W/(sess.length-1)),y:cum};});
+      const maxV=Math.max.apply(null,pts.map(function(p){return p.y;})), minV=Math.min.apply(null,pts.map(function(p){return p.y;})), range=(maxV-minV)||1;
+      const toY=function(v){return Math.round(H-((v-minV)/range)*(H-8)-4);};
+      const zY=minV>=0?H:maxV<=0?0:toY(0), polyPts=pts.map(function(p){return p.x+','+toY(p.y);}).join(' ');
+      const last=pts[pts.length-1], col=last.y>=0?'#22C55E':'#EF4444';
       return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+
-        '<defs><linearGradient id="og'+sess.length+'" x1="0" y1="0" x2="0" y2="1">'+
-          '<stop offset="0%" stop-color="'+col+'" stop-opacity=".25"/>'+
-          '<stop offset="100%" stop-color="'+col+'" stop-opacity=".02"/>'+
-        '</linearGradient></defs>'+
+        '<defs><linearGradient id="og'+sess.length+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col+'" stop-opacity=".02"/></linearGradient></defs>'+
         '<line x1="0" y1="'+zY+'" x2="'+W+'" y2="'+zY+'" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4,3"/>'+
         '<polyline points="'+polyPts+' '+W+','+H+' 0,'+H+'" fill="url(#og'+sess.length+')" stroke="none"/>'+
         '<polyline points="'+polyPts+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
@@ -4433,55 +4361,62 @@ function buildStatsTab() {
     }
 
     function _playerCard(name, d, chartHtml, wr) {
-      const nc = d.net > 0 ? '#22C55E' : d.net < 0 ? '#EF4444' : 'rgba(255,255,255,.5)';
-      const ab = d.net > 0 ? 'rgba(34,197,94,.18)' : d.net < 0 ? 'rgba(239,68,68,.14)' : 'rgba(100,100,100,.14)';
+      const nc=d.net>0?'#22C55E':d.net<0?'#EF4444':'rgba(255,255,255,.5)', ab=d.net>0?'rgba(34,197,94,.18)':d.net<0?'rgba(239,68,68,.14)':'rgba(100,100,100,.14)';
       return '<div class="pperf-card">'+
         '<div class="pperf-header">'+
           '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
-          '<div style="flex:1;min-width:0">'+
-            '<div class="pperf-name">'+escH(name)+'</div>'+
-            '<div class="pperf-meta">'+d.sessions+' game'+(d.sessions!==1?'s':'')+' &middot; '+d.wins+' win'+(d.wins!==1?'s':'')+' &middot; '+wr+'%</div>'+
-          '</div>'+
-          '<div style="text-align:right;flex-shrink:0">'+
-            '<div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div>'+
-            '<div class="pperf-meta">net</div>'+
-          '</div>'+
+          '<div style="flex:1;min-width:0"><div class="pperf-name">'+escH(name)+'</div><div class="pperf-meta">'+d.sessions+' game'+(d.sessions!==1?'s':'')+' &middot; '+d.wins+' win'+(d.wins!==1?'s':'')+' &middot; '+wr+'%</div></div>'+
+          '<div style="text-align:right;flex-shrink:0"><div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div><div class="pperf-meta">net</div></div>'+
         '</div>'+
         '<div>'+chartHtml+'</div>'+
       '</div>';
     }
 
-    const _moCards = atEntries.map(function(e){
-      const wr = e[1].sessions > 0 ? Math.round(e[1].wins/e[1].sessions*100) : 0;
-      return _playerCard(e[0], e[1], _monthChart(e[0]), wr);
-    }).join('');
+    const _moCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_monthChart(e[0]),wr);}).join('');
+    const _yrCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_yearChart(e[0]),wr);}).join('');
+    const _ovCards = atEntries.map(function(e){const wr=e[1].sessions>0?Math.round(e[1].wins/e[1].sessions*100):0; return _playerCard(e[0],e[1],_overallChart(e[0]),wr);}).join('');
 
-    const _yrCards = atEntries.map(function(e){
-      const wr = e[1].sessions > 0 ? Math.round(e[1].wins/e[1].sessions*100) : 0;
-      return _playerCard(e[0], e[1], _yearChart(e[0]), wr);
-    }).join('');
-
-    const _ovCards = atEntries.map(function(e){
-      const wr = e[1].sessions > 0 ? Math.round(e[1].wins/e[1].sessions*100) : 0;
-      return _playerCard(e[0], e[1], _overallChart(e[0]), wr);
-    }).join('');
-
-    h += '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px;margin-bottom:14px">'+
-      '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:3px;color:var(--c-muted);margin-bottom:12px;display:flex;align-items:center;gap:7px">'+
-        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'+
-        'Player Performance</div>'+
-      '<div class="stat-tabs">'+
+    sPlayers =
+      '<div class="stat-tabs" style="margin-bottom:12px">'+
         '<button class="stat-tab stat-tab-on" onclick="setStatsView(\'month\')">Monthly</button>'+
         '<button class="stat-tab" onclick="setStatsView(\'year\')">Yearly</button>'+
         '<button class="stat-tab" onclick="setStatsView(\'overall\')">All Time</button>'+
       '</div>'+
       '<div id="sview-month">'+_moCards+'</div>'+
       '<div id="sview-year" style="display:none">'+_yrCards+'</div>'+
-      '<div id="sview-overall" style="display:none">'+_ovCards+'</div>'+
-    '</div>';
+      '<div id="sview-overall" style="display:none">'+_ovCards+'</div>';
+  } else {
+    sPlayers = '<div style="text-align:center;padding:32px 20px;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">No player data yet</div>';
   }
 
-  return h;
+  /* ── ASSEMBLE WITH SECTION TABS ─────────────── */
+  const tabBar =
+    '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none;-ms-overflow-style:none">'+
+      '<button id="sstat-btn-overview" class="sstat-tab sstat-on" onclick="setStatSection(\'overview\')" style="white-space:nowrap">📊 Overview</button>'+
+      '<button id="sstat-btn-leaders"  class="sstat-tab" onclick="setStatSection(\'leaders\')"  style="white-space:nowrap">🏆 Leaderboard</button>'+
+      '<button id="sstat-btn-records"  class="sstat-tab" onclick="setStatSection(\'records\')"  style="white-space:nowrap">⚡ Records</button>'+
+      '<button id="sstat-btn-players"  class="sstat-tab" onclick="setStatSection(\'players\')"  style="white-space:nowrap">👤 Players</button>'+
+    '</div>'+
+    '<style>'+
+      '.sstat-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s}'+
+      '.sstat-on{background:var(--c-gold-lt) !important;border-color:var(--c-gold-md) !important;color:var(--c-gold) !important}'+
+    '</style>';
+
+  return tabBar+
+    '<div id="sstat-overview">'+sOverview+'</div>'+
+    '<div id="sstat-leaders"  style="display:none">'+sLeaders+'</div>'+
+    '<div id="sstat-records"  style="display:none">'+sRecords+'</div>'+
+    '<div id="sstat-players"  style="display:none">'+sPlayers+'</div>';
+}
+
+function setStatSection(sec) {
+  ['overview','leaders','records','players'].forEach(function(s) {
+    const el = document.getElementById('sstat-'+s);
+    if (el) el.style.display = s===sec ? 'block' : 'none';
+    const btn = document.getElementById('sstat-btn-'+s);
+    if (btn) btn.classList.toggle('sstat-on', s===sec);
+  });
+  window.scrollTo({top: document.getElementById('home-body') ? document.getElementById('home-body').offsetTop : 0, behavior:'smooth'});
 }
 
 function buildHistoryTab() {
