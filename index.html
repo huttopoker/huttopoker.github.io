@@ -500,17 +500,18 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .pperf-net{font-family:var(--font-mono);font-size:14px;font-weight:800;}
 .pperf-meta{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;}
 /* ── Player card: whole-card swipe (right=buyin, left=undo) ── */
-.p-card { position:relative; overflow:hidden; cursor:grab; }
+.p-card { position:relative; overflow:hidden; cursor:grab; will-change:transform; }
 .p-card.early-out { cursor:default; }
-/* Swipe fill layers */
-.pc-fill-r { position:absolute; top:0; bottom:0; left:0; width:0; background:linear-gradient(90deg,rgba(34,197,94,.06),rgba(34,197,94,.45)); pointer-events:none; z-index:0; transition:width .18s ease,opacity .18s ease; }
-.pc-fill-l { position:absolute; top:0; bottom:0; right:0; width:0; background:linear-gradient(270deg,rgba(239,68,68,.06),rgba(239,68,68,.45)); pointer-events:none; z-index:0; transition:width .18s ease,opacity .18s ease; }
+/* Swipe fill layers — NO transition during drag (.p-swiping suppresses it), transition only on reset */
+.pc-fill-r { position:absolute; top:0; bottom:0; left:0; width:0; background:linear-gradient(90deg,rgba(34,197,94,.06),rgba(34,197,94,.45)); pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1),opacity .22s; }
+.pc-fill-l { position:absolute; top:0; bottom:0; right:0; width:0; background:linear-gradient(270deg,rgba(239,68,68,.06),rgba(239,68,68,.45)); pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1),opacity .22s; }
+.p-swiping .pc-fill-r, .p-swiping .pc-fill-l { transition:none !important; }
 /* Committed state: full-card fill, text fades */
-.swipe-commit-r .pc-fill-r { width:100% !important; background:linear-gradient(90deg,rgba(34,197,94,.12),rgba(34,197,94,.62)) !important; transition:width .16s cubic-bezier(.34,1.2,.64,1),opacity .16s !important; }
-.swipe-commit-l .pc-fill-l { width:100% !important; background:linear-gradient(270deg,rgba(239,68,68,.12),rgba(239,68,68,.62)) !important; transition:width .16s cubic-bezier(.34,1.2,.64,1),opacity .16s !important; }
-.swipe-commit-r .p-card-main, .swipe-commit-l .p-card-main { opacity:0; transition:opacity .12s ease; }
+.swipe-commit-r .pc-fill-r { width:100% !important; background:linear-gradient(90deg,rgba(34,197,94,.12),rgba(34,197,94,.62)) !important; transition:width .18s cubic-bezier(.34,1.2,.64,1),opacity .18s !important; }
+.swipe-commit-l .pc-fill-l { width:100% !important; background:linear-gradient(270deg,rgba(239,68,68,.12),rgba(239,68,68,.62)) !important; transition:width .18s cubic-bezier(.34,1.2,.64,1),opacity .18s !important; }
+.swipe-commit-r .p-card-main, .swipe-commit-l .p-card-main { opacity:0; transition:opacity .14s ease; }
 /* Confirm icon overlay */
-.pc-confirm { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:900; pointer-events:none; z-index:4; opacity:0; transition:opacity .12s ease; letter-spacing:0; }
+.pc-confirm { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:900; pointer-events:none; z-index:4; opacity:0; transition:opacity .14s ease; letter-spacing:0; }
 .swipe-commit-r .pc-confirm-r, .swipe-commit-l .pc-confirm-l { opacity:1; }
 /* Buyin count pop animation */
 @keyframes numPop { 0%{transform:scale(1)} 35%{transform:scale(1.5)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
@@ -650,8 +651,13 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
   -webkit-tap-highlight-color: transparent;
 }
 button, a, [onclick], select, input, textarea, label,
-.hnav-btn, .p-card, .settle-tile, .p-btn, .eco-trigger {
+.hnav-btn, .settle-tile, .p-btn, .eco-trigger {
   touch-action: manipulation;
+  cursor: pointer;
+}
+/* p-card needs pan-y: browser handles vertical scroll, JS handles horizontal swipe */
+.p-card {
+  touch-action: pan-y;
   cursor: pointer;
 }
 /* Minimum 44px touch targets for iOS HIG / Android Material compliance */
@@ -5686,7 +5692,10 @@ function renderGame() {
       '</select>'+
     '</div>';
 
-  const list = document.getElementById('p-list'); list.innerHTML='';
+  const list = document.getElementById('p-list');
+  // Preserve scroll position — renderGame() rebuilds the list which resets scroll on iOS
+  var _savedScrollY = window.scrollY || window.pageYOffset || 0;
+  list.innerHTML='';
   _renderActivity();
   // Keep original selection order — only push early-out players to the end
   const sortedPlayers = session.players.slice().sort((a,b) => {
@@ -5770,20 +5779,34 @@ function renderGame() {
       var _csx = 0, _csy = 0, _ctracking = false, _clocked = false;
       var fillR = card.querySelector('.pc-fill-r');
       var fillL = card.querySelector('.pc-fill-l');
-
       var _committed = false;
+
+      // COMMIT_THRESHOLD: fraction of card width needed to trigger action
+      // 0.38 = ~38% of width — intentional but not twitchy
+      var COMMIT_FRAC = 0.38;
+      // MAX_DRAG: how far the card visually travels (rubber-bands past commit)
+      var MAX_DRAG_FRAC = 0.55;
+
+      function _springBack() {
+        card.classList.remove('p-swiping');
+        card.style.transition = 'transform .28s cubic-bezier(.34,1.56,.64,1)';
+        card.style.transform = 'translateX(0)';
+        setTimeout(function(){ card.style.transition = ''; }, 300);
+      }
 
       function _resetCardSwipe() {
         _ctracking = false; _clocked = false; _committed = false;
-        card.classList.remove('swipe-commit-r','swipe-commit-l');
+        card.classList.remove('swipe-commit-r','swipe-commit-l','p-swiping');
         fillR.style.width = fillL.style.width = '0';
         fillR.style.opacity = fillL.style.opacity = '0';
+        _springBack();
       }
 
       card.addEventListener('pointerdown', function(e) {
         if (e.target.closest('button, input, select, .eco-panel')) return;
         _csx = e.clientX; _csy = e.clientY;
         _ctracking = true; _clocked = false; _committed = false;
+        card.style.transition = 'none';
         card.setPointerCapture(e.pointerId);
       });
 
@@ -5792,30 +5815,42 @@ function renderGame() {
         var dx = e.clientX - _csx;
         var dy = e.clientY - _csy;
         if (!_clocked) {
-          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-          if (Math.abs(dy) >= Math.abs(dx) * 0.8) { _resetCardSwipe(); return; }
+          if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+          // If gesture is more vertical than horizontal, cancel and let page scroll
+          if (Math.abs(dy) > Math.abs(dx) * 0.7) { _ctracking = false; return; }
           _clocked = true;
+          card.classList.add('p-swiping'); // suppress fill transitions during drag
           haptic('light');
         }
         e.preventDefault();
         var W = card.offsetWidth;
-        var max = W * 0.65;
-        var raw = Math.max(-W, Math.min(W, dx));
-        var pct = Math.min(Math.abs(raw) / max, 1);
-        var nowCommit = pct >= 0.44;
+        var commitPx = W * COMMIT_FRAC;
+        var maxPx    = W * MAX_DRAG_FRAC;
+        var raw = dx;
+        var absDx = Math.abs(raw);
+        // Rubber-band: full movement up to commitPx, then resistance beyond
+        var travel = absDx <= commitPx
+          ? absDx
+          : commitPx + (absDx - commitPx) * 0.35;
+        travel = Math.min(travel, maxPx);
+        var sign = raw > 0 ? 1 : -1;
+        var pct  = Math.min(absDx / commitPx, 1); // 0→1 as finger reaches commit point
 
+        var nowCommit = absDx >= commitPx;
         if (nowCommit && !_committed) { _committed = true; haptic('medium'); }
         if (!nowCommit && _committed) { _committed = false; }
+
+        // Physical card movement
+        card.style.transform = 'translateX(' + (sign * travel) + 'px)';
 
         if (raw > 0) {
           card.classList.toggle('swipe-commit-r', nowCommit);
           card.classList.remove('swipe-commit-l');
           if (!nowCommit) {
-            // lighter at leading edge → darker as fill builds
             var aLead = (0.04 + pct * 0.22).toFixed(2);
-            var aTail = (0.12 + pct * 0.48).toFixed(2);
+            var aTail = (0.14 + pct * 0.50).toFixed(2);
             fillR.style.background = 'linear-gradient(90deg,rgba(34,197,94,'+aLead+'),rgba(34,197,94,'+aTail+'))';
-            fillR.style.width = (pct * max) + 'px';
+            fillR.style.width = (pct * commitPx) + 'px';
           }
           fillR.style.opacity = '1';
           fillL.style.width = '0'; fillL.style.opacity = '0';
@@ -5824,9 +5859,9 @@ function renderGame() {
           card.classList.remove('swipe-commit-r');
           if (!nowCommit) {
             var aLead = (0.04 + pct * 0.22).toFixed(2);
-            var aTail = (0.12 + pct * 0.48).toFixed(2);
+            var aTail = (0.14 + pct * 0.50).toFixed(2);
             fillL.style.background = 'linear-gradient(270deg,rgba(239,68,68,'+aLead+'),rgba(239,68,68,'+aTail+'))';
-            fillL.style.width = (pct * max) + 'px';
+            fillL.style.width = (pct * commitPx) + 'px';
           }
           fillL.style.opacity = '1';
           fillR.style.width = '0'; fillR.style.opacity = '0';
@@ -5836,14 +5871,12 @@ function renderGame() {
       card.addEventListener('pointerup', function(e) {
         if (!_ctracking) return;
         var dx = e.clientX - _csx;
-        var max = card.offsetWidth * 0.65;
-        var pct = Math.abs(dx) / max;
         var wasLocked = _clocked;
         var didCommit = _committed;
         _resetCardSwipe();
         if (!wasLocked) return;
-        if (dx > 0 && didCommit) { setTimeout(function(){ addBuyin(p.name); }, 60); }
-        else if (dx < 0 && didCommit) { setTimeout(function(){ undoBuyin(p.name); }, 60); }
+        if (dx > 0 && didCommit) { setTimeout(function(){ addBuyin(p.name); }, 80); }
+        else if (dx < 0 && didCommit) { setTimeout(function(){ undoBuyin(p.name); }, 80); }
       });
 
       card.addEventListener('pointercancel', _resetCardSwipe);
@@ -5899,6 +5932,10 @@ function renderGame() {
     addCard.appendChild(collapsed);
     addCard.appendChild(expanded);
     list.appendChild(addCard);
+  }
+  // Restore scroll position — prevents page jumping to top after buyin/undo triggers renderGame()
+  if (_savedScrollY > 0) {
+    requestAnimationFrame(function() { window.scrollTo(0, _savedScrollY); });
   }
 }
 
