@@ -5775,111 +5775,121 @@ function renderGame() {
     }
 
     // ── Whole-card swipe: right=buyin, left=undo
+    // Uses touch events (not pointer events) — only touchmove {passive:false}
+    // lets us call e.preventDefault() to actually stop iOS Safari page scroll.
     if (isHostDevice && !p.earlyOut) {
-      var _csx = 0, _csy = 0, _ctracking = false, _clocked = false;
+      var _tsx = 0, _tsy = 0, _ttracking = false, _tlocked = false, _tcommitted = false;
       var fillR = card.querySelector('.pc-fill-r');
       var fillL = card.querySelector('.pc-fill-l');
-      var _committed = false;
 
-      // COMMIT_THRESHOLD: fraction of card width needed to trigger action
-      // 0.38 = ~38% of width — intentional but not twitchy
-      var COMMIT_FRAC = 0.38;
-      // MAX_DRAG: how far the card visually travels (rubber-bands past commit)
-      var MAX_DRAG_FRAC = 0.55;
+      // 36% of card width = commit point. Far enough to be intentional, close enough to feel snappy.
+      var COMMIT_FRAC = 0.36;
+      // Card physically travels up to 50% of width (rubber-bands past commit)
+      var MAX_DRAG_FRAC = 0.50;
 
-      function _springBack() {
+      function _tSpringBack() {
         card.classList.remove('p-swiping');
-        card.style.transition = 'transform .28s cubic-bezier(.34,1.56,.64,1)';
+        card.style.transition = 'transform .26s cubic-bezier(.34,1.56,.64,1)';
         card.style.transform = 'translateX(0)';
-        setTimeout(function(){ card.style.transition = ''; }, 300);
+        setTimeout(function(){ card.style.transition = ''; }, 280);
       }
 
-      function _resetCardSwipe() {
-        _ctracking = false; _clocked = false; _committed = false;
+      function _tReset() {
+        _ttracking = false; _tlocked = false; _tcommitted = false;
         card.classList.remove('swipe-commit-r','swipe-commit-l','p-swiping');
         fillR.style.width = fillL.style.width = '0';
         fillR.style.opacity = fillL.style.opacity = '0';
-        _springBack();
+        _tSpringBack();
       }
 
-      card.addEventListener('pointerdown', function(e) {
+      // touchstart: passive:true is fine (we don't need preventDefault here)
+      card.addEventListener('touchstart', function(e) {
         if (e.target.closest('button, input, select, .eco-panel')) return;
-        _csx = e.clientX; _csy = e.clientY;
-        _ctracking = true; _clocked = false; _committed = false;
+        if (e.touches.length !== 1) return; // ignore multi-touch
+        var t = e.touches[0];
+        _tsx = t.clientX; _tsy = t.clientY;
+        _ttracking = true; _tlocked = false; _tcommitted = false;
         card.style.transition = 'none';
-        card.setPointerCapture(e.pointerId);
-      });
+      }, {passive: true});
 
-      card.addEventListener('pointermove', function(e) {
-        if (!_ctracking) return;
-        var dx = e.clientX - _csx;
-        var dy = e.clientY - _csy;
-        if (!_clocked) {
-          if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
-          // If gesture is more vertical than horizontal, cancel and let page scroll
-          if (Math.abs(dy) > Math.abs(dx) * 0.7) { _ctracking = false; return; }
-          _clocked = true;
-          card.classList.add('p-swiping'); // suppress fill transitions during drag
+      // touchmove: passive:false REQUIRED — allows e.preventDefault() to stop page scroll
+      card.addEventListener('touchmove', function(e) {
+        if (!_ttracking) return;
+        var t = e.touches[0];
+        var dx = t.clientX - _tsx;
+        var dy = t.clientY - _tsy;
+
+        if (!_tlocked) {
+          // Wait for at least 6px movement before deciding direction
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+          // More vertical than horizontal → release tracking, let page scroll naturally
+          if (Math.abs(dy) > Math.abs(dx) * 0.65) { _ttracking = false; return; }
+          // Confirmed horizontal gesture — lock it in
+          _tlocked = true;
+          card.classList.add('p-swiping');
           haptic('light');
         }
+
+        // Stop page from scrolling — this ONLY works because passive:false above
         e.preventDefault();
+
         var W = card.offsetWidth;
         var commitPx = W * COMMIT_FRAC;
         var maxPx    = W * MAX_DRAG_FRAC;
-        var raw = dx;
-        var absDx = Math.abs(raw);
-        // Rubber-band: full movement up to commitPx, then resistance beyond
+        var absDx    = Math.abs(dx);
+        var sign     = dx > 0 ? 1 : -1;
+
+        // Rubber-band: 1:1 up to commit point, then heavy resistance
         var travel = absDx <= commitPx
           ? absDx
-          : commitPx + (absDx - commitPx) * 0.35;
+          : commitPx + (absDx - commitPx) * 0.30;
         travel = Math.min(travel, maxPx);
-        var sign = raw > 0 ? 1 : -1;
-        var pct  = Math.min(absDx / commitPx, 1); // 0→1 as finger reaches commit point
+
+        // pct: 0 at start → 1 at commit point (clamp, don't go past 1)
+        var pct = Math.min(absDx / commitPx, 1);
 
         var nowCommit = absDx >= commitPx;
-        if (nowCommit && !_committed) { _committed = true; haptic('medium'); }
-        if (!nowCommit && _committed) { _committed = false; }
+        if (nowCommit && !_tcommitted) { _tcommitted = true; haptic('medium'); }
+        if (!nowCommit && _tcommitted)  { _tcommitted = false; }
 
-        // Physical card movement
+        // Move card physically with finger — this is what makes it feel real
         card.style.transform = 'translateX(' + (sign * travel) + 'px)';
 
-        if (raw > 0) {
+        // Grow the color fill in sync with finger (no CSS transition during drag)
+        if (dx > 0) {
           card.classList.toggle('swipe-commit-r', nowCommit);
           card.classList.remove('swipe-commit-l');
           if (!nowCommit) {
-            var aLead = (0.04 + pct * 0.22).toFixed(2);
-            var aTail = (0.14 + pct * 0.50).toFixed(2);
-            fillR.style.background = 'linear-gradient(90deg,rgba(34,197,94,'+aLead+'),rgba(34,197,94,'+aTail+'))';
+            fillR.style.background = 'linear-gradient(90deg,rgba(34,197,94,'+(0.04+pct*0.20).toFixed(2)+'),rgba(34,197,94,'+(0.15+pct*0.48).toFixed(2)+'))';
             fillR.style.width = (pct * commitPx) + 'px';
           }
           fillR.style.opacity = '1';
           fillL.style.width = '0'; fillL.style.opacity = '0';
-        } else if (raw < 0) {
+        } else {
           card.classList.toggle('swipe-commit-l', nowCommit);
           card.classList.remove('swipe-commit-r');
           if (!nowCommit) {
-            var aLead = (0.04 + pct * 0.22).toFixed(2);
-            var aTail = (0.14 + pct * 0.50).toFixed(2);
-            fillL.style.background = 'linear-gradient(270deg,rgba(239,68,68,'+aLead+'),rgba(239,68,68,'+aTail+'))';
+            fillL.style.background = 'linear-gradient(270deg,rgba(239,68,68,'+(0.04+pct*0.20).toFixed(2)+'),rgba(239,68,68,'+(0.15+pct*0.48).toFixed(2)+'))';
             fillL.style.width = (pct * commitPx) + 'px';
           }
           fillL.style.opacity = '1';
           fillR.style.width = '0'; fillR.style.opacity = '0';
         }
-      });
+      }, {passive: false}); // ← THE critical flag — without this, preventDefault is silently ignored
 
-      card.addEventListener('pointerup', function(e) {
-        if (!_ctracking) return;
-        var dx = e.clientX - _csx;
-        var wasLocked = _clocked;
-        var didCommit = _committed;
-        _resetCardSwipe();
+      card.addEventListener('touchend', function(e) {
+        if (!_ttracking) return;
+        var t = e.changedTouches[0];
+        var dx = t.clientX - _tsx;
+        var wasLocked  = _tlocked;
+        var didCommit  = _tcommitted;
+        _tReset();
         if (!wasLocked) return;
-        if (dx > 0 && didCommit) { setTimeout(function(){ addBuyin(p.name); }, 80); }
-        else if (dx < 0 && didCommit) { setTimeout(function(){ undoBuyin(p.name); }, 80); }
+        if (dx > 0 && didCommit)  { setTimeout(function(){ addBuyin(p.name); }, 60); }
+        else if (dx < 0 && didCommit) { setTimeout(function(){ undoBuyin(p.name); }, 60); }
       });
 
-      card.addEventListener('pointercancel', _resetCardSwipe);
+      card.addEventListener('touchcancel', _tReset);
     }
 
 
