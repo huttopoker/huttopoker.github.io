@@ -500,19 +500,34 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .pperf-net{font-family:var(--font-mono);font-size:14px;font-weight:800;}
 .pperf-meta{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;}
 /* ── Player card: whole-card swipe (right=buyin, left=undo) ── */
-.p-card { position:relative; overflow:hidden; cursor:grab; will-change:transform; }
+/* Card does NOT move — action strip reveals at the edge (iOS Reminders / Mail pattern) */
+.p-card { position:relative; overflow:hidden; cursor:grab; }
 .p-card.early-out { cursor:default; }
-/* Swipe fill layers — NO transition during drag (.p-swiping suppresses it), transition only on reset */
-.pc-fill-r { position:absolute; top:0; bottom:0; left:0; width:0; background:linear-gradient(90deg,rgba(34,197,94,.06),rgba(34,197,94,.45)); pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1),opacity .22s; }
-.pc-fill-l { position:absolute; top:0; bottom:0; right:0; width:0; background:linear-gradient(270deg,rgba(239,68,68,.06),rgba(239,68,68,.45)); pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1),opacity .22s; }
+/* p-card-main sits on top with its own background so color only shows at edges */
+.p-card-main { position:relative; z-index:2; background:rgba(8,10,24,.82); }
+/* Swipe fill layers — solid color behind card, grow from each edge */
+.pc-fill-r { position:absolute; top:0; bottom:0; left:0; width:0; background:#16a34a; pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1); }
+.pc-fill-l { position:absolute; top:0; bottom:0; right:0; width:0; background:#dc2626; pointer-events:none; z-index:0; transition:width .22s cubic-bezier(.25,1,.5,1); }
 .p-swiping .pc-fill-r, .p-swiping .pc-fill-l { transition:none !important; }
-/* Committed state: full-card fill, text fades */
-.swipe-commit-r .pc-fill-r { width:100% !important; background:linear-gradient(90deg,rgba(34,197,94,.12),rgba(34,197,94,.62)) !important; transition:width .18s cubic-bezier(.34,1.2,.64,1),opacity .18s !important; }
-.swipe-commit-l .pc-fill-l { width:100% !important; background:linear-gradient(270deg,rgba(239,68,68,.12),rgba(239,68,68,.62)) !important; transition:width .18s cubic-bezier(.34,1.2,.64,1),opacity .18s !important; }
+/* Action badge — edge-anchored label+icon that fades in as you drag */
+.pc-act-r {
+  position:absolute; left:0; top:0; bottom:0; z-index:1;
+  display:flex; align-items:center; gap:5px; padding:0 16px;
+  color:#fff; font-family:var(--font-mono); font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+  pointer-events:none; opacity:0; transform:scale(0.82); transform-origin:left center;
+}
+.pc-act-l {
+  position:absolute; right:0; top:0; bottom:0; z-index:1;
+  display:flex; align-items:center; gap:5px; padding:0 16px;
+  color:#fff; font-family:var(--font-mono); font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+  pointer-events:none; opacity:0; transform:scale(0.82); transform-origin:right center;
+}
+/* Committed state: badge pops, fill covers whole card */
+.swipe-commit-r .pc-fill-r { width:100% !important; transition:width .18s cubic-bezier(.34,1.2,.64,1) !important; }
+.swipe-commit-l .pc-fill-l { width:100% !important; transition:width .18s cubic-bezier(.34,1.2,.64,1) !important; }
 .swipe-commit-r .p-card-main, .swipe-commit-l .p-card-main { opacity:0; transition:opacity .14s ease; }
-/* Confirm icon overlay */
-.pc-confirm { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:900; pointer-events:none; z-index:4; opacity:0; transition:opacity .14s ease; letter-spacing:0; }
-.swipe-commit-r .pc-confirm-r, .swipe-commit-l .pc-confirm-l { opacity:1; }
+.swipe-commit-r .pc-act-r { opacity:1 !important; transform:scale(1.08) !important; transition:transform .14s cubic-bezier(.34,1.56,.64,1) !important; }
+.swipe-commit-l .pc-act-l { opacity:1 !important; transform:scale(1.08) !important; transition:transform .14s cubic-bezier(.34,1.56,.64,1) !important; }
 /* Buyin count pop animation */
 @keyframes numPop { 0%{transform:scale(1)} 35%{transform:scale(1.5)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
 .num-pop { animation:numPop .32s cubic-bezier(.34,1.56,.64,1); }
@@ -5751,8 +5766,16 @@ function renderGame() {
       card.innerHTML =
         '<div class="pc-fill-r"></div>'+
         '<div class="pc-fill-l"></div>'+
-        '<div class="pc-confirm pc-confirm-r" style="color:#22C55E">&#10003;</div>'+
-        '<div class="pc-confirm pc-confirm-l" style="color:#EF4444">&#8617;</div>'+
+        /* action badge — left edge (right-swipe = buyin) */
+        '<div class="pc-act-r">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
+          '<span>Buyin</span>'+
+        '</div>'+
+        /* action badge — right edge (left-swipe = undo) */
+        '<div class="pc-act-l">'+
+          '<span>Undo</span>'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.17 6.5"/></svg>'+
+        '</div>'+
         '<div class="p-card-main">'+
           '<div class="p-card-name">'+escH(p.name)+hostStar+'</div>'+
           '<div class="p-balls">'+ballHtml+'</div>'+
@@ -5775,118 +5798,112 @@ function renderGame() {
     }
 
     // ── Whole-card swipe: right=buyin, left=undo
-    // Uses touch events (not pointer events) — only touchmove {passive:false}
-    // lets us call e.preventDefault() to actually stop iOS Safari page scroll.
+    // Pattern: iOS Reminders/Mail — card stays fixed, action strip reveals at edge.
+    // touchmove {passive:false} is the ONLY way to call preventDefault on iOS Safari.
     if (isHostDevice && !p.earlyOut) {
       var _tsx = 0, _tsy = 0, _ttracking = false, _tlocked = false, _tcommitted = false;
-      var fillR = card.querySelector('.pc-fill-r');
-      var fillL = card.querySelector('.pc-fill-l');
+      var fillR  = card.querySelector('.pc-fill-r');
+      var fillL  = card.querySelector('.pc-fill-l');
+      var actR   = card.querySelector('.pc-act-r');
+      var actL   = card.querySelector('.pc-act-l');
 
-      // 36% of card width = commit point. Far enough to be intentional, close enough to feel snappy.
-      var COMMIT_FRAC = 0.36;
-      // Card physically travels up to 50% of width (rubber-bands past commit)
-      var MAX_DRAG_FRAC = 0.50;
-
-      function _tSpringBack() {
-        card.classList.remove('p-swiping');
-        card.style.transition = 'transform .26s cubic-bezier(.34,1.56,.64,1)';
-        card.style.transform = 'translateX(0)';
-        setTimeout(function(){ card.style.transition = ''; }, 280);
-      }
+      // Commit = 34% of card width — deliberate but not tiring
+      var COMMIT_FRAC = 0.34;
 
       function _tReset() {
         _ttracking = false; _tlocked = false; _tcommitted = false;
-        card.classList.remove('swipe-commit-r','swipe-commit-l','p-swiping');
+        card.classList.remove('swipe-commit-r', 'swipe-commit-l', 'p-swiping');
+        // Smooth fade-back on fills
+        fillR.style.transition = fillL.style.transition = 'width .2s ease, opacity .2s ease';
         fillR.style.width = fillL.style.width = '0';
         fillR.style.opacity = fillL.style.opacity = '0';
-        _tSpringBack();
+        // Fade badge back out
+        if (actR) { actR.style.transition = 'opacity .15s, transform .15s'; actR.style.opacity = '0'; actR.style.transform = 'scale(0.82)'; }
+        if (actL) { actL.style.transition = 'opacity .15s, transform .15s'; actL.style.opacity = '0'; actL.style.transform = 'scale(0.82)'; }
+        setTimeout(function(){
+          fillR.style.transition = fillL.style.transition = '';
+          if (actR) actR.style.transition = '';
+          if (actL) actL.style.transition = '';
+        }, 220);
       }
 
-      // touchstart: passive:true is fine (we don't need preventDefault here)
+      // touchstart: passive:true (no need to preventDefault at start)
       card.addEventListener('touchstart', function(e) {
         if (e.target.closest('button, input, select, .eco-panel')) return;
-        if (e.touches.length !== 1) return; // ignore multi-touch
+        if (e.touches.length !== 1) return;
         var t = e.touches[0];
         _tsx = t.clientX; _tsy = t.clientY;
         _ttracking = true; _tlocked = false; _tcommitted = false;
-        card.style.transition = 'none';
+        // Kill any transition so fills/badges track finger immediately
+        fillR.style.transition = fillL.style.transition = 'none';
+        if (actR) actR.style.transition = 'none';
+        if (actL) actL.style.transition = 'none';
       }, {passive: true});
 
-      // touchmove: passive:false REQUIRED — allows e.preventDefault() to stop page scroll
+      // touchmove: passive:false — required for e.preventDefault() to stop page scroll
       card.addEventListener('touchmove', function(e) {
         if (!_ttracking) return;
-        var t = e.touches[0];
-        var dx = t.clientX - _tsx;
-        var dy = t.clientY - _tsy;
+        var t   = e.touches[0];
+        var dx  = t.clientX - _tsx;
+        var dy  = t.clientY - _tsy;
 
         if (!_tlocked) {
-          // Wait for at least 6px movement before deciding direction
-          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-          // More vertical than horizontal → release tracking, let page scroll naturally
+          if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+          // More vertical → let page scroll
           if (Math.abs(dy) > Math.abs(dx) * 0.65) { _ttracking = false; return; }
-          // Confirmed horizontal gesture — lock it in
           _tlocked = true;
           card.classList.add('p-swiping');
           haptic('light');
         }
 
-        // Stop page from scrolling — this ONLY works because passive:false above
+        // Locks page scroll — ONLY works because passive:false
         e.preventDefault();
 
-        var W = card.offsetWidth;
-        var commitPx = W * COMMIT_FRAC;
-        var maxPx    = W * MAX_DRAG_FRAC;
-        var absDx    = Math.abs(dx);
-        var sign     = dx > 0 ? 1 : -1;
+        var W       = card.offsetWidth;
+        var commit  = W * COMMIT_FRAC;
+        var absDx   = Math.abs(dx);
+        // pct 0→1 as drag reaches commit distance; clamps at 1
+        var pct     = Math.min(absDx / commit, 1);
 
-        // Rubber-band: 1:1 up to commit point, then heavy resistance
-        var travel = absDx <= commitPx
-          ? absDx
-          : commitPx + (absDx - commitPx) * 0.30;
-        travel = Math.min(travel, maxPx);
-
-        // pct: 0 at start → 1 at commit point (clamp, don't go past 1)
-        var pct = Math.min(absDx / commitPx, 1);
-
-        var nowCommit = absDx >= commitPx;
+        var nowCommit = absDx >= commit;
         if (nowCommit && !_tcommitted) { _tcommitted = true; haptic('medium'); }
         if (!nowCommit && _tcommitted)  { _tcommitted = false; }
 
-        // Move card physically with finger — this is what makes it feel real
-        card.style.transform = 'translateX(' + (sign * travel) + 'px)';
-
-        // Grow the color fill in sync with finger (no CSS transition during drag)
         if (dx > 0) {
+          // ── Right swipe: buyin (green fills from left, badge at left edge)
           card.classList.toggle('swipe-commit-r', nowCommit);
           card.classList.remove('swipe-commit-l');
           if (!nowCommit) {
-            fillR.style.background = 'linear-gradient(90deg,rgba(34,197,94,'+(0.04+pct*0.20).toFixed(2)+'),rgba(34,197,94,'+(0.15+pct*0.48).toFixed(2)+'))';
-            fillR.style.width = (pct * commitPx) + 'px';
+            fillR.style.width   = (pct * commit) + 'px';
+            fillR.style.opacity = pct.toFixed(2);
+            if (actR) { actR.style.opacity = pct.toFixed(2); actR.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
           }
-          fillR.style.opacity = '1';
           fillL.style.width = '0'; fillL.style.opacity = '0';
+          if (actL) { actL.style.opacity = '0'; }
         } else {
+          // ── Left swipe: undo (red fills from right, badge at right edge)
           card.classList.toggle('swipe-commit-l', nowCommit);
           card.classList.remove('swipe-commit-r');
           if (!nowCommit) {
-            fillL.style.background = 'linear-gradient(270deg,rgba(239,68,68,'+(0.04+pct*0.20).toFixed(2)+'),rgba(239,68,68,'+(0.15+pct*0.48).toFixed(2)+'))';
-            fillL.style.width = (pct * commitPx) + 'px';
+            fillL.style.width   = (pct * commit) + 'px';
+            fillL.style.opacity = pct.toFixed(2);
+            if (actL) { actL.style.opacity = pct.toFixed(2); actL.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
           }
-          fillL.style.opacity = '1';
           fillR.style.width = '0'; fillR.style.opacity = '0';
+          if (actR) { actR.style.opacity = '0'; }
         }
-      }, {passive: false}); // ← THE critical flag — without this, preventDefault is silently ignored
+      }, {passive: false});
 
       card.addEventListener('touchend', function(e) {
         if (!_ttracking) return;
-        var t = e.changedTouches[0];
-        var dx = t.clientX - _tsx;
+        var t          = e.changedTouches[0];
+        var dx         = t.clientX - _tsx;
         var wasLocked  = _tlocked;
         var didCommit  = _tcommitted;
         _tReset();
         if (!wasLocked) return;
-        if (dx > 0 && didCommit)  { setTimeout(function(){ addBuyin(p.name); }, 60); }
-        else if (dx < 0 && didCommit) { setTimeout(function(){ undoBuyin(p.name); }, 60); }
+        if (dx > 0 && didCommit)       { setTimeout(function(){ addBuyin(p.name); },  50); }
+        else if (dx < 0 && didCommit)  { setTimeout(function(){ undoBuyin(p.name); }, 50); }
       });
 
       card.addEventListener('touchcancel', _tReset);
@@ -6007,22 +6024,29 @@ const _BUYIN_NOTES = [
   [554.37,698.46,830.61],   // C#-F-G#(player 9)
 ];
 let _audioCtx = null;
-function playBuyinSound(playerIdx) {
+let _audioNextT = 0; // tracks when the last scheduled sound ends, so rapid sounds queue up
+async function playBuyinSound(playerIdx) {
   try {
     if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    if (_audioCtx.state === 'suspended') _audioCtx.resume();
-    const ctx = _audioCtx;
+    // MUST await resume — fire-and-forget means notes schedule before context is running
+    if (_audioCtx.state === 'suspended') await _audioCtx.resume();
+    const ctx   = _audioCtx;
     const notes = _BUYIN_NOTES[playerIdx % _BUYIN_NOTES.length];
+    // Queue: start after the last scheduled sound, not at ctx.currentTime
+    // This makes rapid consecutive buyins each play their full chime in sequence
+    const startT = Math.max(ctx.currentTime + 0.01, _audioNextT);
     notes.forEach((freq, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.type = 'triangle'; o.frequency.value = freq;
-      const t = ctx.currentTime + i * 0.09;
+      const t = startT + i * 0.09;
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.25, t + 0.015);
+      g.gain.linearRampToValueAtTime(0.22, t + 0.015);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
       o.start(t); o.stop(t + 0.22);
     });
+    // Remember when this sound ends so the next one can queue after it
+    _audioNextT = startT + (notes.length - 1) * 0.09 + 0.22;
   } catch(e) {}
 }
 function playRebuySound() { playBuyinSound(0); } // legacy alias
