@@ -508,12 +508,29 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .stat-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;}
 .stat-tab{flex:1;padding:7px 4px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all .18s;}
 .stat-tab.stat-tab-on{background:rgba(124,58,237,.3);color:#DDD6FE;}
-.pperf-card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;margin-bottom:8px;}
-.pperf-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.pperf-card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
+.pperf-card.pperf-open{border-color:rgba(255,255,255,.14);}
+.pperf-header{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.pperf-header:active{background:rgba(255,255,255,.03);}
 .pperf-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;}
 .pperf-name{font-size:13px;font-weight:700;color:var(--c-txt);}
 .pperf-net{font-family:var(--font-mono);font-size:14px;font-weight:800;}
 .pperf-meta{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;}
+.pperf-chevron{margin-left:auto;flex-shrink:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);transition:transform .25s;}
+.pperf-open .pperf-chevron{transform:rotate(180deg);color:rgba(255,255,255,.5);}
+.pperf-body{display:none;padding:0 12px 12px;border-top:1px solid rgba(255,255,255,.05);}
+.pperf-open .pperf-body{display:block;}
+/* Dashboard cards */
+.dash-section{margin-bottom:14px;}
+.dash-card{background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:14px 16px;}
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0;}
+.dash-kpi{background:var(--c-bg3);border-radius:12px;padding:11px 8px;text-align:center;}
+.dash-kpi-val{font-family:var(--font-mono);font-size:20px;font-weight:900;}
+.dash-kpi-lbl{font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;}
+.dash-player-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dash-player-btn{background:var(--c-surf);border:1px solid var(--c-bdr2);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.dash-player-btn:active{background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.4);}
+.dash-me-badge{display:inline-block;font-family:var(--font-mono);font-size:8px;padding:2px 6px;border-radius:10px;background:rgba(167,139,250,.18);color:#A78BFA;margin-top:3px;}
 /* ── Player card: whole-card swipe (right=buyin, left=undo) ── */
 /* Card does NOT move — action strip reveals at the edge (iOS Reminders / Mail pattern) */
 .p-card { position:relative; overflow:hidden; cursor:grab; }
@@ -759,6 +776,7 @@ body::before {
 .hnav-lbl  { font-family:var(--font-body); font-size:9px; text-transform:uppercase;
   letter-spacing:1.2px; color:rgba(255,255,255,.32); transition:all .22s; font-weight:500; }
 /* Each tab has its own accent color — identity without noise */
+#hnav-home    { --ta:#A78BFA; --ta-rgb:167,139,250; }  /* violet — home dashboard  */
 #hnav-settle  { --ta:#F59E0B; --ta-rgb:245,158,11; }   /* gold   — money / settle  */
 #hnav-stats   { --ta:#818CF8; --ta-rgb:129,140,248; }  /* indigo — analytics       */
 #hnav-history { --ta:#38BDF8; --ta-rgb:56,189,248;  }  /* sky    — history         */
@@ -1703,7 +1721,10 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     border-top:1px solid rgba(255,255,255,.07);
     box-shadow:0 -1px 0 rgba(124,58,237,.15), 0 -8px 32px rgba(0,0,0,.4);">
   <div id="home-nav-inner" style="max-width:480px;width:100%;display:flex;align-items:center;justify-content:space-around;padding:10px 16px calc(env(safe-area-inset-bottom,0px)+10px);">
-    <button type="button" id="hnav-settle" onclick="setHTab('settle')" class="hnav-btn active" aria-label="Settle" ontouchstart="">
+    <button type="button" id="hnav-home" onclick="setHTab('dashboard')" class="hnav-btn active" aria-label="Home" ontouchstart="">
+      <span class="hnav-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></span><span class="hnav-lbl">Home</span>
+    </button>
+    <button type="button" id="hnav-settle" onclick="setHTab('settle')" class="hnav-btn" aria-label="Settle" ontouchstart="">
       <span class="hnav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2M6 6l2-2h8l2 2"/></svg></span><span class="hnav-lbl">Settle</span>
       <span id="pending-badge" style="display:none;position:absolute;top:2px;right:4px;
         background:var(--c-red);color:#fff;border-radius:50%;min-width:16px;height:16px;
@@ -2591,7 +2612,8 @@ function showAllQRs(toName, fromName, amtStr) {
   document.getElementById('qr-modal').style.display = 'flex';
 }
 let midSwap = false;
-let homeTab = 'settle';
+let homeTab = 'dashboard';
+let myLinkedPlayer = (()=>{ try { return localStorage.getItem('pn-my-player')||null; } catch(e){ return null; } })();
 let promoQueue = [];
 let promoIdx = 0;
 let editName = '';
@@ -3562,9 +3584,9 @@ function closeHomeMore() {
   setTimeout(() => {
     if (sh) sh.style.display = 'none';
     // Restore active nav state using same navMap as setHTab
-    const _navMap = { settle:'settle', stats:'stats', history:'history', poll:'poll', accounts:'poll' };
-    const _navId = 'hnav-' + (_navMap[homeTab] || 'settle');
-    const cur = document.getElementById(_navId) || document.getElementById('hnav-settle');
+    const _navMap = { dashboard:'home', settle:'settle', stats:'stats', history:'history', poll:'poll', accounts:'poll' };
+    const _navId = 'hnav-' + (_navMap[homeTab] || 'home');
+    const cur = document.getElementById(_navId) || document.getElementById('hnav-home');
     document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
     if (cur) cur.classList.add('active');
   }, 300);
@@ -3575,16 +3597,17 @@ function setHTab(tab) {
   window.scrollTo({top:0, behavior:'instant'});
   if (pollRefreshTimer) { clearInterval(pollRefreshTimer); pollRefreshTimer=null; }
   // Update bottom nav active state
-  const navMap = { settle:'settle', stats:'stats', history:'history', poll:'poll', accounts:'poll' };
+  const navMap = { dashboard:'home', settle:'settle', stats:'stats', history:'history', poll:'poll', accounts:'poll' };
   document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
-  const activeNavId = 'hnav-' + (navMap[tab] || 'settle');
+  const activeNavId = 'hnav-' + (navMap[tab] || 'home');
   const activeBtn = document.getElementById(activeNavId);
   if (activeBtn) activeBtn.classList.add('active');
   // Start Game button belongs only on the Tonight (poll) tab — hide everywhere else
   var _sb = document.getElementById('start-btn');
   if (_sb) _sb.style.display = (tab === 'poll') ? '' : 'none';
   const el = document.getElementById('home-body');
-  if (tab==='poll') {
+  if (tab==='dashboard') { el.innerHTML = buildDashboardTab(); }
+  else if (tab==='poll') {
     el.innerHTML = buildPollTab();
     // Auto-refresh every 15s when on poll tab
     pollRefreshTimer = setInterval(async () => {
@@ -4419,6 +4442,232 @@ function setStatsView(tab) {
   });
 }
 
+/* ── DEVICE→PLAYER LINKING ─────────────────────────── */
+function linkMyDevice(name) {
+  myLinkedPlayer = name;
+  try { localStorage.setItem('pn-my-player', name); } catch(e) {}
+  if (homeTab === 'dashboard') { document.getElementById('home-body').innerHTML = buildDashboardTab(); }
+  notify('👋 Hey ' + name + '! This device is now yours.');
+}
+function unlinkMyDevice() {
+  myLinkedPlayer = null;
+  try { localStorage.removeItem('pn-my-player'); } catch(e) {}
+  if (homeTab === 'dashboard') { document.getElementById('home-body').innerHTML = buildDashboardTab(); }
+}
+
+/* ── PLAYER CARD ACCORDION ──────────────────────────── */
+function togglePlayerCard(pid) {
+  var card = document.getElementById(pid + '_card');
+  if (!card) return;
+  var isOpen = card.classList.contains('pperf-open');
+  // Collapse all first (only one open at a time)
+  document.querySelectorAll('.pperf-card.pperf-open').forEach(function(c) { c.classList.remove('pperf-open'); });
+  if (!isOpen) card.classList.add('pperf-open');
+}
+
+/* ── DASHBOARD TAB ──────────────────────────────────── */
+function buildDashboardTab() {
+  var html = '';
+  var accent = currentTheme ? currentTheme.accent : 'var(--c-gold)';
+  var accentRgb = currentTheme ? currentTheme.accentRgb : '245,158,11';
+  var st = allSessions.length ? computeStats(allSessions) : null;
+  var mk = mKey();
+
+  /* ── SECTION A: MY IDENTITY / GREETING ── */
+  var knownPlayers = st ? Object.keys(st.AT).sort() : (accounts && accounts.length ? accounts.map(function(a){return a.name;}) : []);
+
+  if (myLinkedPlayer) {
+    // Personalized greeting
+    var myData = st && st.AT[myLinkedPlayer];
+    var myNet = myData ? myData.net : 0;
+    var myGames = myData ? myData.sessions : 0;
+    var myWins = myData ? myData.wins : 0;
+    var myWr = myGames > 0 ? Math.round(myWins / myGames * 100) : 0;
+    var myAvg = myGames > 0 ? rd(myNet / myGames) : 0;
+    var myNc = myNet > 0 ? '#22C55E' : myNet < 0 ? '#EF4444' : 'rgba(255,255,255,.5)';
+    var myAb = myNet > 0 ? 'rgba(34,197,94,.18)' : myNet < 0 ? 'rgba(239,68,68,.14)' : 'rgba(100,100,100,.14)';
+    // This month for me
+    var myMoSess = st ? allSessions.filter(function(s){ return (s.month||mKey(new Date(s.id)))===mk && s.players.some(function(p){return p.name===myLinkedPlayer;}); }) : [];
+    var myMoNet = myMoSess.reduce(function(sum,s){ var p=s.players.find(function(pp){return pp.name===myLinkedPlayer;}); return sum+rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN)); }, 0);
+    // Win streak
+    var pSessAll = st ? allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===myLinkedPlayer;});}) : [];
+    var curStrk = 0;
+    pSessAll.slice().reverse().every(function(s){ var p=s.players.find(function(pp){return pp.name===myLinkedPlayer;}); var net=rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN)); if(net>0){curStrk++;return true;}return false; });
+
+    // All-time rank
+    var atRank = st ? Object.entries(st.AT).sort(function(a,b){return b[1].net-a[1].net;}).findIndex(function(e){return e[0]===myLinkedPlayer;}) : -1;
+    var rankEmoji = atRank===0?'🥇':atRank===1?'🥈':atRank===2?'🥉':'#'+(atRank+1);
+
+    html += '<div class="dash-section">'+
+      '<div style="background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.05));border:1px solid rgba(167,139,250,.28);border-radius:16px;padding:14px 16px">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+          '<div style="width:42px;height:42px;border-radius:14px;background:'+myAb+';border:1.5px solid '+myNc+'40;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:'+myNc+';flex-shrink:0">'+escH(myLinkedPlayer.charAt(0).toUpperCase())+'</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:16px;font-weight:800;color:var(--c-txt)">'+escH(myLinkedPlayer)+'</div>'+
+            '<div style="font-family:var(--font-mono);font-size:9px;color:rgba(167,139,250,.7);text-transform:uppercase;letter-spacing:1px">My Account &middot; '+rankEmoji+' All-time</div>'+
+          '</div>'+
+          '<div style="text-align:right;flex-shrink:0">'+
+            '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+myNc+'">'+fmtS(myNet)+'</div>'+
+            '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">career net</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="dash-kpi-grid">'+
+          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:'+accent+'">'+myGames+'</div><div class="dash-kpi-lbl">Games</div></div>'+
+          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:var(--c-txt)">'+myWr+'%</div><div class="dash-kpi-lbl">Win Rate</div></div>'+
+          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:'+(myAvg>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(myAvg)+'</div><div class="dash-kpi-lbl">Per Game</div></div>'+
+        '</div>'+
+        (myMoSess.length ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">'+
+          '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">This month &middot; '+myMoSess.length+' game'+(myMoSess.length!==1?'s':'')+'</div>'+
+          '<div style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:'+(myMoNet>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(rd(myMoNet))+'</div>'+
+        '</div>' : '')+
+        (curStrk >= 2 ? '<div style="margin-top:8px;padding:6px 10px;background:rgba(239,68,68,.08);border-radius:10px;font-family:var(--font-mono);font-size:11px;color:var(--c-red);text-align:center">⚡ '+curStrk+'-game win streak!</div>' : '')+
+        '<div style="display:flex;gap:6px;margin-top:10px">'+
+          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'players\');setTimeout(function(){var c=document.getElementById(\'pc_'+atRank+'_card\');if(c){c.classList.add(\'pperf-open\');}},80);},80)" style="flex:1;padding:8px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;color:#A78BFA;font-family:var(--font-mono);font-size:10px;font-weight:700;cursor:pointer">📊 My Full Stats</button>'+
+          '<button onclick="unlinkMyDevice()" style="padding:8px 12px;background:transparent;border:1px solid var(--c-bdr2);border-radius:10px;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer">Not me</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  } else if (knownPlayers.length) {
+    // "Who are you?" identity claim card
+    html += '<div class="dash-section">'+
+      '<div class="dash-card">'+
+        '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(167,139,250,.7);margin-bottom:8px;display:flex;align-items:center;gap:5px">'+
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Who is on this device?</div>'+
+        '<div class="dash-player-grid">'+
+          knownPlayers.slice(0,9).map(function(n){
+            var d = st && st.AT[n];
+            var net = d ? d.net : 0;
+            var nc = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
+            return '<button class="dash-player-btn" onclick="linkMyDevice(\''+escH(n)+'\')">'+
+              '<div style="width:32px;height:32px;border-radius:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#A78BFA;margin:0 auto 5px">'+escH(n.charAt(0).toUpperCase())+'</div>'+
+              '<div style="font-size:11px;font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(n)+'</div>'+
+              (d ? '<div style="font-family:var(--font-mono);font-size:9px;color:'+nc+'">'+fmtS(net)+'</div>' : '')+
+            '</button>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ── SECTION B: LIVE / RECENT GAME ── */
+  try {
+    var cachedRow = null;
+    try { cachedRow = JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); } catch(e) {}
+    var liveRow2 = null;
+    try { liveRow2 = JSON.parse(localStorage.getItem('__live_cache__')||'null'); } catch(e) {}
+    if (session && !session.ended) {
+      // Active game right now
+      var activePlayers = session.players.filter(function(p){return p.cashOut===null||p.cashOut===undefined;});
+      var pot2 = session.players.reduce(function(s,p){return s+p.buyins*(session.buyin||BUYIN);},0);
+      html += '<div class="dash-section">'+
+        '<div style="background:linear-gradient(135deg,rgba(52,211,153,.12),rgba(52,211,153,.04));border:1px solid rgba(52,211,153,.3);border-radius:16px;padding:14px 16px">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+            '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-green);display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--c-green);display:inline-block;animation:pulse 1.5s ease-in-out infinite"></span>Game In Progress</div>'+
+            '<div style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--c-txt)">'+fmt(pot2)+' pot</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'+
+            activePlayers.map(function(p){
+              var isMe = p.name === myLinkedPlayer;
+              return '<span style="padding:4px 10px;border-radius:20px;font-family:var(--font-mono);font-size:11px;font-weight:600;background:'+(isMe?'rgba(167,139,250,.2)':'rgba(52,211,153,.1)')+';color:'+(isMe?'#A78BFA':'var(--c-green)')+';border:1px solid '+(isMe?'rgba(167,139,250,.3)':'rgba(52,211,153,.2)')+'">'+escH(p.name)+(isMe?' ★':'')+'</span>';
+            }).join('')+
+          '</div>'+
+          '<button onclick="goHome()" style="width:100%;padding:9px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.35);border-radius:10px;color:var(--c-green);font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer">Open Game Board →</button>'+
+        '</div>'+
+      '</div>';
+    }
+  } catch(e) {}
+
+  /* ── SECTION C: TONIGHT POLL PREVIEW ── */
+  var inVoters = todayPoll ? todayPoll.filter(function(n){return n&&n.length>0;}) : [];
+  if (inVoters.length > 0) {
+    var myVote = inVoters.indexOf(myLinkedPlayer) >= 0;
+    html += '<div class="dash-section">'+
+      '<div class="dash-card">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-green);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tonight</div>'+
+          '<button onclick="setHTab(\'poll\')" style="padding:4px 10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:20px;color:var(--c-green);font-family:var(--font-mono);font-size:9px;cursor:pointer">View →</button>'+
+        '</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
+          inVoters.map(function(n){
+            var isMe = n===myLinkedPlayer;
+            return '<span style="padding:3px 9px;border-radius:20px;font-family:var(--font-mono);font-size:11px;background:'+(isMe?'rgba(167,139,250,.2)':'rgba(52,211,153,.08)')+';color:'+(isMe?'#A78BFA':'var(--c-green)')+';border:1px solid '+(isMe?'rgba(167,139,250,.3)':'rgba(52,211,153,.15)')+'">'+escH(n)+'</span>';
+          }).join('')+
+        '</div>'+
+        (!myVote && myLinkedPlayer ? '<button onclick="setHTab(\'poll\')" style="display:block;width:100%;margin-top:10px;padding:8px;background:rgba(52,211,153,.08);border:1px dashed rgba(52,211,153,.3);border-radius:10px;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer">+ Add your vote</button>' : '')+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ── SECTION D: MINI LEADERBOARD ── */
+  if (st && Object.keys(st.AT).length) {
+    var leaders = Object.entries(st.AT).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,5);
+    var maxAbs2 = Math.max.apply(null, leaders.map(function(e){return Math.abs(e[1].net);})) || 1;
+    html += '<div class="dash-section">'+
+      '<div class="dash-card">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>All-Time Leaderboard</div>'+
+          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'leaders\');},80)" style="padding:4px 10px;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);border-radius:20px;color:#818CF8;font-family:var(--font-mono);font-size:9px;cursor:pointer">Full Stats →</button>'+
+        '</div>'+
+        leaders.map(function(e,i){
+          var n=e[0], d=e[1];
+          var isMe = n===myLinkedPlayer;
+          var pos = d.net >= 0;
+          var pct = Math.round(Math.abs(d.net)/maxAbs2*100);
+          var mc=['#F59E0B','#94A3B8','#CD7F32'];
+          var rankBadge = i<3 ? '<span style="font-family:var(--font-mono);font-size:9px;font-weight:900;color:'+mc[i]+';min-width:20px;flex-shrink:0">'+(i===0?'🥇':i===1?'🥈':'🥉')+'</span>'
+                              : '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);min-width:20px;flex-shrink:0">'+(i+1)+'.</span>';
+          return '<div style="margin-bottom:8px'+(isMe?';background:rgba(167,139,250,.06);border-radius:10px;padding:4px 6px;margin-left:-6px;margin-right:-6px;border:1px solid rgba(167,139,250,.15)':'')+'">' +
+            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'+rankBadge+
+              '<span style="font-size:12px;font-weight:'+(isMe?'800':'700')+';color:var(--c-txt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+(isMe?' <span style="font-family:var(--font-mono);font-size:8px;color:#A78BFA;background:rgba(167,139,250,.12);border-radius:8px;padding:1px 5px">you</span>':'')+'</span>'+
+              '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+(pos?'var(--c-green)':'var(--c-red)')+';flex-shrink:0">'+fmtS(d.net)+'</span>'+
+            '</div>'+
+            '<div style="height:4px;background:var(--c-bg3);border-radius:3px;overflow:hidden;'+(isMe?'':'margin-left:26px')+'"><div style="height:100%;width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+';border-radius:3px;opacity:.8"></div></div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ── SECTION E: LAST GAME RECAP ── */
+  var lastSessions = allSessions.slice().sort(function(a,b){return (b.id||0)-(a.id||0);});
+  var lastGame = lastSessions.find(function(s){return s.ended||s.players.some(function(p){return p.cashOut!=null&&p.cashOut>0;});});
+  if (lastGame) {
+    var lgPot = lastGame.players.reduce(function(s,p){return s+p.buyins*(lastGame.buyin||BUYIN);},0);
+    var lgWinner = lastGame.players.filter(function(p){return p.cashOut!=null;}).sort(function(a,b){
+      var an=rd((a.cashOut||0)-a.buyins*(lastGame.buyin||BUYIN)), bn=rd((b.cashOut||0)-b.buyins*(lastGame.buyin||BUYIN));
+      return bn-an;
+    })[0];
+    var lgWinNet = lgWinner ? rd((lgWinner.cashOut||0)-lgWinner.buyins*(lastGame.buyin||BUYIN)) : 0;
+    var myLgEntry = myLinkedPlayer ? lastGame.players.find(function(p){return p.name===myLinkedPlayer;}) : null;
+    var myLgNet = myLgEntry ? rd((myLgEntry.cashOut||0)-myLgEntry.buyins*(lastGame.buyin||BUYIN)) : null;
+    html += '<div class="dash-section">'+
+      '<div class="dash-card" style="cursor:pointer" onclick="setHTab(\'history\')">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Last Game</div>'+
+          '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+escH(lastGame.date||'—')+'</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr'+(myLgNet!==null?' 1fr':'')+'">'+
+          '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+accent+'">'+fmt(lgPot)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Pot</div></div>'+
+          (lgWinner?'<div style="text-align:center;border-left:1px solid var(--c-bdr)"><div style="font-size:13px;font-weight:800;color:var(--c-green)">'+escH(lgWinner.name)+'</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--c-green)">+'+fmt(lgWinNet)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Winner</div></div>':'<div></div>')+
+          (myLgNet!==null?'<div style="text-align:center;border-left:1px solid var(--c-bdr)"><div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+(myLgNet>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(myLgNet)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">My Result</div></div>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ── EMPTY STATE ── */
+  if (!st && !inVoters.length) {
+    html = '<div style="text-align:center;padding:60px 20px 40px">'+
+      '<div style="font-size:52px;margin-bottom:16px">🃏</div>'+
+      '<div style="font-weight:800;font-size:20px;color:var(--c-txt);margin-bottom:8px">Welcome to Poker Night</div>'+
+      '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);margin-bottom:24px">Start a game to see your stats and history</div>'+
+      '<button onclick="setHTab(\'poll\')" style="padding:12px 24px;background:rgba(167,139,250,.18);border:1px solid rgba(167,139,250,.35);border-radius:12px;color:#A78BFA;font-family:var(--font-mono);font-size:12px;font-weight:700;cursor:pointer">Set up Tonight →</button>'+
+    '</div>';
+  }
+
+  return html;
+}
+
 function buildStatsTab() {
   const st = computeStats(allSessions), mk = mKey(), yk = yKey(), tot = allSessions.length;
   if (!tot) return '<div style="text-align:center;padding:48px 20px">'+
@@ -4796,33 +5045,40 @@ function buildStatsTab() {
           '<th style="padding:6px 10px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
         '</tr></thead><tbody>'+yrBreakdown+'</tbody></table>':'');
 
-      // ── ASSEMBLE CARD ──
+      // ── ASSEMBLE CARD (ACCORDION) ──
+      var isMe = name === myLinkedPlayer;
       var tabBtnStyle='padding:6px 12px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent';
-      return '<div class="pperf-card" style="margin-bottom:12px">'+
-        // Header
-        '<div class="pperf-header" style="margin-bottom:10px">'+
+      return '<div id="'+pid+'_card" class="pperf-card'+(isMe?' pperf-open':'')+'" style="margin-bottom:8px">'+
+        // Clickable header — toggles accordion
+        '<div class="pperf-header" onclick="togglePlayerCard(\''+pid+'\')">'+
           '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+rankBadge+
             '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
           '</div>'+
           '<div style="flex:1;min-width:0">'+
-            '<div class="pperf-name">'+escH(name)+'</div>'+
-            '<div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g avg</span></div>'+
+            '<div class="pperf-name">'+escH(name)+(isMe?' <span style="font-family:var(--font-mono);font-size:8px;color:#A78BFA;background:rgba(167,139,250,.12);border-radius:8px;padding:1px 5px;vertical-align:middle">you</span>':'')+'</div>'+
+            '<div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g</span></div>'+
           '</div>'+
-          '<div style="text-align:right;flex-shrink:0">'+
+          '<div style="text-align:right;flex-shrink:0;margin-right:4px">'+
             '<div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div>'+
-            '<div class="pperf-meta">all-time net</div>'+
+            '<div class="pperf-meta">all-time</div>'+
           '</div>'+
+          '<span class="pperf-chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>'+
         '</div>'+
-        // Sub-tab bar
-        '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px">'+
-          '<button id="'+pid+'_btn_mo" style="'+tabBtnStyle+';background:rgba('+accentRgb+',.2);border-color:rgba('+accentRgb+',.5);color:'+accent+'" onclick="setPlayerTab(\''+pid+'\',\'mo\')">📅 This Month</button>'+
-          '<button id="'+pid+'_btn_log" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'log\')">📋 Game Log</button>'+
-          '<button id="'+pid+'_btn_career" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'career\')">🏅 Career</button>'+
+        // Collapsible body
+        '<div class="pperf-body">'+
+          // "This is me" link button (only when not already linked)
+          (isMe ? '' : '<div style="margin-bottom:10px"><button onclick="linkMyDevice(\''+escH(name)+'\');event.stopPropagation()" style="width:100%;padding:7px;background:rgba(167,139,250,.08);border:1px dashed rgba(167,139,250,.3);border-radius:10px;color:rgba(167,139,250,.7);font-family:var(--font-mono);font-size:10px;cursor:pointer;transition:all .18s" onmouseover="this.style.background=\'rgba(167,139,250,.15)\'" onmouseout="this.style.background=\'rgba(167,139,250,.08)\'">📱 This is my device</button></div>')+
+          // Sub-tab bar
+          '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px">'+
+            '<button id="'+pid+'_btn_mo" style="'+tabBtnStyle+';background:rgba('+accentRgb+',.2);border-color:rgba('+accentRgb+',.5);color:'+accent+'" onclick="setPlayerTab(\''+pid+'\',\'mo\');event.stopPropagation()">📅 This Month</button>'+
+            '<button id="'+pid+'_btn_log" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'log\');event.stopPropagation()">📋 Game Log</button>'+
+            '<button id="'+pid+'_btn_career" style="'+tabBtnStyle+'" onclick="setPlayerTab(\''+pid+'\',\'career\');event.stopPropagation()">🏅 Career</button>'+
+          '</div>'+
+          // Sub-tab content
+          '<div id="'+pid+'_mo">'+tab1+'</div>'+
+          '<div id="'+pid+'_log" style="display:none">'+tab2+'</div>'+
+          '<div id="'+pid+'_career" style="display:none">'+tab3+'</div>'+
         '</div>'+
-        // Sub-tab content
-        '<div id="'+pid+'_mo">'+tab1+'</div>'+
-        '<div id="'+pid+'_log" style="display:none">'+tab2+'</div>'+
-        '<div id="'+pid+'_career" style="display:none">'+tab3+'</div>'+
       '</div>';
     }
 
@@ -4832,10 +5088,14 @@ function buildStatsTab() {
   }
 
   /* ── ASSEMBLE WITH SECTION TABS ─────────────── */
+  const myStatsBtn = myLinkedPlayer
+    ? '<button class="sstat-tab" onclick="setStatSection(\'players\');setTimeout(function(){ var idx='+atEntries.findIndex(function(e){return e[0]===myLinkedPlayer;})+'; var c=document.getElementById(\'pc_\'+idx+\'_card\'); if(c){ document.querySelectorAll(\'.pperf-card.pperf-open\').forEach(function(x){x.classList.remove(\'pperf-open\');}); c.classList.add(\'pperf-open\'); c.scrollIntoView({behavior:\'smooth\',block:\'start\'}); } },80)" style="white-space:nowrap;background:rgba(167,139,250,.18)!important;border-color:rgba(167,139,250,.4)!important;color:#A78BFA!important">★ My Stats</button>'
+    : '';
   const tabBar =
     '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none;-ms-overflow-style:none">'+
+      (myStatsBtn)+
       '<button id="sstat-btn-overview" class="sstat-tab sstat-on" onclick="setStatSection(\'overview\')" style="white-space:nowrap">📊 Overview</button>'+
-      '<button id="sstat-btn-leaders"  class="sstat-tab" onclick="setStatSection(\'leaders\')"  style="white-space:nowrap">🏆 Leaderboard</button>'+
+      '<button id="sstat-btn-leaders"  class="sstat-tab" onclick="setStatSection(\'leaders\')"  style="white-space:nowrap">🏆 Leaders</button>'+
       '<button id="sstat-btn-records"  class="sstat-tab" onclick="setStatSection(\'records\')"  style="white-space:nowrap">⚡ Records</button>'+
       '<button id="sstat-btn-players"  class="sstat-tab" onclick="setStatSection(\'players\')"  style="white-space:nowrap">👤 Players</button>'+
     '</div>'+
