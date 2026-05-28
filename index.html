@@ -215,7 +215,21 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   opacity:.6; }
-/* theme-bg pattern removed — clean gradient background only */
+/* ── Animated aurora orbs — living ambient background, no external images ── */
+#bg-orbs { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
+.bg-orb { position:absolute; border-radius:50%; opacity:0; transition:opacity 1.8s ease; }
+.bg-orb1 { width:90vw; height:90vw; top:-30vw; left:-20vw;
+  background:radial-gradient(circle at 40% 40%, rgba(var(--c-gold-rgb,245,158,11),.20) 0%, transparent 70%);
+  filter:blur(55px); animation:bgOrb1 26s ease-in-out infinite; }
+.bg-orb2 { width:70vw; height:70vw; bottom:-22vw; right:-14vw;
+  background:radial-gradient(circle at 55% 55%, rgba(var(--c-comp-rgb,139,92,246),.16) 0%, transparent 70%);
+  filter:blur(48px); animation:bgOrb2 20s ease-in-out infinite; }
+.bg-orb3 { width:55vw; height:55vw; top:38%; left:22%;
+  background:radial-gradient(circle at 45% 45%, rgba(var(--c-gold-rgb,245,158,11),.08) 0%, transparent 70%);
+  filter:blur(65px); animation:bgOrb3 32s ease-in-out infinite; }
+@keyframes bgOrb1 { 0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(6vw,-4vw) scale(1.05)} 50%{transform:translate(-5vw,8vw) scale(0.96)} 75%{transform:translate(9vw,4vw) scale(1.04)} }
+@keyframes bgOrb2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-8vw,5vw) scale(1.08)} 66%{transform:translate(7vw,-7vw) scale(0.93)} }
+@keyframes bgOrb3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(6vw,10vw)} }
 @media(prefers-color-scheme:light) { body::before {
   background:radial-gradient(ellipse 90% 55% at 50% -10%, rgba(194,120,3,.08) 0%, transparent 65%); }
   body::after { opacity:.2; }}
@@ -1185,38 +1199,55 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; }
 .cfs-add-btn:active { background:rgba(124,58,237,.3); }
 
-/* Playing card */
-.cfs-card-wrap { perspective:600px; width:54px; height:78px; flex-shrink:0; }
+/* Playing card — dark glass style */
+.cfs-card-wrap { perspective:900px; width:68px; height:96px; flex-shrink:0; }
 .cfs-card-inner {
   width:100%; height:100%; position:relative;
-  transform-style:preserve-3d; transition:transform .45s cubic-bezier(.4,0,.2,1);
+  transform-style:preserve-3d; transition:transform .5s cubic-bezier(.38,.08,.22,1.1);
 }
 .cfs-card-inner.flipped { transform:rotateY(180deg); }
 .cfs-card-face, .cfs-card-back {
-  position:absolute; top:0; left:0; right:0; bottom:0; border-radius:8px;
+  position:absolute; top:0; left:0; right:0; bottom:0; border-radius:12px;
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  box-sizing:border-box;
 }
+/* Card back — deep dark with animated shimmer border */
 .cfs-card-back {
-  background:linear-gradient(135deg,#1E1B4B,#312E81);
-  border:1.5px solid rgba(124,58,237,.5);
-  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg,#150d2a 0%,#0c1628 50%,#150d2a 100%);
+  border:1.5px solid rgba(139,92,246,.55);
+  box-shadow:0 2px 20px rgba(0,0,0,.5), 0 0 0 0.5px rgba(139,92,246,.2) inset;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.cfs-card-back::before {
+  content:''; position:absolute; top:5px; left:5px; right:5px; bottom:5px;
+  border-radius:8px; border:1px solid rgba(139,92,246,.22);
+  background:repeating-linear-gradient(130deg,
+    rgba(139,92,246,.06) 0px, rgba(139,92,246,.06) 1.5px,
+    transparent 1.5px, transparent 12px);
 }
 .cfs-card-back::after {
-  content:''; width:38px; height:56px; border-radius:4px;
-  border:1px solid rgba(124,58,237,.4);
-  background:repeating-linear-gradient(45deg,rgba(124,58,237,.15) 0px,rgba(124,58,237,.15) 2px,transparent 2px,transparent 8px);
+  content:'♠'; font-size:28px; color:rgba(139,92,246,.22); line-height:1;
+  position:relative; z-index:1;
 }
+/* Card face — dark with vivid suit color */
 .cfs-card-face {
-  background:#FAFAFA; border:1.5px solid #d0d0d0;
+  background:linear-gradient(160deg,#1c1528 0%,#110e1c 100%);
+  border:1.5px solid rgba(255,255,255,.10);
   transform:rotateY(180deg);
-  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-  padding:3px 4px; box-sizing:border-box;
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between;
+  padding:6px 7px;
+  box-shadow:0 4px 24px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
 }
-.cfs-card-face.red { color:#DC2626; }
-.cfs-card-face.black { color:#1a1a1a; }
-.cfs-corner { font-family:var(--font-mono); font-size:10px; font-weight:800; line-height:1; display:flex; flex-direction:column; align-items:center; gap:0px; }
-.cfs-corner.bot { transform:rotate(180deg); }
-.cfs-suit-big { font-size:22px; line-height:1; }
+.cfs-card-face.red  { color:#fc8181; border-color:rgba(252,129,129,.25); }
+.cfs-card-face.black{ color:#e2e8f0; border-color:rgba(255,255,255,.14); }
+.cfs-card-face.winner {
+  border-color:rgba(245,158,11,.7) !important;
+  box-shadow:0 0 24px rgba(245,158,11,.35), 0 4px 24px rgba(0,0,0,.45), inset 0 1px 0 rgba(245,158,11,.15) !important;
+}
+.cfs-corner { font-family:var(--font-mono); font-size:11px; font-weight:900; line-height:1.1;
+  display:flex; flex-direction:column; align-items:flex-start; gap:0; }
+.cfs-corner.bot { transform:rotate(180deg); align-self:flex-end; }
+.cfs-suit-big { font-size:28px; line-height:1; align-self:center; margin-top:-2px; }
 
 /* Result rows */
 .cfs-result-row {
@@ -1250,6 +1281,12 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 </head>
 <body class="theme-bg">
 
+<!-- Animated ambient aurora — living background, no external images -->
+<div id="bg-orbs" aria-hidden="true">
+  <div class="bg-orb bg-orb1"></div>
+  <div class="bg-orb bg-orb2"></div>
+  <div class="bg-orb bg-orb3"></div>
+</div>
 
 <div id="loading"><div class="spinner"></div><div id="load-msg">LOADING...</div></div>
 
@@ -1885,13 +1922,13 @@ function applyTheme(theme) {
   const pill = document.getElementById('theme-pill');
   if (pill) { pill.textContent = '◆ ' + theme.name; pill.style.color = theme.accent; }
 
-  // ── Background: gradient first (instant), then layer photo over it
-  document.body.style.backgroundImage = getThemeBgGradient(theme);
-  document.body.style.backgroundSize = 'cover';
-  document.body.style.backgroundAttachment = 'fixed';
-  document.body.style.backgroundRepeat = 'no-repeat';
-  applyBgPhoto(theme, pal);
-  startBgRotation(); // ensure 15-min live rotation is running
+  // ── Background: solid dark + animated aurora orbs (no external photos)
+  document.body.style.backgroundImage = '';
+  document.body.style.backgroundSize = '';
+  document.body.style.backgroundAttachment = '';
+  document.body.style.backgroundRepeat = '';
+  // Fade orbs in — they pick up --c-gold-rgb and --c-comp-rgb automatically
+  document.querySelectorAll('.bg-orb').forEach(function(o){ o.style.opacity = '1'; });
 }
 
 // ── TEST MODE — when true, confirmEnd() will NOT save to Supabase or local history
@@ -3362,12 +3399,20 @@ function _cfsShowResults(dealt) {
   }).join('');
 
   section.style.display = '';
-  // Animate rows in
-  sorted.forEach((_, i) => {
+  // Animate rows in + mark winner card with gold glow
+  sorted.forEach((d, i) => {
     setTimeout(() => {
       const row = document.getElementById(`cfs-rr-${i}`);
       if (row) row.classList.add('show');
     }, i * 80 + 60);
+  });
+  // Find winner card in the dealing grid and add gold glow
+  const winnerName = sorted[0] && sorted[0].name;
+  dealt.forEach((d, i) => {
+    if (d.name === winnerName) {
+      const face = document.querySelector(`#cfs-ci-${i} .cfs-card-face`);
+      if (face) setTimeout(() => face.classList.add('winner'), 200);
+    }
   });
 
   // If extra players were added in CFS and a live game is running, offer to add them to the game
@@ -5790,15 +5835,15 @@ function renderGame() {
       card.innerHTML =
         '<div class="pc-fill-r"></div>'+
         '<div class="pc-fill-l"></div>'+
-        /* action badge — left edge (right-swipe = buyin) */
+        /* action badge — left edge (right-swipe = buyin). Shows player name for confirmation */
         '<div class="pc-act-r">'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
-          '<span>Buyin</span>'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
+          '<span>Buyin &middot; '+escH(p.name)+'</span>'+
         '</div>'+
         /* action badge — right edge (left-swipe = undo) */
         '<div class="pc-act-l">'+
-          '<span>Undo</span>'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.17 6.5"/></svg>'+
+          '<span>Undo &middot; '+escH(p.name)+'</span>'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.17 6.5"/></svg>'+
         '</div>'+
         '<div class="p-card-main">'+
           '<div class="p-card-name">'+escH(p.name)+hostStar+'</div>'+
@@ -5831,8 +5876,8 @@ function renderGame() {
       var actR   = card.querySelector('.pc-act-r');
       var actL   = card.querySelector('.pc-act-l');
 
-      // Commit = 34% of card width — deliberate but not tiring
-      var COMMIT_FRAC = 0.34;
+      // Commit = 55% of card width — feels intentional, never accidental
+      var COMMIT_FRAC = 0.55;
 
       function _tReset() {
         _ttracking = false; _tlocked = false; _tcommitted = false;
@@ -5893,14 +5938,18 @@ function renderGame() {
         if (nowCommit && !_tcommitted) { _tcommitted = true; haptic('medium'); }
         if (!nowCommit && _tcommitted)  { _tcommitted = false; }
 
+        // Square-root curve: fill starts very slow, ramps near commit — feels like resistance
+        var fillPct = Math.pow(pct, 1.6);   // slow start, faster near commit threshold
+        var badgePct = Math.pow(pct, 0.8);  // badge fades in a bit faster so it's visible early
+
         if (dx > 0) {
           // ── Right swipe: buyin (green fills from left, badge at left edge)
           card.classList.toggle('swipe-commit-r', nowCommit);
           card.classList.remove('swipe-commit-l');
           if (!nowCommit) {
-            fillR.style.width   = (pct * commit) + 'px';
-            fillR.style.opacity = pct.toFixed(2);
-            if (actR) { actR.style.opacity = pct.toFixed(2); actR.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
+            fillR.style.width   = (fillPct * commit) + 'px';
+            fillR.style.opacity = fillPct.toFixed(2);
+            if (actR) { actR.style.opacity = badgePct.toFixed(2); actR.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
           }
           fillL.style.width = '0'; fillL.style.opacity = '0';
           if (actL) { actL.style.opacity = '0'; }
@@ -5909,9 +5958,9 @@ function renderGame() {
           card.classList.toggle('swipe-commit-l', nowCommit);
           card.classList.remove('swipe-commit-r');
           if (!nowCommit) {
-            fillL.style.width   = (pct * commit) + 'px';
-            fillL.style.opacity = pct.toFixed(2);
-            if (actL) { actL.style.opacity = pct.toFixed(2); actL.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
+            fillL.style.width   = (fillPct * commit) + 'px';
+            fillL.style.opacity = fillPct.toFixed(2);
+            if (actL) { actL.style.opacity = badgePct.toFixed(2); actL.style.transform = 'scale('+(0.82+pct*0.18).toFixed(2)+')'; }
           }
           fillR.style.width = '0'; fillR.style.opacity = '0';
           if (actR) { actR.style.opacity = '0'; }
