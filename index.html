@@ -545,6 +545,11 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 /* Buyin count pop animation */
 @keyframes numPop { 0%{transform:scale(1)} 35%{transform:scale(1.5)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
 .num-pop { animation:numPop .32s cubic-bezier(.34,1.56,.64,1); }
+/* Confirm ring flash — visible on ALL devices including iOS where vibrate is unavailable */
+@keyframes ringFlashG { 0%{box-shadow:0 0 0 0 rgba(34,197,94,.9),0 0 0 0 rgba(34,197,94,.5)} 40%{box-shadow:0 0 0 4px rgba(34,197,94,.7),0 0 18px 4px rgba(34,197,94,.3)} 100%{box-shadow:0 0 0 0 rgba(34,197,94,0),0 0 0 0 rgba(34,197,94,0)} }
+@keyframes ringFlashR { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.9),0 0 0 0 rgba(239,68,68,.5)} 40%{box-shadow:0 0 0 4px rgba(239,68,68,.7),0 0 18px 4px rgba(239,68,68,.3)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)} }
+.ring-flash-g { animation:ringFlashG .38s cubic-bezier(.36,.07,.19,.97) forwards; }
+.ring-flash-r { animation:ringFlashR .38s cubic-bezier(.36,.07,.19,.97) forwards; }
 /* LIVE badge pulse ring */
 @keyframes livePulse { 0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)} 70%{box-shadow:0 0 0 8px rgba(34,197,94,0)} 100%{box-shadow:0 0 0 0 rgba(34,197,94,0)} }
 /* Harvey ball buyin indicators — pool ball style */
@@ -5896,7 +5901,7 @@ function renderGame() {
         }, 220);
       }
 
-      // touchstart: passive:true (no need to preventDefault at start)
+      // touchstart: passive:true. Also pre-warms AudioContext — MUST happen in a user gesture.
       card.addEventListener('touchstart', function(e) {
         if (e.target.closest('button, input, select, .eco-panel')) return;
         if (e.touches.length !== 1) return;
@@ -5907,6 +5912,8 @@ function renderGame() {
         fillR.style.transition = fillL.style.transition = 'none';
         if (actR) actR.style.transition = 'none';
         if (actL) actL.style.transition = 'none';
+        // Warm AudioContext NOW (user gesture) so playBuyinSound works when touchend fires
+        _warmAudio();
       }, {passive: true});
 
       // touchmove: passive:false — required for e.preventDefault() to stop page scroll
@@ -5975,8 +5982,22 @@ function renderGame() {
         var didCommit  = _tcommitted;
         _tReset();
         if (!wasLocked) return;
-        if (dx > 0 && didCommit)       { setTimeout(function(){ addBuyin(p.name); },  50); }
-        else if (dx < 0 && didCommit)  { setTimeout(function(){ undoBuyin(p.name); }, 50); }
+        if (dx > 0 && didCommit) {
+          // Fire sound + haptic HERE — still inside touchend (user gesture), so iOS AudioContext works
+          var idx = session ? session.players.indexOf(p) : 0;
+          playBuyinSound(idx >= 0 ? idx : 0);
+          haptic('medium');
+          // Ring-flash green: visual confirmation on ALL devices (iOS vibrate API not supported)
+          card.classList.add('ring-flash-g');
+          setTimeout(function(){ card.classList.remove('ring-flash-g'); }, 420);
+          // addBuyin with silent=true — sound already played above
+          setTimeout(function(){ addBuyin(p.name, true); }, 50);
+        } else if (dx < 0 && didCommit) {
+          haptic('medium');
+          card.classList.add('ring-flash-r');
+          setTimeout(function(){ card.classList.remove('ring-flash-r'); }, 420);
+          setTimeout(function(){ undoBuyin(p.name); }, 50);
+        }
       });
 
       card.addEventListener('touchcancel', _tReset);
@@ -6065,7 +6086,7 @@ function buyinDotsHtml(n) {
   return html;
 }
 
-function addBuyin(n) {
+function addBuyin(n, silent) {
   if(!isHostDevice){notify('Only the host device can do this','err');return;}
   const p=session.players.find(x=>x.name===n); if(!p||p.earlyOut)return;
   const idx = session.players.indexOf(p);
@@ -6076,8 +6097,8 @@ function addBuyin(n) {
   renderGame(); saveActiveSession(); publishGameState();
   setTimeout(function(){ var el = document.querySelector('.p-card-count'); if(el){el.classList.remove('num-pop');void el.offsetWidth;el.classList.add('num-pop');} }, 20);
   checkMilestones();
-  playBuyinSound(idx);
-  haptic('medium');
+  // silent=true when called from swipe touchend — sound+haptic already fired there (within gesture)
+  if (!silent) { playBuyinSound(idx); haptic('medium'); }
   notify(n+' rebought!');
   sendGameNotif('Rebuy', n + ' is back in · Pot now ' + fmt(potTotal()) + ' 🔴');
   checkBuyinReminder();
@@ -6097,28 +6118,36 @@ const _BUYIN_NOTES = [
   [554.37,698.46,830.61],   // C#-F-G#(player 9)
 ];
 let _audioCtx = null;
-let _audioNextT = 0; // tracks when the last scheduled sound ends, so rapid sounds queue up
-async function playBuyinSound(playerIdx) {
+let _audioNextT = 0; // tracks when the last scheduled sound ends so rapid buyins queue
+
+// Pre-warm the AudioContext — call this from a touchstart/touchend handler (user gesture).
+// iOS Safari requires AudioContext creation AND resume to happen in a user gesture call stack.
+function _warmAudio() {
   try {
     if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    // MUST await resume — fire-and-forget means notes schedule before context is running
-    if (_audioCtx.state === 'suspended') await _audioCtx.resume();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume(); // sync kick — no await needed here
+  } catch(e) {}
+}
+
+// Schedule a per-player chime. Call from within a user-gesture handler (touchend) so the
+// context is already running. Rapid calls queue rather than overlap.
+function playBuyinSound(playerIdx) {
+  try {
+    if (!_audioCtx || _audioCtx.state !== 'running') return; // context not warm — skip silently
     const ctx   = _audioCtx;
     const notes = _BUYIN_NOTES[playerIdx % _BUYIN_NOTES.length];
-    // Queue: start after the last scheduled sound, not at ctx.currentTime
-    // This makes rapid consecutive buyins each play their full chime in sequence
+    // Queue after previous sound so rapid buyins each get their own distinct chime
     const startT = Math.max(ctx.currentTime + 0.01, _audioNextT);
-    notes.forEach((freq, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
+    notes.forEach(function(freq, i) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.type = 'triangle'; o.frequency.value = freq;
-      const t = startT + i * 0.09;
+      var t = startT + i * 0.09;
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.22, t + 0.015);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
       o.start(t); o.stop(t + 0.22);
     });
-    // Remember when this sound ends so the next one can queue after it
     _audioNextT = startT + (notes.length - 1) * 0.09 + 0.22;
   } catch(e) {}
 }
