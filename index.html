@@ -4155,7 +4155,7 @@ async function buildLedgerTab() {
                 '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Remind'+
               '</button>' : '')+
             (hasPay ?
-              '<button onclick="showPaySheet(\''+escQ(payee)+'\',\''+escQ(payer)+'\','+pentry.total+')" '+
+              (()=>{const latestD=pentry.rows.reduce(function(best,r){return(r.game_date&&r.game_date>best)?r.game_date:best;},'');const gdArg=latestD?'\''+escQ(latestD)+'\'':'\'\'';return '<button onclick="showPaySheet(\''+escQ(payee)+'\',\''+escQ(payer)+'\','+pentry.total+','+gdArg+')" ';})() +
                 'style="flex:2;padding:8px 10px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);'+
                 'border-radius:10px;color:var(--c-green);font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px">'+
                 '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pay '+escH(payee)+
@@ -4299,7 +4299,7 @@ async function markAllPersonSettled(payer, ids, multiKeys) {
   }
 }
 
-function showPaySheet(toName, fromName, amount) {
+function showPaySheet(toName, fromName, amount, gameDate) {
   // Reuse qr-modal to show pay buttons
   const amtRd = rd(amount);
   const amtStr = Number.isInteger(amtRd) ? String(amtRd) : amtRd.toFixed(2);
@@ -4309,7 +4309,7 @@ function showPaySheet(toName, fromName, amount) {
       '<span style="font-size:13px;color:var(--c-muted)">'+escH(fromName)+' owes</span>'+
       '<div style="font-family:var(--font-mono);font-size:30px;font-weight:900;color:var(--c-gold)">$'+amtStr+'</div>'+
     '</div>'+
-    buildPayBtns(toName, fromName, amount);
+    buildPayBtns(toName, fromName, amount, gameDate||'');
   document.getElementById('qr-modal').style.display = 'flex';
 }
 
@@ -4332,10 +4332,11 @@ async function buildSettleHomeTab() {
   const agg = {};
   pending.forEach(r => {
     const k = r.payer+'|'+r.payee;
-    if (!agg[k]) agg[k] = { payer:r.payer, payee:r.payee, total:0, ids:[], count:0 };
+    if (!agg[k]) agg[k] = { payer:r.payer, payee:r.payee, total:0, ids:[], count:0, latestDate:'' };
     agg[k].total = rd(agg[k].total + parseFloat(r.amount));
     agg[k].ids.push(r.id);
     agg[k].count++;
+    if (r.game_date && r.game_date > agg[k].latestDate) agg[k].latestDate = r.game_date;
   });
   const pairs = Object.values(agg).sort((a,b)=>b.total-a.total);
 
@@ -4362,7 +4363,7 @@ async function buildSettleHomeTab() {
           '</div>'+
         '</div>'+
         ((!a.payment_opted_out && a.cashapp) ?
-          '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--c-bdr)">'+buildPayBtns(g.payee,g.payer,g.total)+'</div>' : '')+
+          '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--c-bdr)">'+buildPayBtns(g.payee,g.payer,g.total, g.count===1 ? g.latestDate : g.count+' games')+'</div>' : '')+
       '</div>';
     });
   } else if (rows.length > 0) {
@@ -6934,91 +6935,159 @@ function settleWithBuyin(players, buyin) {
   return out;
 }
 
-function buildPayBtns(toName, fromName, amount) {
+function buildPayBtns(toName, fromName, amount, gameDate) {
   const at = accounts[toName]  || {};
   const af = accounts[fromName]|| {};
   if (at.payment_opted_out) {
-    return '<div class="stile-btns"><span class="pay-btn opted">\ud83d\udeab '+escH(toName)+' opted out</span></div>';
+    return '<div class="stile-btns"><span class="pay-btn opted">🚫 '+escH(toName)+' opted out</span></div>';
   }
-  const amtRd = rd(amount); const amtStr = Number.isInteger(amtRd) ? String(amtRd) : amtRd.toFixed(1);
-  const noteEnc = encodeURIComponent('Showdown \u2014 $'+amtStr+' from '+fromName);
+  const amtRd = rd(amount);
+  const amtStr = Number.isInteger(amtRd) ? String(amtRd) : amtRd.toFixed(2);
+  // Note includes game date — Cash App native scheme pre-fills it in the note field
+  const noteText = 'Poker Night' + (gameDate ? ' — '+gameDate : '') + ' | $'+amtStr+' from '+fromName;
+  const noteEnc = encodeURIComponent(noteText);
   // JS-safe quoted strings for inline onclick attrs
-  const qTo   = escQ(toName),   qFrom = escQ(fromName);
-  const qCaTo = escQ(at.cashapp||''), qCaFrom = escQ(af.cashapp||'');
-  const qAmtStr = escQ(amtStr), qNote = escQ(noteEnc), qFrom2 = escQ(fromName);
+  const qTo    = escQ(toName), qFrom = escQ(fromName);
+  const qCaTo  = escQ(at.cashapp||''), qCaFrom = escQ(af.cashapp||'');
+  const qAmtStr = escQ(amtStr), qNote = escQ(noteEnc);
 
   let btns = '';
 
-  // ── Cash App: Pay button (payer's device) + Request button (payee's device)
   if (at.cashapp) {
-    btns += '<button class="pay-btn cash" title="'+escH(fromName)+' taps this on their phone to send"'+
-      ' onclick="openPayLink(\'cashapp\',\''+qCaTo+'\',\''+qAmtStr+'\',\''+qNote+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pay $'+escH(at.cashapp)+'</button>';
-    btns += '<button class="pay-btn cash request" title="'+escH(toName)+' taps this on their phone to request"'+
-      ' onclick="openCashAppRequest(\''+qCaFrom+'\',\''+qCaTo+'\',\''+qAmtStr+'\',\''+qFrom2+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>Request $'+amtStr+'</button>';
-    btns += '<button class="pay-btn qr" title="Show Cash App QR codes"'+
-      ' onclick="showCashAppQRs(\''+qTo+'\',\''+escQ(fromName)+'\',\''+qAmtStr+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>QR</button>';
+    // Pay sheet — payer taps this on their device
+    btns += '<button class="pay-btn cash" title="'+escH(fromName)+' taps this to send"'+
+      ' onclick="showCashPaySheet(\''+qCaTo+'\',\''+qAmtStr+'\',\''+qNote+'\',\''+qFrom+'\',\''+escQ(toName)+'\')">'+
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'+
+      'Pay $'+escH(at.cashapp)+'</button>';
+    // Request sheet — payee taps this on their device (only if payee has a cashtag)
+    if (af.cashapp) {
+      btns += '<button class="pay-btn cash request" title="'+escH(toName)+' taps this to request"'+
+        ' onclick="showCashRequestSheet(\''+qCaFrom+'\',\''+qCaTo+'\',\''+qAmtStr+'\',\''+escQ(fromName)+'\',\''+escQ(toName)+'\',\''+qNote+'\')">'+
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>'+
+        'Request</button>';
+    }
+    // QR fallback
+    btns += '<button class="pay-btn qr" title="QR codes"'+
+      ' onclick="showCashAppQRs(\''+qTo+'\',\''+escQ(fromName)+'\',\''+qAmtStr+'\')">'+
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>QR</button>';
   }
 
   if (!at.cashapp) {
-    btns += '<button class="pay-btn setup-link" onclick="setHTab(\'accounts\');goHome()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Set up links for '+escH(toName)+'</button>';
+    btns += '<button class="pay-btn setup-link" onclick="setHTab(\'accounts\');goHome()">'+
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'+
+      'Set up links for '+escH(toName)+'</button>';
   }
 
   return '<div class="stile-btns">'+btns+'</div>';
 }
 
 
-// Universal pay link opener — tries native app scheme first, falls back to web
-function openPayLink(app, handle, amount, note) {
-  if (app === 'cashapp') {
-    // cashapp://pay/$tag opens Cash App in SEND/PAY mode with amount pre-filled
-    const amtNum = parseFloat(amount).toFixed(2);
-    const native = 'cashapp://pay/$'+encodeURIComponent(handle)+'?amount='+amtNum;
-    const web    = 'https://cash.app/$'+encodeURIComponent(handle)+'/'+amtNum;
-    notify('\ud83d\udc9a Opening Cash App \u2014 tap \u201cPay\u201d to send $'+amtNum, 'info');
-    tryNativeLink(native, web);
-  }
+/* ── CASH APP PAYMENT SHEETS ─────────────────────────────────────────
+   No blank-page problem: we show a sheet first, then user taps one
+   large button that does window.location.href = cashapp:// (stays on
+   the same page if Cash App opens; no new tab created).
+   Note is included in the native URL so Cash App pre-fills it.
+──────────────────────────────────────────────────────────────────── */
+
+// PAY sheet — shown on the PAYER's device
+// payeeCashtag: who receives money  |  fromName: payer display name  |  toName: payee display name
+function showCashPaySheet(payeeCashtag, amount, noteEnc, fromName, toName) {
+  const amtNum = parseFloat(amount).toFixed(2);
+  const noteDecoded = decodeURIComponent(noteEnc);
+  // Native: cashapp://pay/$tag?amount=X&note=Y  — opens Cash App with note pre-filled
+  const native = 'cashapp://pay/$'+encodeURIComponent(payeeCashtag)+'?amount='+amtNum+'&note='+noteEnc;
+  // Web fallback: cash.app/$tag/amount (note not supported in web URL)
+  const web = 'https://cash.app/$'+encodeURIComponent(payeeCashtag)+'/'+amtNum;
+  _showCashSheet({
+    title: 'Pay $'+payeeCashtag,
+    subtitle: fromName+' → '+toName,
+    amount: amtNum,
+    note: noteDecoded,
+    nativeUrl: native,
+    webUrl: web,
+    action: 'Pay',
+    color: '#00C853'
+  });
 }
 
-// Open Cash App in REQUEST mode — PAYEE taps this on THEIR device to charge the payer
-// payerCashtag  = $cashtag of person who OWES (may be empty)
-// payeeCashtag  = $cashtag of person who IS OWED (who taps this button)
-// amount        = dollar amount
-// payerName     = display name of person who owes
-function openCashAppRequest(payerCashtag, payeeCashtag, amount, payerName) {
+// REQUEST sheet — shown on the PAYEE's device
+function showCashRequestSheet(payerCashtag, payeeCashtag, amount, fromName, toName, noteEnc) {
+  const amtNum = parseFloat(amount).toFixed(2);
+  const noteDecoded = decodeURIComponent(noteEnc);
   if (!payeeCashtag) {
-    notify('Set up your Cash App $cashtag in Accounts \u2192 tap More', 'warn');
+    notify('Add your $cashtag in Accounts → tap More', 'warn');
     setHTab('accounts'); goHome();
     return;
   }
-  const amtNum = parseFloat(amount).toFixed(2);
-
+  let native, web, title, subtitle;
   if (payerCashtag) {
-    // cashapp://request/$payerTag opens Cash App in REQUEST mode targeting the payer
-    const native = 'cashapp://request/$'+encodeURIComponent(payerCashtag)+'?amount='+amtNum;
-    const web    = 'https://cash.app/$'+encodeURIComponent(payerCashtag)+'/'+amtNum;
-    notify('\u2191 Opening Cash App \u2014 tap \u201cRequest\u201d to charge '+payerName+' $'+amtNum, 'info');
-    tryNativeLink(native, web);
+    // Request from a known cashtag — opens payer's profile in Request mode
+    native = 'cashapp://request/$'+encodeURIComponent(payerCashtag)+'?amount='+amtNum+'&note='+noteEnc;
+    web = 'https://cash.app/$'+encodeURIComponent(payerCashtag)+'/'+amtNum;
+    title = 'Request from $'+payerCashtag;
+    subtitle = toName+' charges '+fromName;
   } else {
-    // Payer has no tag — open payee's own profile so payer can scan/search them
-    const native = 'cashapp://pay/$'+encodeURIComponent(payeeCashtag)+'?amount='+amtNum;
-    const web    = 'https://cash.app/$'+encodeURIComponent(payeeCashtag)+'/'+amtNum;
-    notify(payerName+' has no Cash App tag \u2014 share your tag $'+payeeCashtag+' so they can pay you', 'warn');
-    tryNativeLink(native, web);
+    // Payer has no cashtag — open payee profile so payer can find and pay
+    native = 'cashapp://pay/$'+encodeURIComponent(payeeCashtag)+'?amount='+amtNum+'&note='+noteEnc;
+    web = 'https://cash.app/$'+encodeURIComponent(payeeCashtag)+'/'+amtNum;
+    title = 'Request via $'+payeeCashtag;
+    subtitle = fromName+' has no $tag — share yours';
+  }
+  _showCashSheet({
+    title: title,
+    subtitle: subtitle,
+    amount: amtNum,
+    note: noteDecoded,
+    nativeUrl: native,
+    webUrl: web,
+    action: 'Request',
+    color: '#1a9e3f'
+  });
+}
+
+// Internal: render the Cash App action sheet inside the qr-modal
+function _showCashSheet(opts) {
+  const { title, subtitle, amount, note, nativeUrl, webUrl, action, color } = opts;
+  const titleEl  = document.getElementById('qr-title');
+  const wrapEl   = document.getElementById('qr-wrap');
+  if (titleEl) titleEl.textContent = title;
+  if (!wrapEl) return;
+  wrapEl.innerHTML =
+    '<div style="text-align:center;padding:4px 0 16px">'+
+      '<div style="font-size:12px;color:var(--c-muted);font-family:var(--font-mono);margin-bottom:4px">'+escH(subtitle)+'</div>'+
+      '<div style="font-family:var(--font-mono);font-size:34px;font-weight:900;color:var(--c-gold);line-height:1.1">$'+escH(amount)+'</div>'+
+    '</div>'+
+    // Note preview chip
+    '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 12px;margin-bottom:16px;display:flex;align-items:center;gap:8px">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3);margin-bottom:2px">Note (pre-filled in Cash App)</div>'+
+        '<div style="font-size:12px;font-weight:600;color:var(--c-txt);word-break:break-word">'+escH(note)+'</div>'+
+      '</div>'+
+      '<button onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(note)+')" style="flex-shrink:0;padding:4px 8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.5);font-family:var(--font-mono);font-size:9px;cursor:pointer" title="Copy note">Copy</button>'+
+    '</div>'+
+    // Big primary action button — window.location.href keeps user on same page
+    '<a href="'+escH(nativeUrl)+'" style="display:block;text-align:center;padding:15px 20px;background:'+color+';border-radius:14px;font-size:16px;font-weight:800;color:#000;text-decoration:none;margin-bottom:10px;letter-spacing:.3px">'+
+      '💚 Open Cash App &mdash; '+action+' $'+escH(amount)+
+    '</a>'+
+    // Small web fallback
+    '<a href="'+escH(webUrl)+'" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:10px;border-radius:10px;border:1px solid var(--c-bdr2);font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none">'+
+      'Open cash.app in browser ↗'+
+    '</a>'+
+    '<div style="margin-top:10px;text-align:center;font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.2)">Tap above on the payer\'s phone</div>';
+  document.getElementById('qr-modal').style.display = 'flex';
+}
+
+// Legacy entry point — kept for any old onclick refs
+function openPayLink(app, handle, amount, note) {
+  if (app === 'cashapp') {
+    showCashPaySheet(handle, amount, note||'', '', '');
   }
 }
-
-function tryNativeLink(nativeUrl, webUrl) {
-  // Try native app scheme via hidden iframe; open web fallback after 800ms
-  // (shorter delay so it feels instant if app isn't installed)
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-  try { iframe.src = nativeUrl; } catch(e) {}
-  setTimeout(() => {
-    try { document.body.removeChild(iframe); } catch(e) {}
-    window.open(webUrl, '_blank', 'noopener,noreferrer');
-  }, 800);
+function openCashAppRequest(payerCashtag, payeeCashtag, amount, payerName) {
+  showCashRequestSheet(payerCashtag, payeeCashtag, amount, payerName, '', '');
 }
+
 
 function showCashAppQRs(toName, fromName, amtStr) {
   const at = accounts[toName]  || {};  // payee (owed money)
