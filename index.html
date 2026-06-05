@@ -797,7 +797,7 @@ body::before {
 /* ── LEFT SIDE NAV DRAWER ── */
 #more-sheet {
   position:fixed;
-  top:0; left:0; bottom:0;
+  top:calc(env(safe-area-inset-top,0px) + 56px); left:0; bottom:0;
   width:260px;
   z-index:3200;
   background:rgba(8,9,18,.98);
@@ -809,7 +809,7 @@ body::before {
   overflow-y:auto; overflow-x:hidden;
   display:block !important;
   -webkit-overflow-scrolling:touch;
-  padding-top:calc(env(safe-area-inset-top,0px) + 12px);
+  padding-top:0;
   padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
 }
 #more-sheet.qp-open {
@@ -824,41 +824,43 @@ body:not(.nav-open) .wrap {
   transform:translateX(0);
   transition:transform .26s cubic-bezier(.4,0,.2,1);
 }
-/* Header also shifts right */
-body.nav-open #app-header {
-  left:260px;
-  transition:left .26s cubic-bezier(.4,0,.2,1);
-}
-body:not(.nav-open) #app-header {
-  left:0;
-  transition:left .26s cubic-bezier(.4,0,.2,1);
-}
+/* Header stays fixed — only .wrap shifts */
 /* dropdown row — clean, no icon boxes */
 .mdd-row {
-  display:flex; align-items:center; gap:10px;
-  padding:9px 14px; cursor:pointer; border:none; background:transparent;
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; cursor:pointer; border:none; background:transparent;
   text-align:left; width:100%; -webkit-tap-highlight-color:transparent;
-  transition:background .08s; position:relative;
+  transition:background .1s; position:relative; min-height:44px;
 }
-.mdd-row:active { background:rgba(255,255,255,.05); }
-/* active nav item: left accent bar */
+.mdd-row:active { background:rgba(255,255,255,.06); }
+.mdd-row.mdd-active { background:rgba(245,158,11,.06); }
+/* active: gold left bar */
 .mdd-row.mdd-active::before {
-  content:''; position:absolute; left:0; top:25%; bottom:25%;
-  width:2.5px; border-radius:2px; background:var(--c-gold);
+  content:''; position:absolute; left:0; top:20%; bottom:20%;
+  width:3px; border-radius:0 2px 2px 0; background:var(--c-gold);
 }
 .mdd-row + .mdd-row { border-top:1px solid rgba(255,255,255,.04); }
-.mdd-icon { width:16px; height:16px; flex-shrink:0; opacity:.55; display:flex; align-items:center; justify-content:center; }
-.mdd-row.mdd-active .mdd-icon { opacity:1; }
+/* colored icon badge */
+.mdd-icon {
+  width:34px; height:34px; border-radius:9px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.07);
+  transition:background .1s;
+}
+.mdd-row.mdd-active .mdd-icon { background:rgba(245,158,11,.15); }
+.mdd-icon svg { width:16px; height:16px; opacity:.7; }
+.mdd-row.mdd-active .mdd-icon svg { opacity:1; }
 .mdd-text { flex:1; min-width:0; }
-.mdd-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.7); line-height:1.1; }
+.mdd-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.75); line-height:1; }
 .mdd-row.mdd-active .mdd-label { color:var(--c-gold); font-weight:600; }
-.mdd-desc  { display:none; } /* hide descriptions — clean list */
+.mdd-desc { font-size:10px; color:rgba(255,255,255,.3); margin-top:2px; }
 .mdd-check { display:none; }
 .mdd-section-lbl {
-  font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,.22);
-  font-weight:500; text-transform:uppercase; letter-spacing:1.5px; padding:9px 14px 4px;
+  font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,.25);
+  text-transform:uppercase; letter-spacing:1.5px;
+  padding:12px 14px 5px;
 }
-.mdd-divider { height:1px; background:rgba(255,255,255,.07); margin:4px 0; }
+.mdd-divider { height:1px; background:rgba(255,255,255,.06); margin:6px 0; }
 
 /* ── MORE SHEET BUTTONS (legacy, kept for compat) ── */
 .more-sheet-btn {
@@ -1857,79 +1859,109 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
 <!-- LEFT SIDE NAV DRAWER -->
 <div id="more-sheet-bg" onclick="closeHomeMore()"
-  style="display:none;position:fixed;top:0;left:260px;right:0;bottom:0;z-index:3100;
-    background:rgba(0,0,0,.25);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)"></div>
+  style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px)+56px);left:260px;right:0;bottom:0;z-index:3100;
+    background:rgba(0,0,0,.2)"></div>
 <div id="more-sheet" role="dialog" aria-label="Navigation menu">
 
-  <!-- Drawer brand header -->
-  <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.06)">
-    <span class="ah-badge" aria-hidden="true" style="width:30px;height:30px;border-radius:9px;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.9"><path d="M12 2L9 9H2l5.5 4L5 20l7-5 7 5-2.5-7L22 9h-7z"/></svg></span>
-    <div>
-      <div style="font-family:var(--font-logo);font-size:13px;font-weight:800;letter-spacing:2px;color:var(--c-txt)">SHOWDOWN</div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px">Hutto Poker Night</div>
-    </div>
-    <button onclick="closeHomeMore()" style="margin-left:auto;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:none;cursor:pointer;color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-
-  <!-- NAV SECTION -->
-  <div class="mdd-section-lbl" style="margin-top:8px">Navigate</div>
+  <!-- SECTION: Navigate -->
+  <div class="mdd-section-lbl">Navigate</div>
 
   <button type="button" id="mdd-nav-dashboard" class="mdd-row" onclick="setHTab('dashboard');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Home</div></div>
+    <div class="mdd-icon" style="background:rgba(167,139,250,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Home</div>
+      <div class="mdd-desc">Dashboard &amp; overview</div>
+    </div>
   </button>
 
   <button type="button" id="mdd-nav-settle" class="mdd-row" onclick="setHTab('settle');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Settle Up</div></div>
+    <div class="mdd-icon" style="background:rgba(245,158,11,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Settle Up</div>
+      <div class="mdd-desc">Pending payments</div>
+    </div>
   </button>
 
   <button type="button" id="mdd-nav-stats" class="mdd-row" onclick="setHTab('stats');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Stats</div></div>
+    <div class="mdd-icon" style="background:rgba(129,140,248,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Stats</div>
+      <div class="mdd-desc">Performance &amp; trends</div>
+    </div>
   </button>
 
   <button type="button" id="mdd-nav-history" class="mdd-row" onclick="setHTab('history');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Game History</div></div>
+    <div class="mdd-icon" style="background:rgba(56,189,248,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Game History</div>
+      <div class="mdd-desc">Past sessions</div>
+    </div>
   </button>
 
   <button type="button" id="mdd-nav-poll" class="mdd-row" onclick="setHTab('poll');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Tonight's Poll</div></div>
+    <div class="mdd-icon" style="background:rgba(52,211,153,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Tonight's Poll</div>
+      <div class="mdd-desc">RSVP &amp; vote</div>
+    </div>
   </button>
 
-  <!-- TOOLS SECTION -->
+  <!-- SECTION: Tools -->
   <div class="mdd-divider"></div>
   <div class="mdd-section-lbl">Tools</div>
 
   <button type="button" class="mdd-row" onclick="setHTab('accounts');closeHomeMore();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Player Accounts</div></div>
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon" style="background:rgba(59,130,246,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Player Accounts</div>
+      <div class="mdd-desc">Cash tags &amp; settings</div>
+    </div>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();quickRematch();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Quick Rematch</div></div>
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon" style="background:rgba(16,185,129,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Quick Rematch</div>
+      <div class="mdd-desc">Reload last crew</div>
+    </div>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();remindAll();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Remind All to Pay</div></div>
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon" style="background:rgba(139,92,246,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Remind All to Pay</div>
+      <div class="mdd-desc">Send nudges</div>
+    </div>
+  </button>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();showKillGameSheet();">
-    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-    <div class="mdd-text"><div class="mdd-label">Manage Active Games</div></div>
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon" style="background:rgba(239,68,68,.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Manage Active Games</div>
+      <div class="mdd-desc">Kill stuck sessions</div>
+    </div>
   </button>
 
-  <div style="height:6px"></div>
+  <div style="height:12px"></div>
 </div>
 
 
