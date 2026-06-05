@@ -286,8 +286,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
   text-transform:uppercase; color:rgba(255,255,255,.25);
   font-weight:400; white-space:nowrap; padding-left:43px;
 }
-#ah-page { font-family:var(--font-body); font-size:11px; font-weight:600; letter-spacing:2px;
-  color:rgba(255,255,255,.45); text-transform:uppercase; flex:1; text-align:center; }
+/* ah-page now inline in header */
 .ah-right { display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0; }
 .ah-more-btn {
   display:flex; align-items:center; justify-content:center;
@@ -795,33 +794,44 @@ body::before {
 .hnav-btn.active::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
   width:20px; height:2.5px; background:var(--ta,#7C3AED); border-radius:2px;
   box-shadow:0 0 8px rgba(var(--ta-rgb,124,58,237),.8); }
-/* ── MORE DROPDOWN (top-right anchored) ── */
+/* ── LEFT SIDE NAV DRAWER ── */
 #more-sheet {
   position:fixed;
-  top:calc(env(safe-area-inset-top,0px) + 54px);
-  right:10px;
-  z-index:3300;
-  width:220px;
-  background:rgba(10,11,20,.97);
-  backdrop-filter:blur(40px) saturate(1.6); -webkit-backdrop-filter:blur(40px) saturate(1.6);
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:14px;
-  box-shadow:0 16px 48px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.04) inset;
-  transform:scale(0.96) translateY(-6px);
-  transform-origin:top right;
-  opacity:0;
-  pointer-events:none;
-  transition:transform .18s cubic-bezier(.4,0,.2,1), opacity .14s ease;
-  overflow-y:auto;
-  overflow-x:hidden;
+  top:0; left:0; bottom:0;
+  width:260px;
+  z-index:3200;
+  background:rgba(8,9,18,.98);
+  backdrop-filter:blur(40px) saturate(1.8); -webkit-backdrop-filter:blur(40px) saturate(1.8);
+  border-right:1px solid rgba(255,255,255,.07);
+  box-shadow:8px 0 40px rgba(0,0,0,.5);
+  transform:translateX(-100%);
+  transition:transform .26s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto; overflow-x:hidden;
   display:block !important;
-  max-height:calc(100dvh - 80px);
   -webkit-overflow-scrolling:touch;
+  padding-top:calc(env(safe-area-inset-top,0px) + 12px);
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
 }
 #more-sheet.qp-open {
-  transform:scale(1) translateY(0);
-  opacity:1;
-  pointer-events:auto;
+  transform:translateX(0);
+}
+/* Main content shifts right when drawer opens */
+body.nav-open .wrap {
+  transform:translateX(260px);
+  transition:transform .26s cubic-bezier(.4,0,.2,1);
+}
+body:not(.nav-open) .wrap {
+  transform:translateX(0);
+  transition:transform .26s cubic-bezier(.4,0,.2,1);
+}
+/* Header also shifts right */
+body.nav-open #app-header {
+  left:260px;
+  transition:left .26s cubic-bezier(.4,0,.2,1);
+}
+body:not(.nav-open) #app-header {
+  left:0;
+  transition:left .26s cubic-bezier(.4,0,.2,1);
 }
 /* dropdown row — clean, no icon boxes */
 .mdd-row {
@@ -1596,7 +1606,12 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
 <!-- ══ GLOBAL STICKY HEADER — appears on every screen ══ -->
 <header id="app-header">
-  <div class="ah-brand">
+  <!-- Hamburger LEFT — opens left drawer -->
+  <button id="ah-more-btn" class="ah-more-btn" onclick="toggleHomeMore()" aria-label="Menu" style="display:none;flex-shrink:0">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+  </button>
+  <!-- Brand centered -->
+  <div class="ah-brand" style="flex:1;display:flex;align-items:center;justify-content:flex-start;gap:0;margin-left:10px">
     <div class="ah-logo-wrap">
       <div class="ah-logo-row">
         <span class="ah-badge" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.9"><path d="M12 2L9 9H2l5.5 4L5 20l7-5 7 5-2.5-7L22 9h-7z"/></svg></span>
@@ -1605,18 +1620,13 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
           <span class="ah-wordmark">SHOWDOWN</span>
         </div>
       </div>
-      <div class="ah-tag">Deal &middot; Track &middot; Win</div>
     </div>
   </div>
-  <div id="ah-page"></div>
-  <div class="ah-right">
-    <button id="ah-more-btn" class="ah-more-btn" onclick="toggleHomeMore()" aria-label="Quick actions" title="Quick actions" style="display:none">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
-    </button>
-    <div class="ah-right-stack">
-      <div id="sync-pill" class="sync-pill live" role="status" aria-live="polite" style="display:none"><div class="sync-dot"></div><span>LIVE SYNC</span></div>
-      <div id="theme-pill" style="display:none"></div>
-    </div>
+  <!-- Right: page context + sync -->
+  <div class="ah-right" style="flex-shrink:0">
+    <div id="sync-pill" class="sync-pill live" role="status" aria-live="polite" style="display:none"><div class="sync-dot"></div><span>LIVE SYNC</span></div>
+    <div id="ah-page" style="font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <div id="theme-pill" style="display:none"></div>
   </div>
 </header>
 <div id="sync-warn-bar" class="sync-warn-bar" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="sync-warn-msg">Sync lost — changes may not save</span></div>
@@ -1845,13 +1855,26 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   </div>
 </nav>
 
-<!-- MORE DROPDOWN — enterprise-grade top-right menu -->
+<!-- LEFT SIDE NAV DRAWER -->
 <div id="more-sheet-bg" onclick="closeHomeMore()"
-  style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:3200;"></div>
+  style="display:none;position:fixed;top:0;left:260px;right:0;bottom:0;z-index:3100;
+    background:rgba(0,0,0,.25);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)"></div>
 <div id="more-sheet" role="dialog" aria-label="Navigation menu">
 
+  <!-- Drawer brand header -->
+  <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.06)">
+    <span class="ah-badge" aria-hidden="true" style="width:30px;height:30px;border-radius:9px;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.9"><path d="M12 2L9 9H2l5.5 4L5 20l7-5 7 5-2.5-7L22 9h-7z"/></svg></span>
+    <div>
+      <div style="font-family:var(--font-logo);font-size:13px;font-weight:800;letter-spacing:2px;color:var(--c-txt)">SHOWDOWN</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px">Hutto Poker Night</div>
+    </div>
+    <button onclick="closeHomeMore()" style="margin-left:auto;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:none;cursor:pointer;color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
   <!-- NAV SECTION -->
-  <div class="mdd-section-lbl">Go to</div>
+  <div class="mdd-section-lbl" style="margin-top:8px">Navigate</div>
 
   <button type="button" id="mdd-nav-dashboard" class="mdd-row" onclick="setHTab('dashboard');closeHomeMore();">
     <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
@@ -3776,40 +3799,37 @@ function _updateStartBtn() {
   }
 }
 function openHomeMore() {
-  const bg = document.getElementById('more-sheet-bg');
   const sh = document.getElementById('more-sheet');
+  const bg = document.getElementById('more-sheet-bg');
   if (!sh) return;
+  document.body.classList.add('nav-open');
+  sh.classList.add('qp-open');
   if (bg) bg.style.display = 'block';
-  requestAnimationFrame(() => sh.classList.add('qp-open'));
   const btn = document.getElementById('ah-more-btn');
-  if (btn) { btn.classList.add('menu-open'); btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
+  if (btn) btn.classList.add('menu-open');
 }
 function closeHomeMore() {
-  const bg = document.getElementById('more-sheet-bg');
   const sh = document.getElementById('more-sheet');
+  const bg = document.getElementById('more-sheet-bg');
+  document.body.classList.remove('nav-open');
+  if (sh) sh.classList.remove('qp-open');
   if (bg) bg.style.display = 'none';
-  if (!sh) return;
-  sh.classList.remove('qp-open');
   const btn = document.getElementById('ah-more-btn');
-  if (btn) { btn.classList.remove('menu-open'); }
+  if (btn) btn.classList.remove('menu-open');
 }
 function toggleHomeMore() {
-  const sh = document.getElementById('more-sheet');
-  if (!sh) return;
-  if (sh.classList.contains('qp-open')) { closeHomeMore(); } else { openHomeMore(); }
+  if (document.body.classList.contains('nav-open')) { closeHomeMore(); } else { openHomeMore(); }
 }
 
 function setHTab(tab) {
   homeTab = tab;
   window.scrollTo({top:0, behavior:'instant'});
   if (pollRefreshTimer) { clearInterval(pollRefreshTimer); pollRefreshTimer=null; }
-  // Close dropdown if open (don't call full closeHomeMore to avoid recursion; just close)
-  const _sh = document.getElementById('more-sheet');
-  const _bg = document.getElementById('more-sheet-bg');
-  if (_sh) _sh.classList.remove('qp-open');
-  if (_bg) _bg.style.display = 'none';
-  const _mBtn = document.getElementById('ah-more-btn');
-  if (_mBtn) { _mBtn.style.background=''; _mBtn.style.color=''; _mBtn.style.borderColor=''; }
+  // Close nav drawer if open
+  if (document.body.classList.contains('nav-open')) { closeHomeMore(); }
+  // Let's Play button: only show on dashboard
+  const _sbtn = document.getElementById('start-btn');
+  if (_sbtn) _sbtn.parentElement.style.display = (tab === 'dashboard') ? '' : 'none';
   // Update dropdown active indicator (checkmark on current nav item)
   const _navTabMap = { dashboard:'dashboard', settle:'settle', stats:'stats', history:'history', poll:'poll', accounts:'poll' };
   document.querySelectorAll('[id^="mdd-nav-"]').forEach(function(el){ el.classList.remove('mdd-active'); });
