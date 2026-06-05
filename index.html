@@ -757,14 +757,7 @@ body::before {
 .sync-dot { width:7px; height:7px; border-radius:50%; background:currentColor;
   animation:pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-@keyframes card-scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-.card-ticker { overflow:hidden; display:flex; align-items:center; }
-.card-ticker-inner {
-  display:flex; gap:0; white-space:nowrap;
-  animation:card-scroll 22s linear infinite; will-change:transform;
-  font-family:var(--font-mono); font-size:12px; font-weight:700;
-  color:rgba(255,255,255,.9); letter-spacing:2px;
-}
+/* card-ticker removed — suit fades on start button instead */
 /* ── HOME BOTTOM NAV ── */
 #home-nav { display:none !important; }
 #home-nav-inner {
@@ -1650,17 +1643,10 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <!-- Rolling card suit ticker -->
-    <div class="card-ticker" style="margin-bottom:10px;height:22px;opacity:.18">
-      <div class="card-ticker-inner" aria-hidden="true">
-        ♠ A &nbsp;♥ K &nbsp;♦ Q &nbsp;♣ J &nbsp;♠ 10 &nbsp;♥ 9 &nbsp;♦ 8 &nbsp;♣ 7 &nbsp;
-        ♠ A &nbsp;♥ K &nbsp;♦ Q &nbsp;♣ J &nbsp;♠ 10 &nbsp;♥ 9 &nbsp;♦ 8 &nbsp;♣ 7 &nbsp;
-      </div>
-    </div>
-    <div style="padding-top:0;margin-bottom:10px">
+    <div style="padding-top:10px;margin-bottom:10px">
       <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game"
         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="start-suit" style="font-size:20px;transition:opacity .25s ease;display:inline-block;line-height:1">&#9824;</span>
         <span id="start-btn-label">Let&#39;s Play...</span>
       </button>
     </div>
@@ -3760,9 +3746,10 @@ function goHome() {
   renderHome(); show('home');
 }
 
-// ── Morphing suit icon on start button ──
+// ── Suit symbol cycles on the Let's Play button — fade out, swap, fade in ──
 (function(){
-  const suits = ['♠','♥','♦','♣'];
+  const suits  = ['♠','♥','♦','♣']; // ♠ ♥ ♦ ♣
+  const colors = ['currentColor','#f87171','#f87171','currentColor']; // red for hearts/diamonds
   let si = 0;
   setInterval(function(){
     const el = document.getElementById('start-suit');
@@ -3771,9 +3758,10 @@ function goHome() {
     setTimeout(function(){
       si = (si + 1) % suits.length;
       el.textContent = suits[si];
+      el.style.color  = colors[si];
       el.style.opacity = '1';
-    }, 260);
-  }, 1500);
+    }, 280);
+  }, 1600);
 })();
 
 function quickRematch() {
