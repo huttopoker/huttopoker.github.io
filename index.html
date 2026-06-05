@@ -3350,20 +3350,26 @@ function fromD(v) { return v/10; }
 function rd(v) { return Math.round(v*10)/10; }
 // Parse any money string the user might type: "$5", "5$", "5.0", "1,500", "72.5", etc.
 function parseMoney(raw) {
-  if (raw === null || raw === undefined) return 0;
-  const s = String(raw).replace(/[$,\s]/g, ''); // strip $, commas, whitespace
+  if (raw === null || raw === undefined || raw === '') return 0;
+  const s = String(raw).replace(/[$,\s]/g, '');
+  if (s === '') return 0;
   const n = parseFloat(s);
-  return isNaN(n) ? 0 : rd(n);
+  if (isNaN(n)) return 0;
+  return Math.max(0, rd(n)); // cashouts are never negative
 }
 function fmt(v) {
   const n = Math.abs(rd(v));
-  return '$' + (Number.isInteger(n) ? n : n.toFixed(1));
+  if (Number.isInteger(n)) return '$' + n;
+  // Show 1 decimal for .5 increments, 2 for others (e.g. $6.5 → "$6.50")
+  return '$' + n.toFixed(n % 0.1 < 0.001 ? 1 : 2);
 }
 function fmtS(v) {
   const r = rd(v);
   if (Math.abs(r) < 0.05) return '$0';
   const n = Math.abs(r);
-  const s = Number.isInteger(n) ? n : n.toFixed(1);
+  let s;
+  if (Number.isInteger(n)) s = String(n);
+  else s = n.toFixed(n % 0.1 < 0.001 ? 1 : 2);
   return (r > 0 ? '+' : '-') + '$' + s;
 }
 function mKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -4547,7 +4553,7 @@ async function markAllPersonSettled(payer, ids, multiKeys) {
 function showPaySheet(toName, fromName, amount, gameDate) {
   // Reuse qr-modal to show pay buttons
   const amtRd = rd(amount);
-  const amtStr = Number.isInteger(amtRd) ? String(amtRd) : amtRd.toFixed(2);
+  const amtStr = amtRd.toFixed(2); // always 2 decimals for notes & Cash App URLs
   document.getElementById('qr-title').textContent = 'Pay ' + toName;
   document.getElementById('qr-wrap').innerHTML =
     '<div style="margin-bottom:8px;text-align:center">'+
@@ -6244,14 +6250,14 @@ function hideCustomBuyin() {
   if (row) row.style.display='none';
 }
 function previewCustomBuyin(val) {
-  const v = parseInt(val, 10);
+  const v = parseFloat(val);
   const disp = document.getElementById('buyin-display');
-  if (disp && v > 0) disp.textContent = '$' + v;
+  if (disp && v > 0) disp.textContent = '$' + (Number.isInteger(v) ? v : v.toFixed(2));
 }
 function commitCustomBuyin() {
   const inp = document.getElementById('custom-buyin-inp');
-  const v = parseInt(inp ? inp.value : '', 10);
-  if (!v || v < 1 || v > 9999) { notify('Enter a valid amount between $1–$9999','err'); return; }
+  const v = Math.round(parseFloat(inp ? inp.value : '') * 100) / 100; // 2dp max
+  if (!v || isNaN(v) || v < 1 || v > 9999) { notify('Enter a valid amount between $1–$9999','err'); return; }
   BUYIN = v;
   const disp = document.getElementById('buyin-display');
   if (disp) disp.textContent = '$' + v;
@@ -6489,7 +6495,7 @@ function nextPromote() {
 /* ═══════════════════════════════════════
    GAME SCREEN
 ═══════════════════════════════════════ */
-function potTotal() { return session.players.reduce((s,p)=>s+p.buyins*(session.buyin||BUYIN),0); }
+function potTotal() { return rd(session.players.reduce((s,p)=>s+rd(p.buyins*(session.buyin||BUYIN)),0)); }
 function buyTotal()  { return session.players.reduce((s,p)=>s+p.buyins,0); }
 
 // ── MILESTONE SPLASH NOTIFICATIONS ──
@@ -7157,9 +7163,9 @@ function goCashout() {
 
 function renderCashout() {
   const potIn = potTotal();
-  const potOut = rd(session.players.reduce((s,p)=>s+parseMoney(session.cashOuts[p.name]),0));
+  const potOut = rd(session.players.reduce((s,p)=>s+(session.cashOuts[p.name]||0),0));
   const diff=rd(potOut-potIn), abs=Math.abs(diff), ok=abs<0.05;
-  const entered = session.players.filter(p=>session.cashOuts[p.name]!==undefined&&String(session.cashOuts[p.name]).trim()!=='').length;
+  const entered = session.players.filter(p=>session.cashOuts[p.name]!=null).length;
   const pct = potIn>0 ? Math.min(potOut/potIn,1.25)*100 : 0;
 
   document.getElementById('co-prog').innerHTML =
@@ -7173,7 +7179,7 @@ function renderCashout() {
 
   const cards = document.getElementById('co-cards'); cards.innerHTML='';
   session.players.forEach(p=>{
-    const existing = session.cashOuts[p.name]!==undefined?session.cashOuts[p.name]:'';
+    const existing = session.cashOuts[p.name]!=null ? session.cashOuts[p.name] : '';
     const safeId = 'co_'+p.name.replace(/[^a-zA-Z0-9]/g,'_');
     const div=document.createElement('div'); div.className='co-card';
     div.innerHTML=
@@ -7192,7 +7198,7 @@ function renderCashout() {
 
   // Auto-focus first empty
   setTimeout(()=>{
-    const first = session.players.find(p=>session.cashOuts[p.name]===undefined||String(session.cashOuts[p.name]).trim()==='');
+    const first = session.players.find(p=>session.cashOuts[p.name]==null);
     if (first) {
       const id = 'co_'+first.name.replace(/[^a-zA-Z0-9]/g,'_');
       const el = document.getElementById(id); if(el) el.focus();
@@ -7201,14 +7207,16 @@ function renderCashout() {
 }
 
 function onCoInput(name, val) {
-  session.cashOuts[name] = val;
+  // Normalise to number; keep undefined (not yet entered) vs 0 (busted) distinct
+  const trimmed = String(val).trim();
+  session.cashOuts[name] = trimmed === '' ? undefined : parseMoney(trimmed);
   saveActiveSession();
   // Live update progress
   const potIn=potTotal();
-  const potOut=rd(session.players.reduce((s,p)=>s+parseMoney(session.cashOuts[p.name]),0));
+  const potOut=rd(session.players.reduce((s,p)=>s+(session.cashOuts[p.name]||0),0));
   const diff=rd(potOut-potIn),abs=Math.abs(diff),ok=abs<0.05;
   const pct=potIn>0?Math.min(potOut/potIn,1.25)*100:0;
-  const entered=session.players.filter(p=>session.cashOuts[p.name]!==undefined&&String(session.cashOuts[p.name]).trim()!=='').length;
+  const entered=session.players.filter(p=>session.cashOuts[p.name]!=null).length;
   document.getElementById('co-prog').innerHTML=
     '<div class="co-prog-row"><span class="co-prog-lbl">Progress</span>'+
       '<span class="co-prog-val">'+entered+' / '+session.players.length+' entered</span></div>'+
@@ -7225,8 +7233,7 @@ function onCoInput(name, val) {
 function previewEnd() {
   // earlyOut players already have cashOut locked — only require active players
   const missing = session.players.filter(p =>
-    !p.earlyOut &&
-    (session.cashOuts[p.name]===undefined || String(session.cashOuts[p.name]).trim()==='')
+    !p.earlyOut && (session.cashOuts[p.name] == null)
   );
   if (missing.length) {
     notify('Still needed: '+missing.map(p=>p.name).join(', '),'err');
@@ -7234,7 +7241,7 @@ function previewEnd() {
   }
   session.players.forEach(p => {
     // earlyOut players keep their already-locked cashOut value
-    if (!p.earlyOut) p.cashOut = parseMoney(session.cashOuts[p.name]);
+    if (!p.earlyOut) p.cashOut = rd(session.cashOuts[p.name]||0);
   });
   renderReview(); show('review');
 }
@@ -7268,8 +7275,10 @@ function renderReview() {
   updateReviewBal();
 }
 function onRvEdit(n,v) {
-  const p=session.players.find(x=>x.name===n); if(p) p.cashOut=parseMoney(v);
-  session.cashOuts[n]=v; saveActiveSession(); updateReviewBal();
+  const parsed = parseMoney(v);
+  const p=session.players.find(x=>x.name===n); if(p) p.cashOut=parsed;
+  session.cashOuts[n] = parsed;
+  saveActiveSession(); updateReviewBal();
 }
 
 /* ═══════════════════════════════════════
@@ -7287,7 +7296,7 @@ function smartBalance() {
   const amountD=dimes(Math.abs(diff));
   const buyin_=session.buyin||BUYIN;
   const byNet=session.players.slice().sort((a,b)=>
-    (b.cashOut-b.buyins*buyin_)-(a.cashOut-a.buyins*buyin_)
+    rd(b.cashOut-b.buyins*buyin_)-rd(a.cashOut-a.buyins*buyin_)
   );
 
   // SHORT → top 3 winners absorb (their cashout rises to fill the gap)
@@ -7334,7 +7343,7 @@ function buildAdjTable() {
   if(Math.abs(diff)<0.05) return '';
   const isOver=diff>0;
   const buyin__=session.buyin||BUYIN;
-  const sorted=session.players.slice().sort((a,b)=>(b.cashOut-b.buyins*buyin__)-(a.cashOut-a.buyins*buyin__));
+  const sorted=session.players.slice().sort((a,b)=>rd(b.cashOut-b.buyins*buyin__)-rd(a.cashOut-a.buyins*buyin__));
   // SHORT → top 3 winners; OVER → bottom 3 losers (with cashout > 0)
   let targets;
   if (!isOver) {
@@ -7354,7 +7363,7 @@ function buildAdjTable() {
     const share=fromD(shareD);
     // OVER: winners give back (-), SHORT: winners absorb shortage (+)
     rows+='<div class="adj-row"><span>'+escH(p.name)+'<span style="color:var(--c-muted);font-size:9px"> '+Math.round(pcts[i]*100)+'%</span></span>'+
-      '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(1))+'</span></div>';
+      '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(2))+'</span></div>';
   });
   const pctLabel = n===1?'100%':n===2?'60/40':'50/30/20';
   const whoLabel = isOver
@@ -7411,7 +7420,7 @@ function doSmartBalance() {
 async function confirmEnd(forced) {
   const pID=session.players.reduce((s,p)=>s+dimes(rd(p.buyins*(session.buyin||BUYIN))),0);
   const pOD=session.players.reduce((s,p)=>s+dimes(rd(p.cashOut||0)),0);
-  if(Math.abs(pOD-pID)>0&&!forced){notify('Pot still unbalanced','err');return;}
+  if(Math.abs(pOD-pID)>1&&!forced){notify('Pot still unbalanced — difference exceeds $0.10','err');return;}
   // ── TEST MODE guard — show results locally, never persist
   if (isTestMode) {
     session.ended = true;
@@ -7489,7 +7498,7 @@ function markResSettled(stKey, rowIdx, total) {
   }
 }
 function settle(players) {
-  const bals=players.map(p=>({n:p.name,v:dimes(p.cashOut||0)-dimes(p.buyins*((session&&session.buyin)||BUYIN))}));
+  const bals=players.map(p=>({n:p.name,v:dimes(rd(p.cashOut||0))-dimes(rd(p.buyins*((session&&session.buyin)||BUYIN)))}));
   const cred=bals.filter(x=>x.v>0).sort((a,b)=>b.v-a.v).map(x=>Object.assign({},x));
   const debt=bals.filter(x=>x.v<0).sort((a,b)=>a.v-b.v).map(x=>Object.assign({},x));
   const out=[];let ci=0,di=0;
@@ -7505,7 +7514,7 @@ function settle(players) {
 // Settle for a historical session (doesn't use the global `session` variable)
 function settleWithBuyin(players, buyin) {
   const b = buyin || BUYIN;
-  const bals = players.map(p=>({n:p.name,v:dimes(p.cashOut||0)-dimes(p.buyins*b)}));
+  const bals = players.map(p=>({n:p.name,v:dimes(rd(p.cashOut||0))-dimes(rd(p.buyins*b))}));
   const cred=bals.filter(x=>x.v>0).sort((a,b)=>b.v-a.v).map(x=>Object.assign({},x));
   const debt=bals.filter(x=>x.v<0).sort((a,b)=>a.v-b.v).map(x=>Object.assign({},x));
   const out=[];let ci=0,di=0;
@@ -7525,7 +7534,7 @@ function buildPayBtns(toName, fromName, amount, gameDate) {
     return '<div class="stile-btns"><span class="pay-btn opted">🚫 '+escH(toName)+' opted out</span></div>';
   }
   const amtRd = rd(amount);
-  const amtStr = Number.isInteger(amtRd) ? String(amtRd) : amtRd.toFixed(2);
+  const amtStr = amtRd.toFixed(2); // always 2 decimals — Cash App URLs require it
   // Note includes game date — Cash App native scheme pre-fills it in the note field
   const noteText = 'Poker Night' + (gameDate ? ' — '+gameDate : '') + ' | $'+amtStr+' from '+fromName;
   const noteEnc = encodeURIComponent(noteText);
