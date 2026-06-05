@@ -800,47 +800,49 @@ body::before {
   top:calc(env(safe-area-inset-top,0px) + 54px);
   right:10px;
   z-index:3300;
-  width:240px;
-  background:rgba(8,10,22,.98);
-  backdrop-filter:blur(32px) saturate(2); -webkit-backdrop-filter:blur(32px) saturate(2);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:16px;
-  box-shadow:0 12px 48px rgba(0,0,0,.65), 0 2px 8px rgba(0,0,0,.5);
-  transform:translateY(-8px) scale(0.94);
+  width:220px;
+  background:rgba(10,11,20,.97);
+  backdrop-filter:blur(40px) saturate(1.6); -webkit-backdrop-filter:blur(40px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  box-shadow:0 16px 48px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.04) inset;
+  transform:scale(0.96) translateY(-6px);
   transform-origin:top right;
   opacity:0;
   pointer-events:none;
-  transition:transform .2s cubic-bezier(.32,1,.55,1), opacity .15s ease;
+  transition:transform .18s cubic-bezier(.4,0,.2,1), opacity .14s ease;
   overflow:hidden;
   display:block !important;
 }
 #more-sheet.qp-open {
-  transform:translateY(0) scale(1);
+  transform:scale(1) translateY(0);
   opacity:1;
   pointer-events:auto;
 }
-/* dropdown row */
+/* dropdown row — clean, no icon boxes */
 .mdd-row {
-  display:flex; align-items:center; gap:11px;
-  padding:10px 14px; cursor:pointer; border:none; background:transparent;
+  display:flex; align-items:center; gap:10px;
+  padding:9px 14px; cursor:pointer; border:none; background:transparent;
   text-align:left; width:100%; -webkit-tap-highlight-color:transparent;
-  transition:background .1s;
+  transition:background .08s; position:relative;
 }
-.mdd-row:active { background:rgba(255,255,255,.08); }
-.mdd-row + .mdd-row { border-top:1px solid rgba(255,255,255,.05); }
-.mdd-icon {
-  width:28px; height:28px; border-radius:7px; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
+.mdd-row:active { background:rgba(255,255,255,.05); }
+/* active nav item: left accent bar */
+.mdd-row.mdd-active::before {
+  content:''; position:absolute; left:0; top:25%; bottom:25%;
+  width:2.5px; border-radius:2px; background:var(--c-gold);
 }
+.mdd-row + .mdd-row { border-top:1px solid rgba(255,255,255,.04); }
+.mdd-icon { width:16px; height:16px; flex-shrink:0; opacity:.55; display:flex; align-items:center; justify-content:center; }
+.mdd-row.mdd-active .mdd-icon { opacity:1; }
 .mdd-text { flex:1; min-width:0; }
-.mdd-label { font-size:13px; font-weight:600; color:var(--c-txt); line-height:1; }
-.mdd-desc  { font-size:10px; color:var(--c-muted); margin-top:2px; }
-.mdd-check { display:none; flex-shrink:0; }
-.mdd-row.mdd-active .mdd-label { color:var(--c-gold); }
-.mdd-row.mdd-active .mdd-check { display:block; }
+.mdd-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.7); line-height:1.1; }
+.mdd-row.mdd-active .mdd-label { color:var(--c-gold); font-weight:600; }
+.mdd-desc  { display:none; } /* hide descriptions — clean list */
+.mdd-check { display:none; }
 .mdd-section-lbl {
-  font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,.3);
-  font-weight:600; text-transform:uppercase; letter-spacing:1.5px; padding:10px 14px 5px;
+  font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,.22);
+  font-weight:500; text-transform:uppercase; letter-spacing:1.5px; padding:9px 14px 4px;
 }
 .mdd-divider { height:1px; background:rgba(255,255,255,.07); margin:4px 0; }
 
@@ -1839,102 +1841,68 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   </div>
 </nav>
 
-<!-- MORE DROPDOWN — anchored top-right below header ⋯ button -->
+<!-- MORE DROPDOWN — enterprise-grade top-right menu -->
 <div id="more-sheet-bg" onclick="closeHomeMore()"
   style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:3200;"></div>
 <div id="more-sheet" role="dialog" aria-label="Navigation menu">
 
-  <!-- ── NAVIGATE section ── -->
-  <div class="mdd-section-lbl">Navigate</div>
+  <!-- NAV SECTION -->
+  <div class="mdd-section-lbl">Go to</div>
 
   <button type="button" id="mdd-nav-dashboard" class="mdd-row" onclick="setHTab('dashboard');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(167,139,250,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
-    </div>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
     <div class="mdd-text"><div class="mdd-label">Home</div></div>
-    <svg class="mdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </button>
 
   <button type="button" id="mdd-nav-settle" class="mdd-row" onclick="setHTab('settle');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(245,158,11,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg>
-    </div>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg></div>
     <div class="mdd-text"><div class="mdd-label">Settle Up</div></div>
-    <svg class="mdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </button>
 
   <button type="button" id="mdd-nav-stats" class="mdd-row" onclick="setHTab('stats');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(129,140,248,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
-    </div>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg></div>
     <div class="mdd-text"><div class="mdd-label">Stats</div></div>
-    <svg class="mdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </button>
 
   <button type="button" id="mdd-nav-history" class="mdd-row" onclick="setHTab('history');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(56,189,248,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="14" rx="2"/><rect x="10" y="5" width="10" height="14" rx="2"/></svg>
-    </div>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div>
     <div class="mdd-text"><div class="mdd-label">Game History</div></div>
-    <svg class="mdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </button>
 
   <button type="button" id="mdd-nav-poll" class="mdd-row" onclick="setHTab('poll');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(52,211,153,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    </div>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
     <div class="mdd-text"><div class="mdd-label">Tonight's Poll</div></div>
-    <svg class="mdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </button>
 
-  <!-- ── ACTIONS section ── -->
+  <!-- TOOLS SECTION -->
   <div class="mdd-divider"></div>
-  <div class="mdd-section-lbl">Actions</div>
+  <div class="mdd-section-lbl">Tools</div>
 
   <button type="button" class="mdd-row" onclick="setHTab('accounts');closeHomeMore();">
-    <div class="mdd-icon" style="background:rgba(59,130,246,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    </div>
-    <div class="mdd-text">
-      <div class="mdd-label">Player Accounts</div>
-      <div class="mdd-desc">Cash tags &amp; manage players</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    <div class="mdd-text"><div class="mdd-label">Player Accounts</div></div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();quickRematch();">
-    <div class="mdd-icon" style="background:rgba(16,185,129,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-    </div>
-    <div class="mdd-text">
-      <div class="mdd-label">Quick Rematch</div>
-      <div class="mdd-desc">Reload last game's crew</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></div>
+    <div class="mdd-text"><div class="mdd-label">Quick Rematch</div></div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();remindAll();">
-    <div class="mdd-icon" style="background:rgba(139,92,246,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-purple)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    </div>
-    <div class="mdd-text">
-      <div class="mdd-label">Remind All to Pay</div>
-      <div class="mdd-desc">Send payment nudges</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="mdd-text"><div class="mdd-label">Remind All to Pay</div></div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
 
   <button type="button" class="mdd-row" onclick="closeHomeMore();showKillGameSheet();">
-    <div class="mdd-icon" style="background:rgba(239,68,68,.12)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </div>
-    <div class="mdd-text">
-      <div class="mdd-label">Manage Active Games</div>
-      <div class="mdd-desc">Kill stuck sessions</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <div class="mdd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="mdd-text"><div class="mdd-label">Manage Active Games</div></div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
 
+  <div style="height:6px"></div>
 </div>
 
 
@@ -4796,32 +4764,24 @@ function buildDashboardTab() {
     var atRank = st ? Object.entries(st.AT).sort(function(a,b){return b[1].net-a[1].net;}).findIndex(function(e){return e[0]===myLinkedPlayer;}) : -1;
     var rankEmoji = atRank===0?'🥇':atRank===1?'🥈':atRank===2?'🥉':'#'+(atRank+1);
 
+    var winRateLine = myGames > 0 ? myWr+'% win rate · '+myGames+' game'+(myGames!==1?'s':'') : 'No games yet';
+    var streakBadge = curStrk >= 3 ? ' &nbsp;<span style="color:var(--c-gold);font-size:10px">⚡'+curStrk+' streak</span>' : '';
     html += '<div class="dash-section">'+
-      '<div style="background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.05));border:1px solid rgba(167,139,250,.28);border-radius:16px;padding:14px 16px">'+
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
-          '<div style="width:42px;height:42px;border-radius:14px;background:'+myAb+';border:1.5px solid '+myNc+'40;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:'+myNc+';flex-shrink:0">'+escH(myLinkedPlayer.charAt(0).toUpperCase())+'</div>'+
+      '<div style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px">'+
+        '<div style="display:flex;align-items:center;gap:12px">'+
+          '<div style="width:46px;height:46px;border-radius:50%;background:'+myAb+';border:2px solid '+myNc+'55;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:'+myNc+';flex-shrink:0">'+escH(myLinkedPlayer.charAt(0).toUpperCase())+'</div>'+
           '<div style="flex:1;min-width:0">'+
-            '<div style="font-size:16px;font-weight:800;color:var(--c-txt)">'+escH(myLinkedPlayer)+'</div>'+
-            '<div style="font-family:var(--font-mono);font-size:9px;color:rgba(167,139,250,.7);text-transform:uppercase;letter-spacing:1px">My Account &middot; '+rankEmoji+' All-time</div>'+
+            '<div style="font-size:16px;font-weight:700;color:var(--c-txt);display:flex;align-items:center;gap:6px">'+escH(myLinkedPlayer)+'<span style="font-size:12px;opacity:.7">'+rankEmoji+'</span></div>'+
+            '<div style="font-size:11px;color:var(--c-muted);margin-top:3px">'+winRateLine+streakBadge+'</div>'+
           '</div>'+
           '<div style="text-align:right;flex-shrink:0">'+
-            '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+myNc+'">'+fmtS(myNet)+'</div>'+
-            '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">career net</div>'+
+            '<div style="font-size:24px;font-weight:800;color:'+myNc+'">'+fmtS(myNet)+'</div>'+
+            '<div style="font-size:10px;color:var(--c-muted);margin-top:1px">all time</div>'+
           '</div>'+
         '</div>'+
-        '<div class="dash-kpi-grid">'+
-          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:'+accent+'">'+myGames+'</div><div class="dash-kpi-lbl">Games</div></div>'+
-          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:var(--c-txt)">'+myWr+'%</div><div class="dash-kpi-lbl">Win Rate</div></div>'+
-          '<div class="dash-kpi"><div class="dash-kpi-val" style="color:'+(myAvg>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(myAvg)+'</div><div class="dash-kpi-lbl">Per Game</div></div>'+
-        '</div>'+
-        (myMoSess.length ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">'+
-          '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">This month &middot; '+myMoSess.length+' game'+(myMoSess.length!==1?'s':'')+'</div>'+
-          '<div style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:'+(myMoNet>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(rd(myMoNet))+'</div>'+
-        '</div>' : '')+
-        (curStrk >= 2 ? '<div style="margin-top:8px;padding:6px 10px;background:rgba(239,68,68,.08);border-radius:10px;font-family:var(--font-mono);font-size:11px;color:var(--c-red);text-align:center">⚡ '+curStrk+'-game win streak!</div>' : '')+
-        '<div style="display:flex;gap:6px;margin-top:10px">'+
-          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'players\');setTimeout(function(){var c=document.getElementById(\'pc_'+atRank+'_card\');if(c){c.classList.add(\'pperf-open\');}},80);},80)" style="flex:1;padding:8px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;color:#A78BFA;font-family:var(--font-mono);font-size:10px;font-weight:700;cursor:pointer">📊 My Full Stats</button>'+
-          '<button onclick="unlinkMyDevice()" style="padding:8px 12px;background:transparent;border:1px solid var(--c-bdr2);border-radius:10px;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer">Not me</button>'+
+        '<div style="display:flex;gap:6px;margin-top:14px">'+
+          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'players\');},80)" style="flex:1;padding:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--c-txt);font-size:12px;font-weight:600;cursor:pointer">My Stats</button>'+
+          '<button onclick="unlinkMyDevice()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,.07);border-radius:10px;color:var(--c-muted);font-size:12px;cursor:pointer">Not me</button>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -4841,10 +4801,9 @@ function buildDashboardTab() {
             var d = st && st.AT[n];
             var net = d ? d.net : 0;
             var nc = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : 'rgba(255,255,255,.35)';
-            return '<button onclick="linkMyDevice(\''+escH(n)+'\')" style="background:rgba(255,255,255,.05);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent">'+
-              '<div style="width:34px;height:34px;border-radius:10px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#A78BFA;margin:0 auto 5px">'+escH(n.charAt(0).toUpperCase())+'</div>'+
-              '<div style="font-size:11px;font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escH(n)+'</div>'+
-              (d ? '<div style="font-size:9px;font-weight:600;color:'+nc+';margin-top:1px">'+fmtS(net)+'</div>' : '')+
+            return '<button onclick="linkMyDevice(\''+escH(n)+'\')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent">'+
+              '<div style="width:36px;height:36px;border-radius:50%;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#A78BFA;margin:0 auto 6px">'+escH(n.charAt(0).toUpperCase())+'</div>'+
+              '<div style="font-size:11px;font-weight:600;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escH(n)+'</div>'+
             '</button>';
           }).join('')+
         '</div>'+
@@ -4902,60 +4861,52 @@ function buildDashboardTab() {
     '</div>';
   }
 
-  /* ── SECTION D: MINI LEADERBOARD ── */
+  /* ── SECTION D: LEADERBOARD — clean list, no bar charts ── */
   if (st && Object.keys(st.AT).length) {
     var leaders = Object.entries(st.AT).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,5);
-    var maxAbs2 = Math.max.apply(null, leaders.map(function(e){return Math.abs(e[1].net);})) || 1;
+    var medals = ['🥇','🥈','🥉'];
     html += '<div class="dash-section">'+
-      '<div class="dash-card">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
-          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>All-Time Leaderboard</div>'+
-          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'leaders\');},80)" style="padding:4px 10px;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);border-radius:20px;color:#818CF8;font-family:var(--font-mono);font-size:9px;cursor:pointer">Full Stats →</button>'+
+      '<div style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px">'+
+          '<span style="font-size:12px;font-weight:600;color:var(--c-txt)">Leaderboard</span>'+
+          '<button onclick="setHTab(\'stats\')" style="font-size:11px;color:var(--c-muted);background:none;border:none;cursor:pointer;padding:2px 0">All stats →</button>'+
         '</div>'+
         leaders.map(function(e,i){
           var n=e[0], d=e[1];
           var isMe = n===myLinkedPlayer;
           var pos = d.net >= 0;
-          var pct = Math.round(Math.abs(d.net)/maxAbs2*100);
-          var mc=['#F59E0B','#94A3B8','#CD7F32'];
-          var rankBadge = i<3 ? '<span style="font-family:var(--font-mono);font-size:9px;font-weight:900;color:'+mc[i]+';min-width:20px;flex-shrink:0">'+(i===0?'🥇':i===1?'🥈':'🥉')+'</span>'
-                              : '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);min-width:20px;flex-shrink:0">'+(i+1)+'.</span>';
-          return '<div style="margin-bottom:8px'+(isMe?';background:rgba(167,139,250,.06);border-radius:10px;padding:4px 6px;margin-left:-6px;margin-right:-6px;border:1px solid rgba(167,139,250,.15)':'')+'">' +
-            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'+rankBadge+
-              '<span style="font-size:12px;font-weight:'+(isMe?'800':'700')+';color:var(--c-txt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+(isMe?' <span style="font-family:var(--font-mono);font-size:8px;color:#A78BFA;background:rgba(167,139,250,.12);border-radius:8px;padding:1px 5px">you</span>':'')+'</span>'+
-              '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+(pos?'var(--c-green)':'var(--c-red)')+';flex-shrink:0">'+fmtS(d.net)+'</span>'+
-            '</div>'+
-            '<div style="height:4px;background:var(--c-bg3);border-radius:3px;overflow:hidden;'+(isMe?'':'margin-left:26px')+'"><div style="height:100%;width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+';border-radius:3px;opacity:.8"></div></div>'+
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid rgba(255,255,255,.04);'+(isMe?'background:rgba(167,139,250,.05)':'')+'">'+
+            '<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0">'+(i<3?medals[i]:'')+'</span>'+
+            '<span style="flex:1;font-size:13px;font-weight:'+(isMe?'700':'500')+';color:'+(isMe?'#A78BFA':'var(--c-txt)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</span>'+
+            '<span style="font-size:13px;font-weight:700;color:'+(pos?'var(--c-green)':'var(--c-red)')+'">'+fmtS(d.net)+'</span>'+
           '</div>';
         }).join('')+
       '</div>'+
     '</div>';
   }
 
-  /* ── SECTION E: LAST GAME RECAP ── */
+  /* ── SECTION E: LAST GAME — single clean line ── */
   var lastSessions = allSessions.slice().sort(function(a,b){return (b.id||0)-(a.id||0);});
   var lastGame = lastSessions.find(function(s){return s.ended||s.players.some(function(p){return p.cashOut!=null&&p.cashOut>0;});});
   if (lastGame) {
-    var lgPot = lastGame.players.reduce(function(s,p){return s+p.buyins*(lastGame.buyin||BUYIN);},0);
     var lgWinner = lastGame.players.filter(function(p){return p.cashOut!=null;}).sort(function(a,b){
-      var an=rd((a.cashOut||0)-a.buyins*(lastGame.buyin||BUYIN)), bn=rd((b.cashOut||0)-b.buyins*(lastGame.buyin||BUYIN));
-      return bn-an;
+      return rd((b.cashOut||0)-b.buyins*(lastGame.buyin||BUYIN)) - rd((a.cashOut||0)-a.buyins*(lastGame.buyin||BUYIN));
     })[0];
-    var lgWinNet = lgWinner ? rd((lgWinner.cashOut||0)-lgWinner.buyins*(lastGame.buyin||BUYIN)) : 0;
     var myLgEntry = myLinkedPlayer ? lastGame.players.find(function(p){return p.name===myLinkedPlayer;}) : null;
     var myLgNet = myLgEntry ? rd((myLgEntry.cashOut||0)-myLgEntry.buyins*(lastGame.buyin||BUYIN)) : null;
+    var lgSummary = lgWinner ? escH(lgWinner.name)+' won' : lastGame.players.length+' players';
+    if (myLgNet !== null) lgSummary += ' · you '+fmtS(myLgNet);
     html += '<div class="dash-section">'+
-      '<div class="dash-card" style="cursor:pointer" onclick="setHTab(\'history\')">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-muted);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Last Game</div>'+
-          '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+escH(lastGame.date||'—')+'</div>'+
+      '<button onclick="setHTab(\'history\')" style="width:100%;background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;text-align:left">'+
+        '<div>'+
+          '<div style="font-size:12px;font-weight:600;color:var(--c-txt)">Last Game</div>'+
+          '<div style="font-size:11px;color:var(--c-muted);margin-top:2px">'+lgSummary+'</div>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr'+(myLgNet!==null?' 1fr':'')+'">'+
-          '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:'+accent+'">'+fmt(lgPot)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Pot</div></div>'+
-          (lgWinner?'<div style="text-align:center;border-left:1px solid var(--c-bdr)"><div style="font-size:13px;font-weight:800;color:var(--c-green)">'+escH(lgWinner.name)+'</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--c-green)">+'+fmt(lgWinNet)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Winner</div></div>':'<div></div>')+
-          (myLgNet!==null?'<div style="text-align:center;border-left:1px solid var(--c-bdr)"><div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+(myLgNet>=0?'var(--c-green)':'var(--c-red)')+'">'+fmtS(myLgNet)+'</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">My Result</div></div>':'')+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:11px;color:var(--c-muted)">'+escH(lastGame.date||'')+'</span>'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:.3"><polyline points="9 18 15 12 9 6"/></svg>'+
         '</div>'+
-      '</div>'+
+      '</button>'+
     '</div>';
   }
 
