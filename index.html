@@ -759,7 +759,12 @@ body::before {
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 @keyframes card-scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 .card-ticker { overflow:hidden; display:flex; align-items:center; }
-.card-ticker-inner { display:flex; gap:10px; white-space:nowrap; animation:card-scroll 18s linear infinite; will-change:transform; }
+.card-ticker-inner {
+  display:flex; gap:0; white-space:nowrap;
+  animation:card-scroll 22s linear infinite; will-change:transform;
+  font-family:var(--font-mono); font-size:12px; font-weight:700;
+  color:rgba(255,255,255,.9); letter-spacing:2px;
+}
 /* ── HOME BOTTOM NAV ── */
 #home-nav { display:none !important; }
 #home-nav-inner {
@@ -1645,7 +1650,14 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <div style="padding-top:12px;margin-bottom:20px">
+    <!-- Rolling card suit ticker -->
+    <div class="card-ticker" style="margin-bottom:10px;height:22px;opacity:.18">
+      <div class="card-ticker-inner" aria-hidden="true">
+        ♠ A &nbsp;♥ K &nbsp;♦ Q &nbsp;♣ J &nbsp;♠ 10 &nbsp;♥ 9 &nbsp;♦ 8 &nbsp;♣ 7 &nbsp;
+        ♠ A &nbsp;♥ K &nbsp;♦ Q &nbsp;♣ J &nbsp;♠ 10 &nbsp;♥ 9 &nbsp;♦ 8 &nbsp;♣ 7 &nbsp;
+      </div>
+    </div>
+    <div style="padding-top:0;margin-bottom:10px">
       <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game"
         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -3052,50 +3064,52 @@ function todayStr() {
 
 async function bootApp() {
   initTheme();
-  document.getElementById('load-msg').textContent = 'LOADING...';
+  try { document.getElementById(‘load-msg’).textContent = ‘LOADING...’; } catch(_) {}
 
   // Load from cache first for instant display
-  const cache = loadCache();
-  allSessions    = cache.sessions || [];
-  accounts       = cache.accounts || {};
-  todayPoll      = cache.poll || [];
-  cachedPayments = cache.payments || [];
-  buildRoster();
+  try {
+    const cache = loadCache();
+    allSessions    = cache.sessions || [];
+    accounts       = cache.accounts || {};
+    todayPoll      = cache.poll || [];
+    cachedPayments = cache.payments || [];
+    buildRoster();
+  } catch(cacheErr) { console.warn(‘Cache load error:’, cacheErr); }
 
-  // Then try live DB — 7s timeout so mobile never hangs on slow network
+  // Then try live DB — 5s timeout so mobile never hangs on slow network
   let dbOk = false;
   try {
-    var _dbTimeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('db_timeout')); }, 7000); });
+    var _dbTimeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error(‘db_timeout’)); }, 5000); });
     const [sess, accts, poll, pays] = await Promise.race([
       Promise.all([dbLoadSessions(), dbLoadAccounts(), dbLoadPoll(todayStr()), dbLoadPayments(6)]),
       _dbTimeout
     ]);
     if (sess !== null)  { allSessions = sess; dbOk = true; }
     if (accts !== null) { accounts = accts; dbOk = true; }
-    todayPoll = poll;
+    todayPoll = poll || todayPoll;
     if (pays  !== null) { cachedPayments = pays; }
     buildRoster();
-    _updateStartBtn();
-    // Auto-archive players inactive for 60+ days (non-CORE custom players only)
+    try { _updateStartBtn(); } catch(_) {}
     autoArchiveInactive();
-    // Auto-clean stuck live sessions older than 6 hours
     _cleanStuckSessions().catch(function(){});
-    // One-time fix: correct May 30 game_payments with right settlement amounts
     patchMay30Payments().catch(function(){});
     if (dbOk) { isOnline = true; setSyncPill(true); saveCache(); }
     else { isOnline = false; setSyncPill(false); }
   } catch(e) {
-    console.warn('Boot DB error:', e.message || e);
-    isOnline = false; setSyncPill(false);
-    if (e && e.message === 'db_timeout') notify('Slow connection — showing cached data','warn');
-    else notify('Offline — cached data shown','warn');
+    console.warn(‘Boot DB error:’, e.message || e);
+    isOnline = false;
+    try { setSyncPill(false); } catch(_) {}
+    if (e && e.message === ‘db_timeout’) notify(‘Slow connection — showing cached data’,’warn’);
+    else notify(‘Offline — showing cached data’,’warn’);
   }
 
-  _homeShown = true; // mark so _forceDismissLoading fallback doesn’t double-render
-  const ld = document.getElementById('loading');
-  // Immediate hide — no delay, no CSS transition that could block touches on iOS Safari
-  ld.style.display = 'none';
-  ld.classList.add('out');
+  // ALWAYS dismiss loading screen — guaranteed via this block, not just try/catch
+  _homeShown = true;
+  const ld = document.getElementById(‘loading’);
+  if (ld) { ld.style.display = ‘none’; ld.classList.add(‘out’); }
+
+  // Ensure page is scrolled to top after loading screen dismissed
+  window.scrollTo({top:0, behavior:'instant'});
 
   // Test live sync table in background (non-blocking)
   dbTestLiveSync().then(ok => {
