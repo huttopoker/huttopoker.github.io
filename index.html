@@ -4838,15 +4838,39 @@ function buildDashboardTab() {
   return html;
 }
 
+let _statsRange = window._statsRange || 'all';
+
+function setStatsRange(r) {
+  _statsRange = r;
+  window._statsRange = r;
+  var el = document.getElementById('home-body');
+  if (el && homeTab==='stats') el.innerHTML = buildStatsTab();
+}
+
 function buildStatsTab() {
-  const st = computeStats(allSessions), mk = mKey(), yk = yKey(), tot = allSessions.length;
-  if (!tot) return '<div style="text-align:center;padding:48px 20px">'+
+  // ── Time-range filter
+  const now2 = Date.now();
+  const srCutoff = { all:0, year:new Date(new Date().getFullYear(),0,1).getTime(), '6mo':now2-180*86400000, '3mo':now2-90*86400000 };
+  const srCut = srCutoff[_statsRange]||0;
+  const statsSessions = srCut ? allSessions.filter(function(s){ var d=new Date(s.date||s.id||0).getTime(); return d>=srCut; }) : allSessions;
+
+  // Range filter bar
+  const srOpts = [['all','All Time'],['year','This Year'],['6mo','6 Mo'],['3mo','3 Mo']];
+  const srBar = '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:1px">'+
+    srOpts.map(function(r){
+      var on = _statsRange===r[0];
+      return '<button onclick="setStatsRange(\''+r[0]+'\')" style="padding:5px 11px;border-radius:20px;border:1px solid '+(on?'rgba(129,140,248,.5)':'var(--c-bdr2)')+';background:'+(on?'rgba(129,140,248,.18)':'var(--c-surf)')+';color:'+(on?'#818CF8':'var(--c-muted)')+';font-family:var(--font-mono);font-size:10px;font-weight:'+(on?'700':'500')+';cursor:pointer;white-space:nowrap;flex-shrink:0">'+r[1]+'</button>';
+    }).join('')+
+  '</div>';
+
+  const st = computeStats(statsSessions), mk = mKey(), yk = yKey(), tot = statsSessions.length;
+  if (!tot) return srBar + '<div style="text-align:center;padding:48px 20px">'+
     '<div style="display:flex;justify-content:center;margin-bottom:16px"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--c-muted)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="11" height="15" rx="2"/><rect x="9" y="5" width="11" height="15" rx="2"/><line x1="5" y1="7" x2="9" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg></div>'+
-    '<div style="font-weight:800;font-size:18px;color:var(--c-txt);margin-bottom:8px">No games yet</div>'+
-    '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">Start a game to see your analytics dashboard</div>'+
+    '<div style="font-weight:800;font-size:18px;color:var(--c-txt);margin-bottom:8px">No games in this range</div>'+
+    '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">Try a wider time range or start a game</div>'+
     '</div>';
 
-  const tp = allSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
+  const tp = statsSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
   const avgPot = rd(tp / tot);
   const accent = currentTheme ? currentTheme.accent : 'var(--c-gold)';
   const accentRgb = currentTheme ? currentTheme.accentRgb : '245,158,11';
@@ -4857,14 +4881,14 @@ function buildStatsTab() {
 
   // This Month card
   const moNow = st.MO[mk];
-  const moSessions = moNow ? allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===mk) : [];
+  const moSessions = moNow ? statsSessions.filter(s=>(s.month||mKey(new Date(s.id)))===mk) : [];
   const moPot = moSessions.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
   const moTopEntry = moNow ? Object.entries(moNow).sort((a,b)=>b[1].net-a[1].net)[0] : null;
   const moDate = new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   // Last-month comparison
   const prevD = new Date(); prevD.setMonth(prevD.getMonth()-1);
   const prevMk = mKey(prevD);
-  const prevMoSessions = allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===prevMk);
+  const prevMoSessions = statsSessions.filter(s=>(s.month||mKey(new Date(s.id)))===prevMk);
   const moDelta = moSessions.length - prevMoSessions.length;
   const moDeltaHtml = prevMoSessions.length>0
     ? '<span style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:10px;background:'+(moDelta>0?'rgba(34,197,94,.12)':moDelta<0?'rgba(239,68,68,.12)':'rgba(100,100,100,.12)')+';color:'+(moDelta>0?'var(--c-green)':moDelta<0?'var(--c-red)':'var(--c-muted)')+'">'+
@@ -4897,7 +4921,7 @@ function buildStatsTab() {
   '</div>';
 
   // Interactive trend chart (Y-axis, tooltips, per-player mode)
-  const _trendAllSessions = allSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0));
+  const _trendAllSessions = statsSessions.slice().sort((a,b)=>(a.id||0)-(b.id||0));
   const _trendPlayers = atEntries.slice(0,5).map(function(e){return e[0];});
   // Store globally for interactive functions
   window._trendData = { allSessions: _trendAllSessions, accent: accent, accentRgb: accentRgb };
@@ -4914,7 +4938,9 @@ function buildStatsTab() {
         '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch">'+pills+'</div>'+
       '</div>'+
       '<style>.trend-pill-on{background:rgba('+accentRgb+',.2)!important;border-color:rgba('+accentRgb+',.5)!important;color:'+accent+'!important}</style>'+
-      '<div id="trend-svg-wrap">'+_buildTrendSVG('__group__')+'</div>'+
+      // Tap chart to expand
+      '<div id="trend-svg-wrap" onclick="expandTrendChart()" style="cursor:pointer" title="Tap to expand">'+_buildTrendSVG('__group__')+'</div>'+
+      '<div style="text-align:center;margin-top:4px"><span style="font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.2)">tap chart to expand</span></div>'+
     '</div>';
   }
 
@@ -5012,7 +5038,7 @@ function buildStatsTab() {
           '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Top Winner</th>'+
         '</tr></thead><tbody>'+
         moKeys.map((k,i) => {
-          const ms=allSessions.filter(s=>(s.month||mKey(new Date(s.id)))===k);
+          const ms=statsSessions.filter(s=>(s.month||mKey(new Date(s.id)))===k);
           const mp=ms.reduce((s,g)=>s+g.players.reduce((a,p)=>a+p.buyins*(g.buyin||BUYIN),0),0);
           const mpl=Object.keys(st.MO[k]).length;
           const top=Object.entries(st.MO[k]).sort((a,b)=>b[1].net-a[1].net)[0];
@@ -5072,7 +5098,7 @@ function buildStatsTab() {
       var pid='pc_'+rank;
 
       // All sessions for this player (sorted oldest→newest)
-      var pSess=allSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===name;});});
+      var pSess=statsSessions.slice().sort(function(a,b){return (a.id||0)-(b.id||0);}).filter(function(s){return s.players.some(function(p){return p.name===name;});});
       // Tag each session with _pname for sparkline helper
       pSess.forEach(function(s){s._pname=name;});
 
@@ -5274,7 +5300,7 @@ function buildStatsTab() {
       '.sstat-on{background:var(--c-gold-lt) !important;border-color:var(--c-gold-md) !important;color:var(--c-gold) !important}'+
     '</style>';
 
-  return tabBar+
+  return srBar + tabBar+
     '<div id="sstat-overview">'+sOverview+'</div>'+
     '<div id="sstat-leaders"  style="display:none">'+sLeaders+'</div>'+
     '<div id="sstat-records"  style="display:none">'+sRecords+'</div>'+
@@ -5289,6 +5315,75 @@ function setStatSection(sec) {
     if (btn) btn.classList.toggle('sstat-on', s===sec);
   });
   window.scrollTo({top: document.getElementById('home-body') ? document.getElementById('home-body').offsetTop : 0, behavior:'smooth'});
+}
+
+/* ── Expand trend chart into full-screen modal ── */
+function expandTrendChart() {
+  var d = window._trendData;
+  if (!d) return;
+  var mode = window._trendMode || '__group__';
+  // Build a larger version of the SVG
+  var W=340, H=180, PL=42, PB=22, PT=10, PR=8;
+  var CW=W-PL-PR, CH=H-PT-PB;
+  var pts=[], col=d.accent||'#F59E0B';
+
+  if (mode==='__group__') {
+    pts = d.allSessions.map(function(s,i){
+      return {i:i, v:s.players.reduce(function(a,p){return a+p.buyins*(s.buyin||BUYIN);},0), lbl:s.date||('G'+(i+1))};
+    });
+  } else {
+    var cum=0;
+    var pSess2=d.allSessions.filter(function(s){return s.players.some(function(p){return p.name===mode;});});
+    pts = pSess2.map(function(s,i){
+      var p=s.players.find(function(pp){return pp.name===mode;});
+      cum=rd(cum+rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN)));
+      return {i:i, v:cum, lbl:s.date||('G'+(i+1))};
+    });
+    col = cum>=0 ? '#22C55E' : '#EF4444';
+  }
+  if (pts.length < 2) { return; }
+  var maxV=Math.max.apply(null,pts.map(function(p){return p.v;}));
+  var minV=Math.min.apply(null,pts.map(function(p){return p.v;}));
+  var range=(maxV-minV)||1;
+  var toX=function(i){return PL+Math.round(i*CW/(pts.length-1));};
+  var toY=function(v){return PT+CH-Math.round((v-minV)/range*CH);};
+  var zY=minV>=0?PT+CH:maxV<=0?PT:toY(0);
+  var polyPts=pts.map(function(p,i){return toX(i)+','+toY(p.v);}).join(' ');
+  var gid2='exp'+Date.now();
+  // Y axis labels
+  var yLbls='';
+  [0,.25,.5,.75,1].forEach(function(f){
+    var v=rd(minV+range*f);
+    var y=PT+CH-Math.round(f*CH);
+    yLbls+='<text x="'+(PL-4)+'" y="'+y+'" text-anchor="end" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace" dominant-baseline="middle">'+fmt(v)+'</text>';
+    yLbls+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="rgba(255,255,255,.06)" stroke-width="1"/>';
+  });
+  var dots=pts.map(function(p,i){return '<circle cx="'+toX(i)+'" cy="'+toY(p.v)+'" r="3.5" fill="'+col+'" stroke="rgba(6,8,22,.8)" stroke-width="1.5"/>';}).join('');
+  var svgHtml='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;overflow:visible">'+
+    '<defs><linearGradient id="'+gid2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity=".3"/><stop offset="100%" stop-color="'+col+'" stop-opacity=".02"/></linearGradient></defs>'+
+    yLbls+
+    '<line x1="'+PL+'" y1="'+zY+'" x2="'+(W-PR)+'" y2="'+zY+'" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-dasharray="4,2"/>'+
+    '<polyline points="'+polyPts+' '+(W-PR)+','+(PT+CH)+' '+PL+','+(PT+CH)+'" fill="url(#'+gid2+')" stroke="none"/>'+
+    '<polyline points="'+polyPts+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+    dots+
+  '</svg>';
+
+  var title2 = mode==='__group__' ? 'Pot Trend — All Games' : mode+' Cumulative P&L';
+  var wrap = document.getElementById('qr-wrap');
+  var titleEl2 = document.getElementById('qr-title');
+  if (titleEl2) titleEl2.textContent = title2;
+  if (wrap) {
+    wrap.innerHTML = '<div style="padding:4px 0">'+
+      svgHtml+
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">'+
+        ['__group__'].concat(window._trendData ? (Object.keys(window._trendData.allSessions.reduce(function(acc,s){s.players.forEach(function(p){acc[p.name]=1;});return acc;},{})).sort()) : []).slice(0,6).map(function(m){
+          var on2=m===mode;
+          return '<button onclick="window._trendMode=\''+escQ(m)+'\';expandTrendChart()" style="padding:4px 10px;border-radius:20px;border:1px solid '+(on2?'rgba(255,255,255,.4)':'var(--c-bdr2)')+';background:'+(on2?'rgba(255,255,255,.1)':'transparent')+';color:'+(on2?'#fff':'var(--c-muted)')+';font-family:var(--font-mono);font-size:9px;cursor:pointer">'+(m==='__group__'?'All Pots':escH(m))+'</button>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }
+  document.getElementById('qr-modal').style.display='flex';
 }
 
 /* ── TREND CHART INTERACTIVE FUNCTIONS ────────────── */
@@ -5440,53 +5535,229 @@ function setPlayerTab(pid, tab) {
   });
 }
 
+/* ═══════════════════════════════════════════════════════
+   GAMES TAB — complete redesign
+   • Filter bar: text search + time range + player chip filter
+   • Modern cards: pot heat, player avatars, winner badge
+   • Expanded: mini net bar chart + table
+═══════════════════════════════════════════════════════ */
+
+let _histFilter = { q:'', range:'all', player:'' };
+
 function buildHistoryTab() {
-  const sessions = allSessions.slice().reverse().slice(0,20);
-  if (!sessions.length) return '<p style="color:var(--c-muted);font-family:var(--font-mono);font-size:13px;text-align:center;padding:28px 0">No games yet.</p>';
-  let h = '<div class="section-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>Game History</span><span style="font-size:10px;color:var(--c-muted);letter-spacing:1px">'+sessions.length+' games</span></div>';
-  sessions.forEach((s,i) => {
-    const pa = s.players.reduce((x,p)=>x+p.buyins*(s.buyin||BUYIN),0);
-    const ba = s.players.reduce((x,p)=>x+p.buyins,0);
-    const sorted = s.players.slice().sort((a,b)=>(b.cashOut-b.buyins*(s.buyin||BUYIN))-(a.cashOut-a.buyins*(s.buyin||BUYIN)));
-    const w = sorted[0], wn = w?rd(w.cashOut-w.buyins*(s.buyin||BUYIN)):0;
-    const bid='b'+i, cid='c'+i;
-    const rows = sorted.map(p=>{
-      const net=rd(p.cashOut-p.buyins*(s.buyin||BUYIN)), cls=net>0?'pos':net<0?'neg':'zero';
-      return '<div class="gh-row">'+
-        '<span class="gh-name">'+escH(p.name)+'</span>'+
-        '<span class="gh-detail">'+p.buyins+'× '+fmt(p.buyins*(s.buyin||BUYIN))+'</span>'+
-        '<span class="gh-detail">'+fmt(p.cashOut)+'</span>'+
-        '<span class="gh-net '+cls+'">'+fmtS(net)+'</span>'+
+  if (!allSessions.length) return '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:16px">🃏</div><div style="font-weight:800;font-size:18px;color:var(--c-txt)">No games yet</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);margin-top:6px">Finish a game to see history</div></div>';
+
+  const allP = [...new Set(allSessions.flatMap(s=>s.players.map(p=>p.name)))].sort();
+
+  /* ── Filter bar HTML ── */
+  const rangeOpts = [['all','All Time'],['year','This Year'],['6mo','6 Months'],['3mo','3 Months']];
+  const rangeBar = rangeOpts.map(function(r){
+    const on = _histFilter.range===r[0];
+    return '<button onclick="_histSetRange(\''+r[0]+'\')" style="padding:5px 11px;border-radius:20px;border:1px solid '+(on?'rgba(56,189,248,.5)':'var(--c-bdr2)')+';background:'+(on?'rgba(56,189,248,.15)':'var(--c-surf)')+';color:'+(on?'#38BDF8':'var(--c-muted)')+';font-family:var(--font-mono);font-size:10px;font-weight:'+(on?'700':'500')+';cursor:pointer;white-space:nowrap;flex-shrink:0">'+r[1]+'</button>';
+  }).join('');
+
+  const playerChips = (myLinkedPlayer ? [myLinkedPlayer] : []).concat(allP.filter(function(n){return n!==myLinkedPlayer;})).slice(0,8).map(function(n){
+    const on = _histFilter.player===n;
+    return '<button onclick="_histSetPlayer(\''+escQ(n)+'\')" style="padding:4px 9px;border-radius:20px;border:1px solid '+(on?'rgba(167,139,250,.5)':'var(--c-bdr2)')+';background:'+(on?'rgba(167,139,250,.15)':'var(--c-surf)')+';color:'+(on?'#A78BFA':'var(--c-muted)')+';font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">'+escH(n)+'</button>';
+  }).join('');
+
+  let filterBar = '<div style="margin-bottom:12px">'+
+    '<div style="position:relative;margin-bottom:8px">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
+      '<input id="hist-search" type="text" placeholder="Search player or date…" value="'+escH(_histFilter.q)+'" oninput="_histSetQ(this.value)" '+
+        'style="width:100%;padding:9px 32px 9px 32px;background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;color:var(--c-txt);font-family:var(--font-mono);font-size:12px;outline:none">'+
+      (_histFilter.q ? '<button onclick="_histSetQ(\'\');document.getElementById(\'hist-search\').value=\'\'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--c-muted);cursor:pointer;font-size:14px;padding:2px">✕</button>' : '')+
+    '</div>'+
+    '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">'+rangeBar+'</div>'+
+    (playerChips ? '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-top:6px">'+
+      '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);flex-shrink:0;align-self:center;text-transform:uppercase;letter-spacing:1px">Player:</span>'+
+      playerChips+
+      (_histFilter.player ? '<button onclick="_histSetPlayer(\'\');" style="padding:4px 9px;border-radius:20px;border:1px solid var(--c-bdr2);background:transparent;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">✕ Clear</button>' : '')+
+    '</div>' : '')+
+  '</div>';
+
+  /* ── Apply filters ── */
+  const now = Date.now();
+  const rangeCutoff = { all:0, year:new Date(new Date().getFullYear(),0,1).getTime(), '6mo':now-180*86400000, '3mo':now-90*86400000 };
+  const cutoff = rangeCutoff[_histFilter.range]||0;
+
+  const filtered = allSessions.slice().reverse().filter(function(s){
+    // Time range
+    if (cutoff) {
+      const sDate = new Date(s.date||s.id||0).getTime();
+      if (sDate < cutoff) return false;
+    }
+    // Player filter
+    if (_histFilter.player && !s.players.some(function(p){return p.name===_histFilter.player;})) return false;
+    // Text search
+    if (_histFilter.q) {
+      const q = _histFilter.q.toLowerCase();
+      const matchDate = (s.date||'').toLowerCase().includes(q);
+      const matchPlayer = s.players.some(function(p){return p.name.toLowerCase().includes(q);});
+      if (!matchDate && !matchPlayer) return false;
+    }
+    return true;
+  });
+
+  /* ── Summary strip ── */
+  const totalPot = filtered.reduce(function(a,s){return a+s.players.reduce(function(b,p){return b+p.buyins*(s.buyin||BUYIN);},0);},0);
+  const avgPot = filtered.length ? rd(totalPot/filtered.length) : 0;
+  // Most frequent winner in filtered set
+  const winCounts = {};
+  filtered.forEach(function(s){
+    const sorted2=s.players.slice().sort(function(a,b){return rd((b.cashOut||0)-b.buyins*(s.buyin||BUYIN))-rd((a.cashOut||0)-a.buyins*(s.buyin||BUYIN));});
+    if(sorted2[0]&&rd((sorted2[0].cashOut||0)-sorted2[0].buyins*(s.buyin||BUYIN))>0){winCounts[sorted2[0].name]=(winCounts[sorted2[0].name]||0)+1;}
+  });
+  const topWinner = Object.entries(winCounts).sort(function(a,b){return b[1]-a[1];})[0];
+
+  let summaryHtml = '';
+  if (filtered.length) {
+    summaryHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'+
+      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
+        '<div style="font-family:var(--font-mono);font-size:22px;font-weight:900;color:#38BDF8">'+filtered.length+'</div>'+
+        '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Games</div>'+
+      '</div>'+
+      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
+        '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(avgPot)+'</div>'+
+        '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Avg Pot</div>'+
+      '</div>'+
+      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
+        (topWinner ? '<div style="font-size:13px;font-weight:800;color:var(--c-green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(topWinner[0])+'</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--c-green)">'+topWinner[1]+' win'+(topWinner[1]!==1?'s':'')+'</div>' : '<div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">—</div>')+
+        '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Top Winner</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* ── No results ── */
+  if (!filtered.length) {
+    return filterBar + '<div style="text-align:center;padding:40px 20px"><div style="font-size:32px;margin-bottom:12px">🔍</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">No games match your filter</div></div>';
+  }
+
+  /* ── Build game cards ── */
+  const maxPot = Math.max.apply(null, filtered.map(function(s){return s.players.reduce(function(a,p){return a+p.buyins*(s.buyin||BUYIN);},0);}));
+
+  let cards = '';
+  filtered.forEach(function(s, i) {
+    const pa = s.players.reduce(function(x,p){return x+p.buyins*(s.buyin||BUYIN);},0);
+    const potPct = maxPot>0 ? pa/maxPot : 0;
+    const potHeat = potPct > 0.8 ? '#F59E0B' : potPct > 0.5 ? '#818CF8' : '#38BDF8';
+    const sorted = s.players.slice().sort(function(a,b){return rd((b.cashOut||0)-b.buyins*(s.buyin||BUYIN))-rd((a.cashOut||0)-a.buyins*(s.buyin||BUYIN));});
+    const winner = sorted[0];
+    const winNet = winner ? rd((winner.cashOut||0)-winner.buyins*(s.buyin||BUYIN)) : 0;
+    const dur = s.durationSecs ? (function(){var hh=Math.floor(s.durationSecs/3600),mm=Math.floor((s.durationSecs%3600)/60);return (hh>0?hh+'h ':'')+mm+'m';})() : null;
+    const bid = 'hg'+i;
+    const isMyGame = myLinkedPlayer && s.players.some(function(p){return p.name===myLinkedPlayer;});
+    var myEntry = myLinkedPlayer ? s.players.find(function(p){return p.name===myLinkedPlayer;}) : null;
+    var myNet = myEntry ? rd((myEntry.cashOut||0)-myEntry.buyins*(s.buyin||BUYIN)) : null;
+
+    // Player avatars (up to 7)
+    const avatars = sorted.slice(0,7).map(function(p){
+      var net2 = rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
+      var col = net2>0?'#22C55E':net2<0?'#EF4444':'rgba(255,255,255,.3)';
+      var isMe = p.name===myLinkedPlayer;
+      return '<div style="width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.07);border:1.5px solid '+(isMe?'#A78BFA':col+'40')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:'+(isMe?'#A78BFA':col)+';flex-shrink:0;margin-right:-4px" title="'+escH(p.name)+'">'+escH(p.name.charAt(0).toUpperCase())+'</div>';
+    }).join('');
+
+    // Mini bar chart data (built inside the expandable)
+    const maxAbsNet = Math.max.apply(null, sorted.map(function(p){return Math.abs(rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN)));})) || 1;
+    const barRows = sorted.map(function(p){
+      var net2=rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
+      var pct=Math.round(Math.abs(net2)/maxAbsNet*100);
+      var col=net2>0?'#22C55E':net2<0?'#EF4444':'rgba(255,255,255,.2)';
+      var isMe=p.name===myLinkedPlayer;
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
+        '<div style="width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.07);border:1px solid '+(isMe?'#A78BFA':'rgba(255,255,255,.1)')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:'+(isMe?'#A78BFA':col)+';flex-shrink:0">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
+        '<div style="font-size:12px;font-weight:'+(isMe?'800':'600')+';color:var(--c-txt);width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">'+escH(p.name)+'</div>'+
+        '<div style="flex:1;background:var(--c-bg3);border-radius:4px;height:6px;overflow:hidden">'+
+          '<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:4px;opacity:.85"></div>'+
+        '</div>'+
+        '<div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+col+';flex-shrink:0;min-width:44px;text-align:right">'+fmtS(net2)+'</div>'+
       '</div>';
     }).join('');
-    const thead = '<div class="gh-thead">'+
-      '<span class="gh-th">Player</span>'+
-      '<span class="gh-th">Bought in</span>'+
-      '<span class="gh-th">Cashed out</span>'+
-      '<span class="gh-th">Net</span>'+
-      '</div>';
-    const dur = s.durationSecs ? (()=>{const h=Math.floor(s.durationSecs/3600),m=Math.floor((s.durationSecs%3600)/60);return (h>0?h+'h ':'')+m+'m';})() : null;
-    h += '<div class="gh-card">'+
-      '<div class="gh-hdr" onclick="toggleCard(\''+bid+'\',\''+cid+'\')">'+
-        '<div>'+
-          '<div class="gh-date">'+escH(s.date)+(s.host?' &middot; <span style="font-size:10px;color:var(--c-muted)">'+escH(s.host)+'</span>':'')+'</div>'+
-          '<div class="gh-meta">'+s.players.length+' players &middot; '+fmt(pa)+' pot'+(dur?' &middot; '+dur:'')+'</div>'+
-          (w?'<div class="gh-win">'+escH(w.name)+' won '+fmtS(wn)+'</div>':'')+
+
+    cards += '<div style="background:var(--c-bg2);border:1px solid '+(isMyGame?'rgba(167,139,250,.3)':'var(--c-bdr)')+';border-left:3px solid '+potHeat+';border-radius:14px;margin-bottom:8px;overflow:hidden'+(isMyGame?';box-shadow:0 0 16px rgba(167,139,250,.08)':'')+'">'+
+      // Card header
+      '<div onclick="_histToggle(\''+bid+'\')" style="padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent" id="'+bid+'_hdr">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'+
+              '<span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#38BDF8">'+escH(s.date||'—')+'</span>'+
+              (isMyGame && myNet!==null ? '<span style="font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.25)">you '+fmtS(myNet)+'</span>' : '')+
+              (dur ? '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);padding:2px 6px;border-radius:20px;border:1px solid var(--c-bdr2)">⏱ '+escH(dur)+'</span>' : '')+
+            '</div>'+
+            (winner && winNet>0 ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);display:flex;align-items:center;gap:3px">🏆 <span style="font-weight:700">'+escH(winner.name)+'</span> &nbsp;+'+fmt(winNet)+'</div>' : '')+
+          '</div>'+
+          '<div style="text-align:right;flex-shrink:0">'+
+            '<div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+potHeat+'">'+fmt(pa)+'</div>'+
+            '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px">pot</div>'+
+          '</div>'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:8px">'+
-          '<button onclick="event.stopPropagation();shareHistoryByDate(\''+escH(s.date)+'\')" '+
-            'style="background:#25D366;border:none;border-radius:8px;color:#fff;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px" '+
-            'aria-label="Share '+escH(s.date)+' results on WhatsApp">'+
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'+
-            'Share</button>'+
-          '<div class="gh-chev" id="'+cid+'">&#9660;</div>'+
+        // Player avatars row
+        '<div style="display:flex;align-items:center;justify-content:space-between">'+
+          '<div style="display:flex;align-items:center;padding-left:4px">'+avatars+(sorted.length>7?'<div style="width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--c-muted);flex-shrink:0;margin-left:0">+'+(sorted.length-7)+'</div>':'')+'</div>'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            '<button onclick="event.stopPropagation();shareHistoryByDate(\''+escH(s.date)+'\')" style="background:#25D366;border:none;border-radius:8px;color:#fff;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Share</button>'+
+            '<svg id="'+bid+'_chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .22s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>'+
+          '</div>'+
         '</div>'+
       '</div>'+
-      '<div class="gh-body" id="'+bid+'">'+thead+rows+'</div>'+
+      // Expandable body
+      '<div id="'+bid+'" style="display:none;padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,.06)">'+
+        // Mini bar chart
+        '<div style="margin-bottom:8px">'+
+          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:8px">Results</div>'+
+          barRows+
+        '</div>'+
+        // Detail table
+        '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:8px;margin-top:4px">'+
+          '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;padding:0 2px 6px;font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3)">'+
+            '<span>Player</span><span style="text-align:right">Buyins</span><span style="text-align:right;padding-left:12px">Cash</span><span style="text-align:right;padding-left:12px">Net</span>'+
+          '</div>'+
+          sorted.map(function(p){
+            var net2=rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
+            var nc=net2>0?'var(--c-green)':net2<0?'var(--c-red)':'var(--c-muted)';
+            var isMe=p.name===myLinkedPlayer;
+            return '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;padding:6px 2px;border-top:1px solid rgba(255,255,255,.04);align-items:center">'+
+              '<span style="font-size:13px;font-weight:'+(isMe?'800':'600')+';color:'+(isMe?'#A78BFA':'var(--c-txt)')+'">'+escH(p.name)+(isMe?' ★':'')+'</span>'+
+              '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right">'+fmt(p.buyins*(s.buyin||BUYIN))+'</span>'+
+              '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right;padding-left:12px">'+fmt(p.cashOut||0)+'</span>'+
+              '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+';text-align:right;padding-left:12px">'+fmtS(net2)+'</span>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+        (s.host ? '<div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">Hosted by '+escH(s.host)+'</div>' : '')+
+      '</div>'+
     '</div>';
   });
-  return h;
+
+  return filterBar + summaryHtml + cards;
 }
+
+function _histToggle(bid) {
+  var body = document.getElementById(bid);
+  var chev = document.getElementById(bid+'_chev');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function _histSetQ(v) {
+  _histFilter.q = v;
+  var el = document.getElementById('home-body');
+  if (el && homeTab==='history') el.innerHTML = buildHistoryTab();
+}
+function _histSetRange(r) {
+  _histFilter.range = r;
+  var el = document.getElementById('home-body');
+  if (el && homeTab==='history') el.innerHTML = buildHistoryTab();
+}
+function _histSetPlayer(n) {
+  _histFilter.player = (_histFilter.player===n) ? '' : n;
+  var el = document.getElementById('home-body');
+  if (el && homeTab==='history') el.innerHTML = buildHistoryTab();
+}
+
 
 function buildAccountsTab() {
   const INACTIVE_DAYS = 30;
