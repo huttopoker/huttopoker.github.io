@@ -291,11 +291,12 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
 .ah-right { display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0; }
 .ah-more-btn {
   display:flex; align-items:center; justify-content:center;
-  width:34px; height:34px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
-  border-radius:10px; cursor:pointer; color:rgba(255,255,255,.5); transition:all .2s;
+  width:40px; height:40px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  border-radius:11px; cursor:pointer; color:rgba(255,255,255,.65); transition:all .18s;
   flex-shrink:0;
 }
-.ah-more-btn:active, .ah-more-btn:hover { background:rgba(124,58,237,.15); color:#A78BFA; border-color:rgba(124,58,237,.3); }
+.ah-more-btn:active, .ah-more-btn:hover { background:rgba(124,58,237,.18); color:#A78BFA; border-color:rgba(124,58,237,.35); }
+.ah-more-btn.menu-open { background:rgba(124,58,237,.18); color:#A78BFA; border-color:rgba(124,58,237,.35); }
 .ah-right-stack { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
 .wrap { position:relative; z-index:1; max-width:490px; margin:0 auto;
   padding:calc(env(safe-area-inset-top,0px) + 72px) 18px calc(env(safe-area-inset-bottom,0px) + 88px); }
@@ -811,8 +812,11 @@ body::before {
   opacity:0;
   pointer-events:none;
   transition:transform .18s cubic-bezier(.4,0,.2,1), opacity .14s ease;
-  overflow:hidden;
+  overflow-y:auto;
+  overflow-x:hidden;
   display:block !important;
+  max-height:calc(100dvh - 80px);
+  -webkit-overflow-scrolling:touch;
 }
 #more-sheet.qp-open {
   transform:scale(1) translateY(0);
@@ -1607,11 +1611,11 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   <div id="ah-page"></div>
   <div class="ah-right">
     <button id="ah-more-btn" class="ah-more-btn" onclick="toggleHomeMore()" aria-label="Quick actions" title="Quick actions" style="display:none">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
     </button>
     <div class="ah-right-stack">
       <div id="sync-pill" class="sync-pill live" role="status" aria-live="polite" style="display:none"><div class="sync-dot"></div><span>LIVE SYNC</span></div>
-      <div id="theme-pill" style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;text-align:right"></div>
+      <div id="theme-pill" style="display:none"></div>
     </div>
   </div>
 </header>
@@ -1629,7 +1633,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <div style="padding-top:10px;margin-bottom:6px">
+    <div style="padding-top:12px;margin-bottom:20px">
       <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game"
         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1637,7 +1641,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       </button>
     </div>
     <div id="resume-slot" style="padding:0 2px"></div>
-    <div id="home-body" style="margin-top:4px;padding-bottom:90px"></div>
+    <div id="home-body" style="margin-top:0;padding-bottom:90px"></div>
   </div>
 
   <!-- SETUP -->
@@ -2068,9 +2072,7 @@ function applyTheme(theme) {
   // Background pattern (unique per theme for texture variety)
   // Card suit background patterns removed — clean gradient only
 
-  // Update theme pill
-  const pill = document.getElementById('theme-pill');
-  if (pill) { pill.textContent = '◆ ' + theme.name; pill.style.color = theme.accent; }
+  // Theme pill hidden — no theme name shown in UI
 
   // ── Background: solid dark + animated aurora orbs (no external photos)
   document.body.style.backgroundImage = '';
@@ -3779,9 +3781,8 @@ function openHomeMore() {
   if (!sh) return;
   if (bg) bg.style.display = 'block';
   requestAnimationFrame(() => sh.classList.add('qp-open'));
-  // Highlight the ⋯ button while dropdown is open
   const btn = document.getElementById('ah-more-btn');
-  if (btn) { btn.style.background='rgba(124,58,237,.18)'; btn.style.color='#A78BFA'; btn.style.borderColor='rgba(124,58,237,.35)'; }
+  if (btn) { btn.classList.add('menu-open'); btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
 }
 function closeHomeMore() {
   const bg = document.getElementById('more-sheet-bg');
@@ -3789,9 +3790,8 @@ function closeHomeMore() {
   if (bg) bg.style.display = 'none';
   if (!sh) return;
   sh.classList.remove('qp-open');
-  // Restore ⋯ button style
   const btn = document.getElementById('ah-more-btn');
-  if (btn) { btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
+  if (btn) { btn.classList.remove('menu-open'); }
 }
 function toggleHomeMore() {
   const sh = document.getElementById('more-sheet');
