@@ -797,20 +797,20 @@ body::before {
 /* ── MORE DROPDOWN (top-right anchored) ── */
 #more-sheet {
   position:fixed;
-  top:calc(env(safe-area-inset-top,0px) + 58px);
-  right:12px;
+  top:calc(env(safe-area-inset-top,0px) + 54px);
+  right:10px;
   z-index:3300;
-  min-width:230px;
-  background:rgba(10,12,26,.98);
-  backdrop-filter:blur(28px) saturate(1.8); -webkit-backdrop-filter:blur(28px) saturate(1.8);
-  border:1px solid rgba(255,255,255,.11);
-  border-radius:18px;
-  box-shadow:0 8px 40px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
-  transform:translateY(-10px) scale(0.95);
+  width:240px;
+  background:rgba(8,10,22,.98);
+  backdrop-filter:blur(32px) saturate(2); -webkit-backdrop-filter:blur(32px) saturate(2);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  box-shadow:0 12px 48px rgba(0,0,0,.65), 0 2px 8px rgba(0,0,0,.5);
+  transform:translateY(-8px) scale(0.94);
   transform-origin:top right;
   opacity:0;
   pointer-events:none;
-  transition:transform .22s cubic-bezier(.32,1,.6,1), opacity .18s ease;
+  transition:transform .2s cubic-bezier(.32,1,.55,1), opacity .15s ease;
   overflow:hidden;
   display:block !important;
 }
@@ -821,29 +821,29 @@ body::before {
 }
 /* dropdown row */
 .mdd-row {
-  display:flex; align-items:center; gap:12px;
-  padding:11px 14px; cursor:pointer; border:none; background:transparent;
+  display:flex; align-items:center; gap:11px;
+  padding:10px 14px; cursor:pointer; border:none; background:transparent;
   text-align:left; width:100%; -webkit-tap-highlight-color:transparent;
-  transition:background .12s;
+  transition:background .1s;
 }
-.mdd-row:active, .mdd-row:hover { background:rgba(255,255,255,.06); }
-.mdd-row + .mdd-row { border-top:1px solid rgba(255,255,255,.04); }
+.mdd-row:active { background:rgba(255,255,255,.08); }
+.mdd-row + .mdd-row { border-top:1px solid rgba(255,255,255,.05); }
 .mdd-icon {
-  width:30px; height:30px; border-radius:8px; flex-shrink:0;
+  width:28px; height:28px; border-radius:7px; flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
 }
-.mdd-text { flex:1; }
-.mdd-label { font-size:13px; font-weight:600; color:var(--c-txt); }
-.mdd-desc  { font-size:10px; color:var(--c-muted); margin-top:1px; }
+.mdd-text { flex:1; min-width:0; }
+.mdd-label { font-size:13px; font-weight:600; color:var(--c-txt); line-height:1; }
+.mdd-desc  { font-size:10px; color:var(--c-muted); margin-top:2px; }
 .mdd-check { display:none; flex-shrink:0; }
+.mdd-row.mdd-active .mdd-label { color:var(--c-gold); }
 .mdd-row.mdd-active .mdd-check { display:block; }
 .mdd-section-lbl {
-  font-family:var(--font-mono); font-size:8px; color:rgba(255,255,255,.25);
-  text-transform:uppercase; letter-spacing:2px; padding:10px 14px 4px;
+  font-family:var(--font-mono); font-size:9px; color:rgba(255,255,255,.3);
+  font-weight:600; text-transform:uppercase; letter-spacing:1.5px; padding:10px 14px 5px;
 }
 .mdd-divider { height:1px; background:rgba(255,255,255,.07); margin:4px 0; }
-/* ── START GAME FAB ── */
-#start-fab:active { transform:translateX(-50%) scale(0.96) !important; box-shadow:0 2px 14px rgba(52,211,153,.4) !important; }
+
 /* ── MORE SHEET BUTTONS (legacy, kept for compat) ── */
 .more-sheet-btn {
   display:flex; flex-direction:column; align-items:flex-start; gap:3px;
@@ -1627,7 +1627,13 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <!-- start-btn removed: Start Game is now the FAB and in the ⋯ dropdown -->
+    <div style="padding-top:10px;margin-bottom:6px">
+      <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="start-btn-label">Let&#39;s Play...</span>
+      </button>
+    </div>
     <div id="resume-slot" style="padding:0 2px"></div>
     <div id="home-body" style="margin-top:4px;padding-bottom:90px"></div>
   </div>
@@ -1931,22 +1937,6 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
 </div>
 
-<!-- START GAME FAB — single, persistent, always on home screen -->
-<button id="start-fab" onclick="goSetup()" aria-label="Start New Game"
-  style="display:none;position:fixed;
-    bottom:calc(env(safe-area-inset-bottom,0px)+20px);
-    left:50%;transform:translateX(-50%);
-    background:linear-gradient(135deg,#34D399 0%,#10B981 100%);
-    color:#052e16;border:none;border-radius:50px;cursor:pointer;
-    padding:15px 32px;
-    align-items:center;gap:10px;
-    font-family:var(--font-body);font-size:15px;font-weight:800;letter-spacing:.3px;
-    box-shadow:0 4px 28px rgba(52,211,153,.55),0 2px 8px rgba(0,0,0,.35);
-    z-index:3000;-webkit-tap-highlight-color:transparent;white-space:nowrap;
-    transition:box-shadow .2s,transform .15s;">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-  Start Game
-</button>
 
 <script>
 
@@ -3060,6 +3050,7 @@ async function bootApp() {
     todayPoll = poll;
     if (pays  !== null) { cachedPayments = pays; }
     buildRoster();
+    _updateStartBtn();
     // Auto-archive players inactive for 60+ days (non-CORE custom players only)
     autoArchiveInactive();
     // Auto-clean stuck live sessions older than 6 hours
@@ -3440,9 +3431,7 @@ function show(id) {
   // Update global header page context
   const ahPage = document.getElementById('ah-page');
   if (ahPage) ahPage.textContent = _PAGE_CTX[id] || '';
-  // Show Start Game FAB and ⋯ menu only on home screen
-  const startFab = document.getElementById('start-fab');
-  if (startFab) startFab.style.display = (id === 'home') ? 'flex' : 'none';
+  // Show ⋯ menu button only on home screen
   const ahMoreBtn = document.getElementById('ah-more-btn');
   if (ahMoreBtn) ahMoreBtn.style.display = (id === 'home') ? 'flex' : 'none';
   // Resume banner only belongs on home — clear it everywhere else
@@ -3802,6 +3791,20 @@ function clearResumeBanner() {
   if (slot) slot.innerHTML = '';
 }
 function renderHome() { setHTab(homeTab); }
+
+function _updateStartBtn() {
+  const btn = document.getElementById('start-btn');
+  const lbl = document.getElementById('start-btn-label');
+  if (!btn || !lbl) return;
+  const yesVoters = todayPoll ? todayPoll.filter(function(v){ return v.vote==='yes'; }) : [];
+  if (yesVoters.length > 0) {
+    lbl.textContent = 'Start Game — ' + yesVoters.length + ' players ready';
+    btn.onclick = function(){ goSetupWithPoll(); };
+  } else {
+    lbl.textContent = "Let’s Play…";
+    btn.onclick = function(){ goSetup(); };
+  }
+}
 function openHomeMore() {
   const bg = document.getElementById('more-sheet-bg');
   const sh = document.getElementById('more-sheet');
@@ -3852,6 +3855,10 @@ function setHTab(tab) {
   if (tab==='dashboard') { el.innerHTML = buildDashboardTab(); }
   else if (tab==='poll') {
     el.innerHTML = buildPollTab();
+    // Update Let's Play label if YES voters are ready
+    const _yc = todayPoll ? todayPoll.filter(function(v){return v.vote==='yes';}).length : 0;
+    const _lbl = document.getElementById('start-btn-label');
+    if (_lbl) _lbl.textContent = _yc > 0 ? 'Start Game — '+_yc+' YES' : 'Let\'s Play...';
     // Auto-refresh every 15s when on poll tab
     pollRefreshTimer = setInterval(async () => {
       if (homeTab !== 'poll') { clearInterval(pollRefreshTimer); pollRefreshTimer=null; return; }
@@ -4014,8 +4021,8 @@ function importPoll() {
   if (todayPoll.length === 0) { notify('No YES votes to import yet','warn'); return; }
   window._pollImport = todayPoll.slice();
   notify('✔ '+todayPoll.length+' YES voters ready — tap Start Game');
-  const sb = document.getElementById('start-fab');
-  if (sb) { sb.style.boxShadow='0 0 0 3px #34D399,0 4px 28px rgba(52,211,153,.55)'; setTimeout(()=>sb.style.boxShadow='',2500); }
+  const sb = document.getElementById('start-btn');
+  if (sb) { sb.style.boxShadow='0 0 0 3px var(--c-green),0 4px 20px rgba(52,211,153,.4)'; setTimeout(()=>{ if(sb) sb.style.boxShadow=''; },2000); }
 }
 
 
