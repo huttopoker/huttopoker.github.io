@@ -757,6 +757,9 @@ body::before {
 .sync-dot { width:7px; height:7px; border-radius:50%; background:currentColor;
   animation:pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+@keyframes card-scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.card-ticker { overflow:hidden; display:flex; align-items:center; }
+.card-ticker-inner { display:flex; gap:10px; white-space:nowrap; animation:card-scroll 18s linear infinite; will-change:transform; }
 /* ── HOME BOTTOM NAV ── */
 #home-nav { display:flex; justify-content:center; }
 #home-nav-inner {
@@ -997,36 +1000,47 @@ body::before {
 /* ── COMPACT SETTLEMENT ROWS (results screen) ── */
 /* ── SETTLE ROWS — single-line compact ── */
 /* ── SETTLEMENT ROW — structured table layout ── */
+/* ── Settlement row — tight 5-column table ── */
 .sp-row {
   background:var(--c-surf);
   border:1px solid var(--c-bdr);
-  border-radius:12px;
+  border-radius:11px;
   display:grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr 14px 1fr 62px 34px;
   align-items:center;
   gap:0;
   overflow:hidden;
-  min-height:52px;
+  min-height:46px;
 }
 .sp-row.sp-settled { opacity:.38; }
-.sp-who {
-  display:grid;
-  grid-template-columns: 1fr 18px 1fr;
-  align-items:center;
-  padding:10px 12px;
-  gap:0;
-  min-width:0;
-  border-right:1px solid var(--c-bdr);
+/* FROM cell */
+.sp-from {
+  font-family:var(--font-body); font-size:13px; font-weight:700; color:var(--c-red);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:10px 6px 10px 12px;
 }
-.sp-from { font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--c-red); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.sp-arr  { color:var(--c-muted); font-size:12px; text-align:center; }
-.sp-to   { font-family:var(--font-body); font-size:15px; font-weight:600; color:var(--c-green); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; }
-.sp-amt  {
-  font-family:var(--font-heading); font-size:16px; font-weight:600; color:#A78BFA; letter-spacing:0;
-  padding:10px 10px; text-align:center; font-variant-numeric:tabular-nums;
-  border-right:1px solid var(--c-bdr); white-space:nowrap; min-width:56px;
+/* → arrow cell */
+.sp-arr {
+  font-size:11px; color:var(--c-muted); text-align:center; padding:0;
 }
-.sp-actions { display:flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; flex-shrink:0; }
+/* TO cell */
+.sp-to {
+  font-family:var(--font-body); font-size:13px; font-weight:700; color:var(--c-green);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:10px 6px;
+}
+/* Amount cell */
+.sp-amt {
+  font-family:var(--font-mono); font-size:13px; font-weight:800; color:#A78BFA;
+  text-align:right; padding:10px 8px; white-space:nowrap;
+  border-left:1px solid var(--c-bdr);
+  font-variant-numeric:tabular-nums;
+}
+/* Action cell */
+.sp-actions {
+  display:flex; align-items:center; justify-content:center;
+  padding:0 4px; border-left:1px solid var(--c-bdr); height:100%;
+}
 /* All action buttons are 30×30 icon circles */
 .sp-mark, .sp-btn {
   width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -1083,9 +1097,9 @@ body::before {
 .pay-btn.setup-link { background:transparent; border:1.5px dashed var(--c-bdr2); color:var(--c-muted);
   cursor:pointer; box-shadow:none; font-size:11px; }
 /* Settle helper classes still used in history/home tabs */
-.settle-from { font-size:15px; font-weight:700; color:var(--c-red); }
+.settle-from { font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--c-red); }
 .settle-arrow { font-size:13px; color:var(--c-muted); margin:0 4px; }
-.settle-to   { font-size:15px; font-weight:700; color:var(--c-green); }
+.settle-to   { font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--c-green); }
 .pay-btns    { display:flex; gap:7px; flex-wrap:wrap; }
 /* ── QR ── */
 .qr-img { border-radius:14px; border:5px solid #fff; width:200px; height:200px;
@@ -1162,7 +1176,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 .gh-win  { font-size:13px; color:var(--c-green); margin-top:3px; font-family:var(--font-body); }
 .gh-chev { font-size:13px; color:var(--c-muted); transition:transform .2s; }
 .gh-chev.open { transform:rotate(180deg); }
-.gh-body { display:none; border-top:1px solid var(--c-bdr); }
+.gh-body { display:none; border-top:1px solid var(--c-bdr); padding:0; }
 .gh-body.open { display:block; }
 /* Table header row */
 .gh-thead { display:grid; grid-template-columns:1fr 1fr 72px 72px;
@@ -1195,6 +1209,28 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 .adj-row { display:flex; justify-content:space-between; font-size:11px; padding:3px 0;
   border-bottom:1px solid rgba(255,255,255,.06); }
 .adj-row:last-child { border-bottom:none; }
+
+/* ── Smart Adjustment Log ────────────────────────── */
+.adj-log-banner {
+  background:rgba(245,158,11,.07); border:1.5px solid rgba(245,158,11,.22);
+  border-radius:12px; padding:10px 14px; margin-bottom:10px;
+}
+.adj-log-title {
+  font-family:var(--font-mono); font-size:10px; text-transform:uppercase;
+  letter-spacing:1.2px; color:var(--c-gold); font-weight:700; margin-bottom:7px;
+  display:flex; align-items:center; gap:6px;
+}
+.adj-log-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:4px 0; border-bottom:1px solid rgba(255,255,255,.05);
+  font-family:var(--font-mono); font-size:11px;
+}
+.adj-log-row:last-child { border-bottom:none; }
+.adj-log-name { color:var(--c-txt); font-weight:600; }
+.adj-log-pct  { color:var(--c-muted); font-size:10px; margin-left:6px; }
+.adj-log-amt  { font-weight:800; }
+.adj-log-amt.short { color:var(--c-red); }
+.adj-log-amt.over  { color:var(--c-green); }
 
 /* ── Cut for Seat ─────────────────────────────────── */
 #cfs-modal { display: none; } /* safety: ensure hidden even if inline style stripped */
@@ -1421,6 +1457,12 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 </div>
 
 <!-- Host Picker Modal -->
+<div id="all-player-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('all-player-modal')">
+  <div class="modal-box" style="padding:20px 18px 24px"></div>
+</div>
+<div id="spark-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('spark-modal')">
+  <div class="modal-box" style="padding:18px 16px 22px"></div>
+</div>
 <div id="host-picker-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('host-picker-modal')">
   <div class="modal-box">
     <div class="modal-handle"></div>
@@ -1535,8 +1577,10 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <div style="padding-top:12px;margin-bottom:4px">
-      <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start tonight's poker game" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Tonight's Game</button>
+    <div style="padding-top:10px;margin-bottom:6px">
+      <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
+        <span id="start-suit" style="font-size:20px;transition:opacity .25s ease;display:inline-block;line-height:1">♠</span> Let's Play...
+      </button>
     </div>
     <div id="resume-slot" style="padding:0 2px"></div>
     <div id="home-body" style="margin-top:4px;padding-bottom:90px"></div>
@@ -1737,8 +1781,8 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     <button type="button" id="hnav-history" onclick="setHTab('history')" class="hnav-btn" aria-label="Games" ontouchstart="">
       <span class="hnav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="10" height="14" rx="2"/><rect x="10" y="5" width="10" height="14" rx="2"/><line x1="6" y1="7" x2="9" y2="7"/><line x1="6" y1="10" x2="9" y2="10"/></svg></span><span class="hnav-lbl">Games</span>
     </button>
-    <button type="button" id="hnav-poll" onclick="setHTab('poll')" class="hnav-btn" aria-label="Tonight" ontouchstart="">
-      <span class="hnav-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></span><span class="hnav-lbl">Tonight</span>
+    <button type="button" id="hnav-poll" onclick="setHTab('poll')" class="hnav-btn" aria-label="Game" ontouchstart="">
+      <span class="hnav-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></span><span class="hnav-lbl">Game</span>
     </button>
   </div>
 </nav>
@@ -2665,9 +2709,56 @@ async function sbPatch(path, body) {
 async function dbLoadSessions() {
   try {
     const rows = await sbGet('poker_sessions?select=session_data,played_at&order=played_at.asc');
-    return rows.map(r => r.session_data).filter(Boolean);
+    const sessions = rows.map(r => r.session_data).filter(Boolean);
+    // Data correction: May 30 game — Kishore had 1 buyin not 2; 50/30/20 applied (OVER $10)
+    const may30 = sessions.find(s => String(s.id) === '1780184940006');
+    if (may30) {
+      const kis = may30.players?.find(p => p.name === 'Kishore');
+      if (kis && kis.buyins === 2 && kis.cashOut === 78.5) {
+        kis.buyins = 1; kis.cashOut = 73.5;
+        const kir = may30.players.find(p => p.name === 'Kiran');
+        const vin = may30.players.find(p => p.name === 'Vinay');
+        if (kir) kir.cashOut = 71.4;
+        if (vin) vin.cashOut = 56.4;
+        if (may30.cashOuts) { may30.cashOuts['Kishore']=73.5; may30.cashOuts['Kiran']=71.4; may30.cashOuts['Vinay']=56.4; }
+        may30.adjLog = { isOver:true, total:10, entries:[{name:'Kishore',amt:5,pct:50},{name:'Kiran',amt:3,pct:30},{name:'Vinay',amt:2,pct:20}] };
+      }
+    }
+    return sessions;
   } catch(e) { console.warn('sessions load failed:', e.message); return null; }
 }
+// ── One-time fix: correct May 30 game_payments (ids 172-179) ──
+// Old data had Kishore at 2 buyins; correct is 1 buyin. All nets shift.
+// Correct settlements: Murali→Kishore $36.6, Ram→Kishore $26.9, Ram→Kiran $3.1,
+//   Ganesh→Kiran $19.9, Deepak→Kiran $16.9, Krishna→Kiran $1.5,
+//   Krishna→Vinay $8.5, Santhosh→Vinay $7.9
+async function patchMay30Payments() {
+  try {
+    const rows = await sbGet('game_payments?id=in.(172,173,174,175,176,177,178,179)&select=id,payer,payee,amount');
+    if (!rows || !rows.length) return;
+    const map = {};
+    rows.forEach(r => { map[r.id] = r; });
+    const patches = [
+      // id 173: Ram→Kishore was $21.9, now $26.9
+      { id: 173, check: r => r && parseFloat(r.amount) < 26 && r.payer==='Ram' && r.payee==='Kishore', patch: {amount: 26.9} },
+      // id 175: Deepak→Kiran was $16.4, now $16.9
+      { id: 175, check: r => r && parseFloat(r.amount) < 16.8 && r.payer==='Deepak' && r.payee==='Kiran', patch: {amount: 16.9} },
+      // id 176: Krishna→Vinay $10 → Krishna→Kiran $1.5
+      { id: 176, check: r => r && r.payer==='Krishna' && r.payee==='Vinay', patch: {payee: 'Kiran', amount: 1.5} },
+      // id 177: Ram→Kiran was $8.1, now $3.1
+      { id: 177, check: r => r && parseFloat(r.amount) > 5 && r.payer==='Ram' && r.payee==='Kiran', patch: {amount: 3.1} },
+      // id 179: Deepak→Vinay $0.5 → Krishna→Vinay $8.5
+      { id: 179, check: r => r && r.payer==='Deepak' && r.payee==='Vinay', patch: {payer: 'Krishna', amount: 8.5} },
+    ];
+    for (const p of patches) {
+      if (p.check(map[p.id])) {
+        await sbPatch('game_payments?id=eq.'+p.id, p.patch);
+        console.log('[patchMay30] patched id', p.id, p.patch);
+      }
+    }
+  } catch(e) { console.warn('[patchMay30] failed:', e.message); }
+}
+
 async function dbLoadAccounts() {
   try {
     // Use select=* so it works regardless of column additions
@@ -2855,6 +2946,8 @@ async function bootApp() {
     autoArchiveInactive();
     // Auto-clean stuck live sessions older than 6 hours
     _cleanStuckSessions().catch(function(){});
+    // One-time fix: correct May 30 game_payments with right settlement amounts
+    patchMay30Payments().catch(function(){});
     if (dbOk) { isOnline = true; setSyncPill(true); saveCache(); }
     else { isOnline = false; setSyncPill(false); }
   } catch(e) {
@@ -3137,6 +3230,13 @@ async function maybeAutoJoinView() {
 function dimes(v) { return Math.round(v*10); }
 function fromD(v) { return v/10; }
 function rd(v) { return Math.round(v*10)/10; }
+// Parse any money string the user might type: "$5", "5$", "5.0", "1,500", "72.5", etc.
+function parseMoney(raw) {
+  if (raw === null || raw === undefined) return 0;
+  const s = String(raw).replace(/[$,\s]/g, ''); // strip $, commas, whitespace
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : rd(n);
+}
 function fmt(v) {
   const n = Math.abs(rd(v));
   return '$' + (Number.isInteger(n) ? n : n.toFixed(1));
@@ -3501,6 +3601,22 @@ function goHome() {
   renderHome(); show('home');
 }
 
+// ── Morphing suit icon on start button ──
+(function(){
+  const suits = ['♠','♥','♦','♣'];
+  let si = 0;
+  setInterval(function(){
+    const el = document.getElementById('start-suit');
+    if (!el) return;
+    el.style.opacity = '0';
+    setTimeout(function(){
+      si = (si + 1) % suits.length;
+      el.textContent = suits[si];
+      el.style.opacity = '1';
+    }, 260);
+  }, 1500);
+})();
+
 function quickRematch() {
   const lastPlayers = session ? session.players.map(p=>p.name) : [];
   goSetup();
@@ -3800,9 +3916,10 @@ function computeStats(sessions) {
       MO[mk][p.name].buyins += p.buyins; MO[mk][p.name].sessions++;
       MO[mk][p.name].net = rd(MO[mk][p.name].net + net);
       if (!YR[yk]) YR[yk]={};
-      if (!YR[yk][p.name]) YR[yk][p.name]={buyins:0,sessions:0,net:0};
+      if (!YR[yk][p.name]) YR[yk][p.name]={buyins:0,sessions:0,net:0,wins:0};
       YR[yk][p.name].buyins += p.buyins; YR[yk][p.name].sessions++;
       YR[yk][p.name].net = rd(YR[yk][p.name].net + net);
+      if (net > 0) YR[yk][p.name].wins++;
     });
   });
   return {AT, MO, YR};
@@ -4120,7 +4237,7 @@ async function buildLedgerTab() {
         const hasPay = !!(payeeAcc.cashapp) && !payeeAcc.payment_opted_out;
         const cashTag = payeeAcc.cashapp ? '$'+payeeAcc.cashapp : null;
 
-        html += '<div style="padding:12px 16px;'+(ei < payeeEntries.length-1?'border-bottom:1px solid var(--c-bdr)':'')+'">'+
+        html += '<div style="padding:14px 20px;'+(ei < payeeEntries.length-1?'border-bottom:1px solid var(--c-bdr)':'')+'">'+
           // Payee + amount row
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
             '<div>'+
@@ -4197,6 +4314,13 @@ async function buildLedgerTab() {
   const gameIds = Object.keys(byGame).sort().reverse(); // newest first
   gameIds.forEach((sid, gi) => {
     const g = byGame[sid];
+    // Deduplicate rows by payer-payee pair — keep only the latest record per pair
+    const dedupMap = new Map();
+    g.rows.slice().sort((a,b) => (a.id||0)-(b.id||0)).forEach(r => {
+      dedupMap.set(r.payer+'→'+r.payee, r);
+    });
+    const dedupRows = [...dedupMap.values()];
+    g.rows = dedupRows; // replace with deduped list
     const pendingCount = g.rows.filter(r => {
       const k = 'multi-'+r.payer+'-'+r.payee;
       return r.status==='pending' && localStatus[k]!=='settled';
@@ -4222,7 +4346,7 @@ async function buildLedgerTab() {
       const isS = r.status==='settled' || localStatus[k]==='settled';
       const dt = _fmtDateTime(r.created_at);
       html += '<div style="display:flex;align-items:center;justify-content:space-between;'+
-        'padding:10px 0;border-bottom:1px solid var(--c-bdr);gap:8px;'+(isS?'opacity:.45':'')+'">'+
+        'padding:12px 20px;border-bottom:1px solid var(--c-bdr);gap:8px;'+(isS?'opacity:.45':'')+'">'+
         '<div style="flex:1;min-width:0">'+
           '<div style="font-size:14px;font-weight:600">'+
             '<span class="settle-from">'+escH(r.payer)+'</span>'+
@@ -4450,6 +4574,45 @@ function linkMyDevice(name) {
   if (homeTab === 'dashboard') { document.getElementById('home-body').innerHTML = buildDashboardTab(); }
   notify('👋 Hey ' + name + '! This device is now yours.');
 }
+function expandSparkline(el) {
+  const inner = el.innerHTML;
+  const box = document.querySelector('#spark-modal .modal-box');
+  if (!box) return;
+  box.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+    '<div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-muted)">Cumulative P&amp;L</div>'+
+    '<button onclick="closeModal(\'spark-modal\')" style="background:none;border:none;color:var(--c-muted);font-size:22px;cursor:pointer;padding:2px 6px;line-height:1">✕</button>'+
+  '</div>'+
+  '<div style="background:var(--c-bg3);border-radius:12px;padding:14px 10px 10px">'+inner+'</div>';
+  // Clean up: remove click handler, zoom cursor, and "tap to expand" hint
+  box.querySelectorAll('[onclick*="expandSparkline"]').forEach(function(e){
+    e.removeAttribute('onclick');
+    e.style.cursor = 'default';
+  });
+  box.querySelectorAll('span').forEach(function(s){
+    if (s.textContent.includes('tap to expand')) s.style.display = 'none';
+  });
+  // Make SVG taller in expanded view
+  box.querySelectorAll('svg[viewBox]').forEach(function(svg){
+    svg.style.height = '160px';
+    svg.style.width = '100%';
+  });
+  document.getElementById('spark-modal').style.display = 'flex';
+}
+function showAllPlayerPicker() {
+  const st = allSessions.length ? computeStats(allSessions) : null;
+  const all = st ? Object.keys(st.AT).sort() : (accounts||[]).map(a=>a.name);
+  const btns = all.map(n => {
+    const d = st && st.AT[n]; const net = d ? d.net : 0;
+    const nc = net>0?'#22C55E':net<0?'#EF4444':'rgba(255,255,255,.35)';
+    return '<button onclick="linkMyDevice(\''+escH(n)+'\');closeModal(\'all-player-modal\')" style="width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px">'+
+      '<div style="width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#A78BFA;flex-shrink:0">'+escH(n.charAt(0).toUpperCase())+'</div>'+
+      '<div style="flex:1;font-size:14px;font-weight:600;color:var(--c-txt)">'+escH(n)+'</div>'+
+      (d?'<div style="font-size:12px;font-weight:700;color:'+nc+'">'+fmtS(net)+'</div>':'')+
+    '</button>';
+  }).join('');
+  document.querySelector('#all-player-modal .modal-box').innerHTML = '<div class="modal-title" style="margin-bottom:14px">Select Your Name</div><div style="display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow-y:auto">'+btns+'</div>';
+  document.getElementById('all-player-modal').style.display = 'flex';
+}
 function unlinkMyDevice() {
   myLinkedPlayer = null;
   try { localStorage.removeItem('pn-my-player'); } catch(e) {}
@@ -4529,23 +4692,29 @@ function buildDashboardTab() {
       '</div>'+
     '</div>';
   } else if (knownPlayers.length) {
-    // "Who are you?" identity claim card
+    // "Who are you?" — show only recent players (last 3 sessions) to keep it focused
+    var recentPlayerSet = new Set();
+    allSessions.slice().reverse().slice(0,3).forEach(function(s){
+      (s.players||[]).forEach(function(p){ recentPlayerSet.add(p.name); });
+    });
+    var recentP = [...recentPlayerSet].filter(function(n){ return knownPlayers.includes(n); }).slice(0,6);
+    if (!recentP.length) recentP = knownPlayers.slice(0,6);
     html += '<div class="dash-section">'+
-      '<div class="dash-card">'+
-        '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(167,139,250,.7);margin-bottom:8px;display:flex;align-items:center;gap:5px">'+
-          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Who is on this device?</div>'+
-        '<div class="dash-player-grid">'+
-          knownPlayers.slice(0,9).map(function(n){
+      '<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:16px;padding:12px 14px">'+
+        '<div style="font-size:11px;font-weight:600;color:rgba(167,139,250,.8);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Who\'s on this device?</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">'+
+          recentP.map(function(n){
             var d = st && st.AT[n];
             var net = d ? d.net : 0;
-            var nc = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
-            return '<button class="dash-player-btn" onclick="linkMyDevice(\''+escH(n)+'\')">'+
-              '<div style="width:32px;height:32px;border-radius:10px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#A78BFA;margin:0 auto 5px">'+escH(n.charAt(0).toUpperCase())+'</div>'+
-              '<div style="font-size:11px;font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(n)+'</div>'+
-              (d ? '<div style="font-family:var(--font-mono);font-size:9px;color:'+nc+'">'+fmtS(net)+'</div>' : '')+
+            var nc = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : 'rgba(255,255,255,.35)';
+            return '<button onclick="linkMyDevice(\''+escH(n)+'\')" style="background:rgba(255,255,255,.05);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent">'+
+              '<div style="width:34px;height:34px;border-radius:10px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#A78BFA;margin:0 auto 5px">'+escH(n.charAt(0).toUpperCase())+'</div>'+
+              '<div style="font-size:11px;font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">'+escH(n)+'</div>'+
+              (d ? '<div style="font-size:9px;font-weight:600;color:'+nc+';margin-top:1px">'+fmtS(net)+'</div>' : '')+
             '</button>';
           }).join('')+
         '</div>'+
+        (knownPlayers.length > 6 ? '<button onclick="showAllPlayerPicker()" style="width:100%;margin-top:8px;padding:7px;background:transparent;border:1px dashed rgba(167,139,250,.25);border-radius:10px;color:rgba(167,139,250,.6);font-size:10px;font-weight:600;letter-spacing:.5px;cursor:pointer">+ Others</button>' : '')+
       '</div>'+
     '</div>';
   }
@@ -4967,8 +5136,8 @@ function buildStatsTab() {
         var col2=sparkPts[sparkPts.length-1].y>=0?'#22C55E':'#EF4444';
         var poly2=sparkPts.map(function(p,i){return toX2(i)+','+toY2(p.y);}).join(' ');
         var gid2='sg'+rank+name.replace(/[^a-z0-9]/gi,'').slice(0,6);
-        var sparkSvg='<div style="background:var(--c-bg3);border-radius:10px;padding:10px 8px 6px;margin-bottom:10px">'+
-          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:6px">Cumulative P&amp;L · '+pSess.length+' games</div>'+
+        var sparkSvg='<div onclick="expandSparkline(this)" style="background:var(--c-bg3);border-radius:10px;padding:10px 8px 6px;margin-bottom:10px;cursor:zoom-in;position:relative">'+
+          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:6px">Cumulative P&amp;L · '+pSess.length+' games <span style="color:rgba(167,139,250,.5);font-size:7px">↗ tap to expand</span></div>'+
           '<svg viewBox="0 0 '+W2+' '+H2+'" width="100%" style="display:block;overflow:visible">'+
             '<defs><linearGradient id="'+gid2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col2+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col2+'" stop-opacity=".02"/></linearGradient></defs>'+
             '<line x1="0" y1="'+zY2+'" x2="'+W2+'" y2="'+zY2+'" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="3,2"/>'+
@@ -6507,8 +6676,8 @@ function confirmEarlyOut(n) {
   if (!isHostDevice) { notify('Only the host device can do this','err'); return; }
   const p = session.players.find(x=>x.name===n); if (!p) return;
   const raw = session.cashOuts[n];
-  const val = rd(parseFloat(raw)||0);
-  if (!raw || isNaN(val) || val < 0) { notify('Enter the cash-out amount first','err'); return; }
+  const val = parseMoney(raw);
+  if (!raw || String(raw).replace(/[$,\s]/g,'')==='' || val < 0) { notify('Enter the cash-out amount first','err'); return; }
   const potIn = potTotal();
   const alreadyOut = session.players.filter(x=>x.earlyOut).reduce((s,x)=>s+(x.cashOut||0),0);
   const remaining = rd(potIn - alreadyOut);
@@ -6596,7 +6765,7 @@ function goCashout() {
 
 function renderCashout() {
   const potIn = potTotal();
-  const potOut = rd(session.players.reduce((s,p)=>s+(parseFloat(session.cashOuts[p.name])||0),0));
+  const potOut = rd(session.players.reduce((s,p)=>s+parseMoney(session.cashOuts[p.name]),0));
   const diff=rd(potOut-potIn), abs=Math.abs(diff), ok=abs<0.05;
   const entered = session.players.filter(p=>session.cashOuts[p.name]!==undefined&&String(session.cashOuts[p.name]).trim()!=='').length;
   const pct = potIn>0 ? Math.min(potOut/potIn,1.25)*100 : 0;
@@ -6644,7 +6813,7 @@ function onCoInput(name, val) {
   saveActiveSession();
   // Live update progress
   const potIn=potTotal();
-  const potOut=rd(session.players.reduce((s,p)=>s+(parseFloat(session.cashOuts[p.name])||0),0));
+  const potOut=rd(session.players.reduce((s,p)=>s+parseMoney(session.cashOuts[p.name]),0));
   const diff=rd(potOut-potIn),abs=Math.abs(diff),ok=abs<0.05;
   const pct=potIn>0?Math.min(potOut/potIn,1.25)*100:0;
   const entered=session.players.filter(p=>session.cashOuts[p.name]!==undefined&&String(session.cashOuts[p.name]).trim()!=='').length;
@@ -6673,7 +6842,7 @@ function previewEnd() {
   }
   session.players.forEach(p => {
     // earlyOut players keep their already-locked cashOut value
-    if (!p.earlyOut) p.cashOut = rd(parseFloat(session.cashOuts[p.name])||0);
+    if (!p.earlyOut) p.cashOut = parseMoney(session.cashOuts[p.name]);
   });
   renderReview(); show('review');
 }
@@ -6707,47 +6876,63 @@ function renderReview() {
   updateReviewBal();
 }
 function onRvEdit(n,v) {
-  const p=session.players.find(x=>x.name===n); if(p) p.cashOut=rd(parseFloat(v)||0);
+  const p=session.players.find(x=>x.name===n); if(p) p.cashOut=parseMoney(v);
   session.cashOuts[n]=v; saveActiveSession(); updateReviewBal();
 }
 
 /* ═══════════════════════════════════════
    SMART BALANCE ADJUSTMENT (50/30/20)
-   SHORT: take from top 3 winners (reduce cashout)
-   OVER:  give to bottom 3 losers  (increase cashout)
+   SHORT (potOut < potIn): top 3 winners absorb shortage → cashouts rise
+   OVER  (potOut > potIn): bottom 3 losers absorb excess  → cashouts fall
 ═══════════════════════════════════════ */
 function smartBalance() {
   const potIn=potTotal();
   const potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
-  const diff=rd(potOut-potIn);
+  const diff=rd(potOut-potIn); // positive = OVER (too much out), negative = SHORT (too little out)
   if (Math.abs(diff)<0.05) return;
 
-  const sorted=session.players.slice().sort((a,b)=>
-    (b.cashOut-b.buyins*(session.buyin||BUYIN))-(a.cashOut-a.buyins*(session.buyin||BUYIN))
-  );
-  const isShort=diff<0;
+  const isOver=diff>0;
   const amountD=dimes(Math.abs(diff));
+  const buyin_=session.buyin||BUYIN;
+  const byNet=session.players.slice().sort((a,b)=>
+    (b.cashOut-b.buyins*buyin_)-(a.cashOut-a.buyins*buyin_)
+  );
 
+  // SHORT → top 3 winners absorb (their cashout rises to fill the gap)
+  // OVER  → bottom 3 losers absorb (their cashout falls to drain the excess)
+  //         but skip anyone with $0 cashout — can't reduce below 0
   let targets;
-  if (isShort) {
-    targets=sorted.filter(p=>rd(p.cashOut-p.buyins*(session.buyin||BUYIN))>0).slice(0,3);
-    if(!targets.length) targets=sorted.slice(0,3);
+  if (!isOver) {
+    targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
+    if(!targets.length) targets=byNet.slice(0,3);
   } else {
-    targets=sorted.slice().reverse().filter(p=>rd(p.cashOut-p.buyins*(session.buyin||BUYIN))<0).slice(0,3);
-    if(!targets.length) targets=sorted.slice(-3).reverse();
+    const bottom=byNet.slice().reverse();
+    // Only target players who actually have chips to give back (cashout > 0)
+    targets=bottom.filter(p=>rd(p.cashOut-p.buyins*buyin_)<0 && p.cashOut>0).slice(0,3);
+    // Fallback 1: any loser with cashout > 0
+    if(!targets.length) targets=bottom.filter(p=>p.cashOut>0).slice(0,3);
+    // Fallback 2: top winners (they have chips to give back)
+    if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
+    if(!targets.length) targets=byNet.slice(0,3);
   }
 
   const n=targets.length;
   if(!n) return;
   const pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
 
+  // Record adjustment log on session for display in results/history
+  session.adjLog = { isOver, total: fromD(amountD), entries: [] };
+
   let rem=amountD;
   targets.forEach((p,i)=>{
     const share=i<n-1?Math.round(amountD*pcts[i]):rem;
     rem-=share;
-    if(isShort) p.cashOut=rd(p.cashOut-fromD(share));
-    else         p.cashOut=rd(p.cashOut+fromD(share));
+    const shareAmt=fromD(share);
+    // OVER: cashout goes DOWN (winners give back excess)  →  potOut decreases to match potIn
+    // SHORT: cashout goes UP (winners absorb missing chips) → potOut increases to match potIn
+    p.cashOut=rd(isOver ? Math.max(0, p.cashOut-shareAmt) : p.cashOut+shareAmt);
     session.cashOuts[p.name]=p.cashOut;
+    session.adjLog.entries.push({ name:p.name, amt:shareAmt, pct:Math.round(pcts[i]*100) });
   });
 }
 
@@ -6755,22 +6940,37 @@ function buildAdjTable() {
   const potIn=potTotal(), potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
   const diff=rd(potOut-potIn);
   if(Math.abs(diff)<0.05) return '';
-  const isShort=diff<0, sorted=session.players.slice().sort((a,b)=>(b.cashOut-b.buyins*(session.buyin||BUYIN))-(a.cashOut-a.buyins*(session.buyin||BUYIN)));
+  const isOver=diff>0;
+  const buyin__=session.buyin||BUYIN;
+  const sorted=session.players.slice().sort((a,b)=>(b.cashOut-b.buyins*buyin__)-(a.cashOut-a.buyins*buyin__));
+  // SHORT → top 3 winners; OVER → bottom 3 losers (with cashout > 0)
   let targets;
-  if(isShort){targets=sorted.filter(p=>rd(p.cashOut-p.buyins*(session.buyin||BUYIN))>0).slice(0,3);}
-  else{targets=sorted.slice().reverse().filter(p=>rd(p.cashOut-p.buyins*(session.buyin||BUYIN))<0).slice(0,3);}
-  if(!targets.length){targets=isShort?sorted.slice(0,3):sorted.slice(-3).reverse();}
+  if (!isOver) {
+    targets=sorted.filter(p=>rd(p.cashOut-p.buyins*buyin__)>0).slice(0,3);
+    if(!targets.length) targets=sorted.slice(0,3);
+  } else {
+    const bot=sorted.slice().reverse();
+    targets=bot.filter(p=>rd(p.cashOut-p.buyins*buyin__)<0 && p.cashOut>0).slice(0,3);
+    if(!targets.length) targets=bot.filter(p=>p.cashOut>0).slice(0,3);
+    if(!targets.length) targets=sorted.filter(p=>p.cashOut>0).slice(0,3);
+    if(!targets.length) targets=sorted.slice(0,3);
+  }
   const n=targets.length, pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
   const amtD=dimes(Math.abs(diff)); let rows='';
   targets.forEach((p,i)=>{
     const shareD=i<n-1?Math.round(amtD*pcts[i]):(amtD-targets.slice(0,i).reduce((s,_,j)=>s+Math.round(amtD*pcts[j]),0));
     const share=fromD(shareD);
-    rows+='<div class="adj-row"><span>'+escH(p.name)+'</span><span style="color:'+(isShort?'var(--c-red)':'var(--c-green)')+'">'+
-      (isShort?'-':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(1))+'</span></div>';
+    // OVER: winners give back (-), SHORT: winners absorb shortage (+)
+    rows+='<div class="adj-row"><span>'+escH(p.name)+'<span style="color:var(--c-muted);font-size:9px"> '+Math.round(pcts[i]*100)+'%</span></span>'+
+      '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(1))+'</span></div>';
   });
+  const pctLabel = n===1?'100%':n===2?'60/40':'50/30/20';
+  const whoLabel = isOver
+    ? (n===1?'biggest loser':'top '+n+' losers')
+    : (n===1?'top winner':'top '+n+' winners');
   return '<div class="adj-banner">'+
-    '<b style="color:var(--c-gold)">'+(isShort?'Short':'Over')+' by '+fmt(Math.abs(diff))+'</b> &mdash; '+
-    'Smart adjustment ('+(isShort?'top winners give back':'bottom losers gain')+'):<br>'+
+    '<b style="color:var(--c-gold)">'+(isOver?'Over':'Short')+' by '+fmt(Math.abs(diff))+'</b> &mdash; '+
+    (isOver?'Deducted from '+whoLabel:'Absorbed by '+whoLabel)+' ('+pctLabel+'):<br>'+
     '<div style="margin-top:8px">'+rows+'</div></div>';
 }
 
@@ -6786,7 +6986,7 @@ function updateReviewBal() {
   document.getElementById('rv-banner').innerHTML=ok
     ?'<div class="banner ok">\u2705 Balanced \u2014 '+fmt(pIn)+' in = '+fmt(pOut)+' out</div>'
     :small?'<div class="banner warn"><b style="color:var(--c-gold)">'+(diff>0?'Over':'Short')+' by '+fmt(abs)+'</b><br>'+
-      '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">Fix above, apply smart adjustment, or force-settle.</span></div>'
+      '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">Fix above or tap Smart Adjustment to distribute proportionally.</span></div>'
     :'<div class="banner err"><b style="color:var(--c-red)">'+(diff>0?'Over':'Short')+' by '+fmt(abs)+'</b><br>'+
       '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">\u2265$5 difference \u2014 fix cashout entries.</span></div>';
 
@@ -6799,9 +6999,8 @@ function updateReviewBal() {
     ?'<button class="btn btn-green" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
       '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
     :small
-      ?'<button class="btn btn-green" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
-        '<button class="btn btn-gold mt" onclick="doSmartBalance()">\u2728 Apply Smart Adjustment (50/30/20)</button>'+
-        '<button class="btn btn-ghost mt" onclick="forceSettle()">\u26a1 Force Settle (absorb '+fmt(abs)+')</button>'+
+      ?'<button class="btn btn-gold" onclick="doSmartBalance()">\u2728 Apply Smart Adjustment (50/30/20)</button>'+
+        '<button class="btn btn-green mt" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
         '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
       :'<button class="btn btn-ghost" onclick="goCashout()">\u2190 Fix Cashouts</button>'+
         '<p style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:center;margin-top:8px">Reduce difference below $5 to continue</p>';
@@ -6813,14 +7012,6 @@ function doSmartBalance() {
   notify('\u2728 Smart adjustment applied');
 }
 
-function forceSettle() {
-  const pIn=potTotal(),pOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0)),diff=rd(pOut-pIn);
-  if(Math.abs(diff)>=5){notify('Too large to force','err');return;}
-  const big=session.players.slice().sort((a,b)=>b.cashOut-a.cashOut)[0];
-  big.cashOut=rd(big.cashOut-diff);session.cashOuts[big.name]=big.cashOut;
-  notify('\u26a1 '+fmt(Math.abs(diff))+' absorbed into '+big.name);
-  confirmEnd(true);
-}
 
 /* ═══════════════════════════════════════
    COMMIT GAME
@@ -6906,7 +7097,7 @@ function markResSettled(stKey, rowIdx, total) {
   }
 }
 function settle(players) {
-  const bals=players.map(p=>({n:p.name,v:dimes(p.cashOut)-dimes(p.buyins*((session&&session.buyin)||BUYIN))}));
+  const bals=players.map(p=>({n:p.name,v:dimes(p.cashOut||0)-dimes(p.buyins*((session&&session.buyin)||BUYIN))}));
   const cred=bals.filter(x=>x.v>0).sort((a,b)=>b.v-a.v).map(x=>Object.assign({},x));
   const debt=bals.filter(x=>x.v<0).sort((a,b)=>a.v-b.v).map(x=>Object.assign({},x));
   const out=[];let ci=0,di=0;
@@ -6922,7 +7113,7 @@ function settle(players) {
 // Settle for a historical session (doesn't use the global `session` variable)
 function settleWithBuyin(players, buyin) {
   const b = buyin || BUYIN;
-  const bals = players.map(p=>({n:p.name,v:dimes(p.cashOut)-dimes(p.buyins*b)}));
+  const bals = players.map(p=>({n:p.name,v:dimes(p.cashOut||0)-dimes(p.buyins*b)}));
   const cred=bals.filter(x=>x.v>0).sort((a,b)=>b.v-a.v).map(x=>Object.assign({},x));
   const debt=bals.filter(x=>x.v<0).sort((a,b)=>a.v-b.v).map(x=>Object.assign({},x));
   const out=[];let ci=0,di=0;
@@ -7218,24 +7409,45 @@ function renderResults() {
       const isSettled = localSt[stKey] === 'settled';
       // Results page: clean rows only \u2014 no payment buttons (screenshot context)
       // Payment actions live in the home Settle tab
-      return '<div id="rsrow'+i+'" style="background:var(--c-surf);border:1px solid '+(i===0?ac.border:'var(--c-bdr)')+';'+
-        'border-left:3px solid '+ac.border+';border-radius:12px;overflow:hidden;opacity:'+(isSettled?.45:1)+';transition:opacity .3s">'+
-        '<div style="display:flex;align-items:center;gap:8px;padding:12px 14px">'+
-          '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);flex-shrink:0;min-width:16px">'+(i+1)+'</span>'+
-          '<span style="font-size:14px;font-weight:700;color:var(--c-red);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">'+escH(t.from)+'</span>'+
-          '<span style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+ac.amt+';flex-shrink:0;padding:3px 10px;border-radius:8px;background:rgba('+accentRgb2+',.14)">'+amtFmt+'</span>'+
-          '<span style="font-size:12px;color:var(--c-muted);flex-shrink:0">\u2192</span>'+
-          '<span style="font-size:14px;font-weight:700;color:var(--c-green);flex:1;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">'+escH(t.to)+'</span>'+
+      return '<div id="rsrow'+i+'" class="sp-row'+(isSettled?' sp-settled':'')+'" style="margin-bottom:5px;border-left:3px solid '+ac.border+';border-color:'+(i===0?ac.border:'var(--c-bdr)')+';border-left-color:'+ac.border+'">'+
+        '<span class="sp-from">'+escH(t.from)+'</span>'+
+        '<span class="sp-arr">\u2192</span>'+
+        '<span class="sp-to">'+escH(t.to)+'</span>'+
+        '<span class="sp-amt" style="color:'+ac.amt+'">'+amtFmt+'</span>'+
+        '<span class="sp-actions">'+
           (isSettled
-            ? '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-green);flex-shrink:0;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:3px 8px">\u2713 Paid</span>'
-            : '<button onclick="event.stopPropagation();markResSettled(\''+stKey+'\','+i+','+transfers.length+')" style="flex-shrink:0;padding:5px 11px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:20px;color:var(--c-green);font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer">\u2713</button>'
+            ? '<span style="font-size:13px;color:var(--c-green)">\u2713</span>'
+            : '<button onclick="event.stopPropagation();markResSettled(\''+stKey+'\','+i+','+transfers.length+')" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:50%;width:26px;height:26px;color:var(--c-green);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2713</button>'
           )+
-        '</div>'+
+        '</span>'+
       '</div>';
     }).join('')+
     '</div>';
   }
-  document.getElementById('tc-s').innerHTML = ver + sh;
+  // Adjustment log banner — shown when 50/30/20 was applied
+  let adjBanner = '';
+  if (session.adjLog && session.adjLog.entries && session.adjLog.entries.length) {
+    const al = session.adjLog;
+    const isOver = al.isOver;
+    const totalFmt = '$'+(Number.isInteger(rd(al.total))?rd(al.total):rd(al.total).toFixed(1));
+    adjBanner = '<div class="adj-log-banner">'+
+      '<div class="adj-log-title">'+
+        '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'+
+        'Smart Adj &mdash; Pot '+(isOver?'Over':'Short')+' by '+totalFmt+
+      '</div>'+
+      al.entries.map(e=>
+        '<div class="adj-log-row">'+
+          '<span class="adj-log-name">'+escH(e.name)+'<span class="adj-log-pct">('+e.pct+'%)</span></span>'+
+          '<span class="adj-log-amt '+(isOver?'short':'over')+'">'+(isOver?'−':'+')+'$'+(Number.isInteger(rd(e.amt))?rd(e.amt):rd(e.amt).toFixed(1))+'</span>'+
+        '</div>'
+      ).join('')+
+      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:6px">'+
+        'Cashouts adjusted proportionally (50/30/20) to balance the pot'+
+      '</div>'+
+    '</div>';
+  }
+
+  document.getElementById('tc-s').innerHTML = ver + adjBanner + sh;
 
   // Players tab \u2014 medal podium
   const srt = session.players.slice().sort((a,b)=>(b.cashOut-b.buyins*(session.buyin||BUYIN))-(a.cashOut-a.buyins*(session.buyin||BUYIN)));
@@ -7586,24 +7798,42 @@ function _drawSessionCanvas(s) {
     ctx.fillStyle = '#6b7280';
     ctx.font = '700 ' + (10/SCALE*(W/400)) + 'px ' + MONO;
     ctx.fillText('SETTLEMENTS', PAD, y); y += 22;
+    const _cw = W - PAD * 2;
+    const _arrowX = PAD + Math.floor(_cw * 0.40);
+    const _toX    = PAD + Math.floor(_cw * 0.47);
+    const _amtX   = W - PAD;
+    const _fs14 = '700 ' + (14/SCALE*(W/400)) + 'px ' + FONT;
+    const _fs12 = '500 ' + (12/SCALE*(W/400)) + 'px ' + FONT;
+    const _fs18m = '900 ' + (18/SCALE*(W/400)) + 'px ' + MONO;
+    function _canvasTrunc(ctx, text, maxW) {
+      if (ctx.measureText(text).width <= maxW) return text;
+      let s = text;
+      while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+      return s + '…';
+    }
     transfers.forEach(t => {
       ctx.fillStyle = 'rgba(255,255,255,0.03)';
       _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 44, 8); ctx.fill();
+      // FROM name — left column, max width up to arrow
       ctx.fillStyle = '#EF4444';
-      ctx.font = '700 ' + (14/SCALE*(W/400)) + 'px ' + FONT;
-      ctx.fillText(t.from, PAD, y + 5);
-      const fw = ctx.measureText(t.from).width;
+      ctx.font = _fs14;
+      ctx.textAlign = 'left';
+      ctx.fillText(_canvasTrunc(ctx, t.from, _arrowX - PAD - 8), PAD, y + 5);
+      // Arrow — fixed position
       ctx.fillStyle = '#6b7280';
-      ctx.font = '500 ' + (12/SCALE*(W/400)) + 'px ' + FONT;
-      ctx.fillText(' → ', PAD + fw, y + 5);
-      const aw = ctx.measureText(' → ').width;
+      ctx.font = _fs12;
+      ctx.textAlign = 'center';
+      ctx.fillText('→', _arrowX, y + 5);
+      // TO name — right of arrow, max width up to amt column
       ctx.fillStyle = '#10B981';
-      ctx.font = '700 ' + (14/SCALE*(W/400)) + 'px ' + FONT;
-      ctx.fillText(t.to, PAD + fw + aw, y + 5);
+      ctx.font = _fs14;
+      ctx.textAlign = 'left';
+      ctx.fillText(_canvasTrunc(ctx, t.to, _amtX - _toX - 48), _toX, y + 5);
+      // AMT — right aligned
       ctx.fillStyle = '#F59E0B';
-      ctx.font = '900 ' + (18/SCALE*(W/400)) + 'px ' + MONO;
+      ctx.font = _fs18m;
       ctx.textAlign = 'right';
-      ctx.fillText(fmt(t.amt), W - PAD, y + 7);
+      ctx.fillText(fmt(t.amt), _amtX, y + 7);
       ctx.textAlign = 'left';
       y += 52;
     });
@@ -7844,7 +8074,7 @@ function buildSettleHistory() {
   allSessions.slice().reverse().slice(0,20).forEach(s => {
     if (!s.players || !s.players.every(p=>p.cashOut!=null)) return;
     const txns = settle(s.players);
-    if (txns.length) allTransfers.push({ date:s.date, host:s.host||'', txns });
+    if (txns.length) allTransfers.push({ date:s.date, host:s.host||'', txns, adjLog:s.adjLog||null });
   });
 
   if (!allTransfers.length) {
@@ -7856,13 +8086,11 @@ function buildSettleHistory() {
     const bid='bsh'+i, cid='csh'+i;
     const rows = g.txns.map(t =>
       '<div class="sp-row sp-settled" style="margin-bottom:4px">'+
-        '<div class="sp-who">'+
-          '<span class="sp-from">'+escH(t.from)+'</span>'+
-          '<span class="sp-arr">\u2192</span>'+
-          '<span class="sp-to">'+escH(t.to)+'</span>'+
-        '</div>'+
+        '<span class="sp-from">'+escH(t.from)+'</span>'+
+        '<span class="sp-arr">\u2192</span>'+
+        '<span class="sp-to">'+escH(t.to)+'</span>'+
         '<span class="sp-amt">'+fmt(t.amt)+'</span>'+
-        '<span style="padding:0 10px;font-family:var(--font-mono);font-size:10px;color:var(--c-green)">\u2713</span>'+
+        '<span style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--c-green)">\u2713</span>'+
       '</div>'
     ).join('');
     html += '<div class="gh-card">'+
@@ -7880,7 +8108,21 @@ function buildSettleHistory() {
           '<div class="gh-chev" id="'+cid+'">\u25bc</div>'+
         '</div>'+
       '</div>'+
-      '<div class="gh-body" id="'+bid+'"><div style="padding:8px 0 4px">'+rows+'</div></div>'+
+      '<div class="gh-body" id="'+bid+'"><div style="padding:8px 0 4px">'+rows+
+        (g.adjLog && g.adjLog.entries && g.adjLog.entries.length
+          ? '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px">'+
+              '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--c-gold);font-weight:700;margin-bottom:5px">'+
+                '✦ Smart Adj — Pot '+(g.adjLog.isOver?'Over':'Short')+' $'+(Number.isInteger(rd(g.adjLog.total))?rd(g.adjLog.total):rd(g.adjLog.total).toFixed(1))+
+              '</div>'+
+              g.adjLog.entries.map(e=>
+                '<div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;padding:2px 0">'+
+                  '<span style="color:var(--c-txt)">'+escH(e.name)+'<span style="color:var(--c-muted);font-size:9px"> ('+e.pct+'%)</span></span>'+
+                  '<span style="font-weight:700;color:'+(g.adjLog.isOver?'var(--c-red)':'var(--c-green)')+'">'+(g.adjLog.isOver?'−':'+')+'$'+(Number.isInteger(rd(e.amt))?rd(e.amt):rd(e.amt).toFixed(1))+'</span>'+
+                '</div>'
+              ).join('')+
+            '</div>'
+          : '')+
+      '</div></div>'+
     '</div>';
   });
 
