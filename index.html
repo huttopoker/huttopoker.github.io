@@ -1807,7 +1807,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       <div style="display:flex;align-items:center;gap:12px;background:rgba(17,24,39,.6);border:1px solid rgba(var(--c-gold-rgb,124,58,237),.22);border-radius:16px;padding:12px 14px;backdrop-filter:blur(20px)">
         <div style="width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,rgba(var(--c-gold-rgb,124,58,237),.3),rgba(var(--c-comp-rgb,6,182,212),.15));border:1px solid rgba(var(--c-gold-rgb,124,58,237),.35);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold,#A78BFA)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div style="flex:1;min-width:0">
-          <div style="font-family:var(--font-body);font-size:10px;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:2px">Tonight's Host</div>
+          <div style="font-family:var(--font-body);font-size:10px;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:2px">Game Host</div>
           <div class="spin-name" id="spin-name" style="font-family:var(--font-heading);font-size:17px;font-weight:600;margin:0;min-height:22px;line-height:1.3;color:rgba(255,255,255,.35)">Not selected</div>
         </div>
         <button id="spin-btn" onclick="doSpin()" style="height:40px;padding:0 20px;border-radius:20px;background:linear-gradient(135deg,var(--c-gold,#7C3AED),var(--c-comp,#06B6D4));color:#fff;border:1.5px solid rgba(255,255,255,.22);font-size:13px;font-weight:700;letter-spacing:.3px;cursor:pointer;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:7px;box-shadow:0 0 18px rgba(var(--c-gold-rgb,124,58,237),.45),0 2px 8px rgba(0,0,0,.3);text-shadow:0 1px 3px rgba(0,0,0,.4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Spin</button>
@@ -2026,7 +2026,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     </div>
     <div class="mdd-text">
-      <div class="mdd-label">Tonight's Poll</div>
+      <div class="mdd-label">Game Poll</div>
       <div class="mdd-desc">RSVP &amp; vote</div>
     </div>
   </button>
@@ -2131,14 +2131,14 @@ function hexToRgb(hex) {
 const THEME_PALETTES = {
   'Royal Violet': { bg:'#0D0818', bg2:'#160D28', bg3:'#1E1235', bg4:'#261742', txt:'#FAF5FF', txt2:'#C4B5FD', surf:'rgba(139,92,246,.1)',  bdr:'rgba(139,92,246,.24)', amb1:'rgba(139,92,246,.28)', amb2:'rgba(6,182,212,.1)'   },
   'Golden Hour':  { bg:'#120900', bg2:'#1C1000', bg3:'#261600', bg4:'#311C00', txt:'#FFFBEB', txt2:'#FCD34D', surf:'rgba(245,158,11,.12)', bdr:'rgba(245,158,11,.26)', amb1:'rgba(245,158,11,.30)', amb2:'rgba(249,115,22,.1)'  },
-  'Neon Sakura':  { bg:'#110712', bg2:'#1C0D1E', bg3:'#261128', bg4:'#2F1532', txt:'#FDF2F8', txt2:'#F9A8D4', surf:'rgba(236,72,153,.1)',  bdr:'rgba(236,72,153,.24)', amb1:'rgba(236,72,153,.28)', amb2:'rgba(168,85,247,.1)'  },
+  'Teal Storm':   { bg:'#030E14', bg2:'#061620', bg3:'#0A2030', bg4:'#0E2A3E', txt:'#E0F7FF', txt2:'#67E8F9', surf:'rgba(8,145,178,.1)',   bdr:'rgba(8,145,178,.24)',  amb1:'rgba(8,145,178,.28)',  amb2:'rgba(99,102,241,.1)'  },
   'Ocean Breeze': { bg:'#030F1C', bg2:'#071828', bg3:'#0C2033', bg4:'#11283E', txt:'#E0F2FE', txt2:'#7DD3FC', surf:'rgba(14,165,233,.1)',  bdr:'rgba(14,165,233,.24)', amb1:'rgba(14,165,233,.28)', amb2:'rgba(45,212,191,.1)'  },
   'Emerald Luxe': { bg:'#031410', bg2:'#071F19', bg3:'#0C2820', bg4:'#103127', txt:'#ECFDF5', txt2:'#6EE7B7', surf:'rgba(16,185,129,.1)',  bdr:'rgba(16,185,129,.24)', amb1:'rgba(16,185,129,.28)', amb2:'rgba(6,182,212,.08)'  },
   'Cyberpunk':    { bg:'#050810', bg2:'#0A0E1A', bg3:'#0F1422', bg4:'#141A2A', txt:'#E0FFFE', txt2:'#67E8F9', surf:'rgba(0,229,255,.09)',  bdr:'rgba(0,229,255,.22)',  amb1:'rgba(0,229,255,.22)',  amb2:'rgba(168,85,247,.1)'  },
   'Sunset Neon':  { bg:'#130800', bg2:'#1F1000', bg3:'#2A1600', bg4:'#341C00', txt:'#FFF7ED', txt2:'#FED7AA', surf:'rgba(249,115,22,.1)',  bdr:'rgba(249,115,22,.24)', amb1:'rgba(249,115,22,.28)', amb2:'rgba(234,179,8,.1)'   },
-  'Rose Gold':    { bg:'#150409', bg2:'#220610', bg3:'#2C0815', bg4:'#360A1B', txt:'#FFF1F2', txt2:'#FCA5A5', surf:'rgba(244,63,94,.1)',   bdr:'rgba(244,63,94,.24)',  amb1:'rgba(244,63,94,.28)',  amb2:'rgba(251,146,60,.09)' },
-  'Chrome':       { bg:'#08080F', bg2:'#101018', bg3:'#161621', bg4:'#1C1C29', txt:'#F8FAFC', txt2:'#CBD5E1', surf:'rgba(203,213,225,.07)',bdr:'rgba(203,213,225,.18)',amb1:'rgba(203,213,225,.18)',amb2:'rgba(129,140,248,.1)' },
-  'Midnight':     { bg:'#090B1E', bg2:'#10132C', bg3:'#151838', bg4:'#1B1E44', txt:'#EEF2FF', txt2:'#A5B4FC', surf:'rgba(99,102,241,.1)',  bdr:'rgba(99,102,241,.24)', amb1:'rgba(99,102,241,.28)', amb2:'rgba(34,211,238,.1)'  },
+  'Poker Red':    { bg:'#120304', bg2:'#1E0507', bg3:'#280709', bg4:'#32090B', txt:'#FFF5F5', txt2:'#FCA5A5', surf:'rgba(220,38,38,.1)',   bdr:'rgba(220,38,38,.24)',  amb1:'rgba(220,38,38,.28)',  amb2:'rgba(249,115,22,.1)'  },
+  'Deep Forest':  { bg:'#030F08', bg2:'#061A0F', bg3:'#0A2416', bg4:'#0E2E1C', txt:'#F0FDF4', txt2:'#86EFAC', surf:'rgba(22,163,74,.1)',   bdr:'rgba(22,163,74,.24)',  amb1:'rgba(22,163,74,.28)',  amb2:'rgba(14,165,233,.08)' },
+  'Electric':     { bg:'#070B1E', bg2:'#0D1130', bg3:'#12163E', bg4:'#171B4C', txt:'#EEF2FF', txt2:'#C7D2FE', surf:'rgba(129,140,248,.1)', bdr:'rgba(129,140,248,.24)',amb1:'rgba(129,140,248,.28)',amb2:'rgba(34,211,238,.1)'  },
 };
 
 // ── Background photo pool — verified dark atmospheric images (all tested)
@@ -4177,7 +4177,7 @@ function setHTab(tab) {
   const _mddActive = document.getElementById('mdd-nav-' + (_navTabMap[tab] || 'dashboard'));
   if (_mddActive) _mddActive.classList.add('mdd-active');
   // Update header page label
-  const _tabLabels = { dashboard:'', settle:'Settle Up', stats:'Stats', history:'Game History', poll:"Tonight's Poll", accounts:'Accounts' };
+  const _tabLabels = { dashboard:'', settle:'Settle Up', stats:'Stats', history:'Game History', poll:'Game Poll', accounts:'Accounts' };
   const _ahPage = document.getElementById('ah-page');
   if (_ahPage) _ahPage.textContent = _tabLabels[tab] || '';
   const el = document.getElementById('home-body');
@@ -4256,12 +4256,12 @@ function buildPollTab() {
     '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr2);border-radius:var(--r-card);padding:16px;margin-bottom:10px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
         '<div>'+
-          '<div style="font-size:16px;font-weight:700;color:var(--c-txt)">Tonight&#39;s Poll</div>'+
+          '<div style="font-size:16px;font-weight:700;color:var(--c-txt)">Game Poll</div>'+
           '<div style="font-size:11px;color:var(--c-muted);margin-top:2px">Share the link — each player votes on their device</div>'+
         '</div>'+
         '<div style="text-align:right">'+
           '<div style="font-family:var(--font-mono);font-size:26px;font-weight:800;color:var(--c-gold)">'+count+'</div>'+
-          '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">in tonight</div>'+
+          '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">confirmed</div>'+
         '</div>'+
       '</div>'+
       // URL row
@@ -4288,7 +4288,7 @@ function buildPollTab() {
     // ── YES Voters
     '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr2);border-radius:var(--r-card);padding:14px;margin-bottom:10px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-        '<div style="font-size:12px;font-weight:700;color:var(--c-txt)">&#x2705; In Tonight <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);margin-left:4px">'+count+'</span></div>'+
+        '<div style="font-size:12px;font-weight:700;color:var(--c-txt)">&#x2705; Players In <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);margin-left:4px">'+count+'</span></div>'+
         (count===0?'':'<button onclick="startGameFromPoll()" style="padding:4px 10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:20px;color:var(--c-green);font-family:var(--font-mono);font-size:9px;cursor:pointer;font-weight:700">Start Game →</button>')+
       '</div>'+
       '<div id="voter-chips-area">'+chipsHtml+'</div>'+
@@ -5219,7 +5219,7 @@ function buildDashboardTab() {
     html += '<div class="dash-section">'+
       '<div class="dash-card">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-green);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tonight</div>'+
+          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-green);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Active</div>'+
           '<button onclick="setHTab(\'poll\')" style="padding:4px 10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:20px;color:var(--c-green);font-family:var(--font-mono);font-size:9px;cursor:pointer">View →</button>'+
         '</div>'+
         '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
@@ -7017,16 +7017,18 @@ function renderGame() {
       }
       if (p.buyins > MAX_BALLS) ballHtml += '<span class="p-ball-more">+'+(p.buyins-MAX_BALLS)+'</span>';
 
-      // no colored left sidebar — buy-in count color already signals status
+      // Subtle visual weight for rebuy players
+      if (p.buyins > 1) {
+        card.style.background = 'linear-gradient(90deg,rgba(239,68,68,.07) 0%,transparent 60%)';
+        card.style.borderColor = 'rgba(239,68,68,.22)';
+      }
       card.innerHTML =
         '<div class="pc-fill-r"></div>'+
         '<div class="pc-fill-l"></div>'+
-        /* action badge — left edge (right-swipe = buyin). Shows player name for confirmation */
         '<div class="pc-act-r">'+
           '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
           '<span>Buyin &middot; '+escH(p.name)+'</span>'+
         '</div>'+
-        /* action badge — right edge (left-swipe = undo) */
         '<div class="pc-act-l">'+
           '<span>Undo &middot; '+escH(p.name)+'</span>'+
           '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.17 6.5"/></svg>'+
@@ -7034,9 +7036,9 @@ function renderGame() {
         '<div class="p-card-main">'+
           '<div class="p-card-name">'+escH(p.name)+hostStar+'</div>'+
           '<div class="p-balls">'+ballHtml+'</div>'+
-          '<span class="p-card-count" style="color:'+bColor+';text-shadow:0 0 14px '+bColor+'55">'+p.buyins+'</span>'+
+          '<span class="p-card-count" style="color:'+bColor+';text-shadow:0 0 12px '+bColor+'44">'+p.buyins+'</span>'+
           '<span class="p-card-total">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
-          '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Cash out early"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>'+
+          '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out" style="opacity:.55"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>'+
         '</div>'+
         '<div class="eco-panel" id="'+safeId+'">'+
           '<div class="eco-panel-row">'+
@@ -8791,7 +8793,7 @@ function launchConfetti(sortedPlayers) {
         'padding:24px 32px;text-align:center;z-index:10000;pointer-events:none;'+
         'box-shadow:0 0 60px rgba(245,158,11,.4)';
       banner.innerHTML = '<div style="font-size:13px;font-family:var(--font-mono);color:var(--c-gold);'+
-        'text-transform:uppercase;letter-spacing:3px;margin-bottom:12px">\ud83c\udf89 Tonight\'s Winners</div>'+
+        'text-transform:uppercase;letter-spacing:3px;margin-bottom:12px">\ud83c\udf89 Game Winners</div>'+
         top3.map((p,i)=>{
           const net=rd(p.cashOut-p.buyins*(session.buyin||BUYIN));
           return '<div style="padding:6px 0;font-size:'+(i===0?'20':'16')+'px;font-weight:'+(i===0?'800':'600')+'">'+
@@ -9047,7 +9049,7 @@ function maybeShowVotePage() {
     '<div class="hdr">'+
       '<div class="suits"><span>&#9824;</span><span style="color:#e03535">&#9829;</span><span>&#9827;</span><span style="color:#e03535">&#9830;</span></div>'+
       '<h1>Showdown</h1>'+
-      '<div class="sub">Tonight\'s Availability</div>'+
+      '<div class="sub">Player Availability</div>'+
       '<div class="date-pill">'+dateStr+'</div>'+
     '</div>'+
     '<div id="my-status"></div>'+
