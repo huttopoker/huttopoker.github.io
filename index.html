@@ -850,7 +850,8 @@ body::before {
   animation:pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 /* card-ticker removed — suit fades on start button instead */
-/* ── HOME BOTTOM NAV ── */
+/* ── HOME BOTTOM NAV — permanently hidden, hamburger menu only ── */
+#home-nav { display:none !important; }
 #home-nav-inner {
   max-width:480px; width:100%; display:flex; align-items:center; justify-content:space-around;
 }
@@ -3752,9 +3753,6 @@ function show(id) {
   // Show ⋯ menu button only on home screen
   const ahMoreBtn = document.getElementById('ah-more-btn');
   if (ahMoreBtn) ahMoreBtn.style.display = (id === 'home') ? 'flex' : 'none';
-  // Bottom nav only on home — hide on game/setup/cashout/review/results
-  const homeNav = document.getElementById('home-nav');
-  if (homeNav) homeNav.style.display = (id === 'home') ? 'flex' : 'none';
   // Resume banner only belongs on home — clear it everywhere else
   if (id !== 'home') clearResumeBanner();
   // Ensure timer is running whenever the live game screen is visible
