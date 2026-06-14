@@ -1847,7 +1847,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     <div id="tc-h" style="display:none"></div>
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
       <button class="btn btn-ghost" onclick="goHome()" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Back to Home</button>
-      <button class="btn" onclick="shareToWhatsApp()" style="background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Share to WhatsApp</button>
+      <button class="btn" onclick="shareResultsToWhatsApp()" style="background:linear-gradient(135deg,#128C7E,#25D366);color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700;box-shadow:0 4px 20px rgba(37,211,102,.3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> 📸 Share Summary to WhatsApp</button>
     </div>
   </div>
 
@@ -2744,6 +2744,171 @@ function shareToWhatsApp() {
   }
   msg += `\n_Tracked with Showdown_`;
   window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+}
+
+/* ═══ WHATSAPP GAME SUMMARY SCREENSHOT ═══ */
+async function shareResultsToWhatsApp() {
+  if (!session) return;
+  notify('📸 Building game summary…', 'info');
+  var canvas = _buildGameSummaryCanvas(session);
+  var dataUrl = canvas.toDataURL('image/png');
+  try {
+    var blob = await (await fetch(dataUrl)).blob();
+    var file = new File([blob], 'showdown-results.png', { type: 'image/png' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ title: 'Hutto Showdown — Game Summary', files: [file] });
+    } else {
+      _showScreenshotModal(canvas);
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') _showScreenshotModal(canvas);
+  }
+}
+
+function _buildGameSummaryCanvas(s) {
+  var buyin_ = s.buyin || BUYIN;
+  var transfers = settleWithBuyin(s.players, buyin_).sort(function(a,b){return b.amt-a.amt;});
+  var srt = s.players.slice().sort(function(a,b){
+    return (b.cashOut - b.buyins*buyin_) - (a.cashOut - a.buyins*buyin_);
+  });
+  var W = Math.min(window.innerWidth * 2, 900);
+  var SCALE = 2, PAD = 44;
+  var FONT = 'Inter, system-ui, sans-serif';
+  var MONO = 'JetBrains Mono, monospace';
+  var fs = function(sz) { return sz / SCALE * (W / 400); };
+  var H = 270 + srt.length * 62 + (transfers.length ? (30 + transfers.length * 60) : 0) + 80;
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#060A12';
+  ctx.fillRect(0, 0, W, H);
+  // Header gradient
+  var hGrad = ctx.createLinearGradient(0, 0, W, 0);
+  hGrad.addColorStop(0, 'rgba(124,58,237,.4)');
+  hGrad.addColorStop(1, 'rgba(6,182,212,.18)');
+  ctx.fillStyle = hGrad;
+  ctx.fillRect(0, 0, W, 100);
+  // Left accent bar
+  ctx.fillStyle = '#7C3AED';
+  ctx.fillRect(0, 0, 5, H);
+
+  // === HEADER ===
+  ctx.fillStyle = 'rgba(167,139,250,.85)';
+  ctx.font = '700 ' + fs(10) + 'px ' + MONO;
+  ctx.textAlign = 'left';
+  ctx.fillText('HUTTO', PAD, 28);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 ' + fs(27) + 'px ' + FONT;
+  ctx.fillText('SHOWDOWN', PAD, 65);
+
+  ctx.fillStyle = 'rgba(255,255,255,.38)';
+  ctx.font = '600 ' + fs(9) + 'px ' + MONO;
+  ctx.textAlign = 'right';
+  ctx.fillText('GAME SUMMARY', W - PAD, 28);
+  ctx.textAlign = 'left';
+
+  // Date · Players · Pot
+  var totalPot = srt.reduce(function(acc,p){return acc+p.buyins*buyin_;},0);
+  var potFmt = '$'+(Number.isInteger(totalPot)?totalPot:totalPot.toFixed(2));
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.font = '500 ' + fs(10.5) + 'px ' + MONO;
+  ctx.fillText((s.date||'') + '   ·   ' + s.players.length + ' Players   ·   Pot ' + potFmt, PAD, 86);
+
+  var y = 126;
+  // Separator
+  ctx.fillStyle = 'rgba(124,58,237,.28)';
+  ctx.fillRect(PAD, y, W - PAD*2, 1);
+  y += 18;
+
+  // === FINAL STANDINGS ===
+  ctx.fillStyle = 'rgba(167,139,250,.75)';
+  ctx.font = '700 ' + fs(8.5) + 'px ' + MONO;
+  ctx.fillText('FINAL STANDINGS', PAD, y + 4);
+  y += 22;
+
+  var medals = ['🥇','🥈','🥉'];
+  srt.forEach(function(p, i) {
+    var net = rd(p.cashOut - p.buyins*buyin_);
+    var netColor = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : '#9CA3AF';
+    // Row background
+    ctx.fillStyle = i === 0 ? 'rgba(124,58,237,.1)' : 'rgba(255,255,255,.025)';
+    _roundRect(ctx, PAD - 12, y - 20, W - PAD*2 + 24, 52, 9);
+    ctx.fill();
+    // Medal/rank
+    ctx.fillStyle = '#9CA3AF';
+    ctx.font = '600 ' + fs(13) + 'px ' + FONT;
+    ctx.textAlign = 'left';
+    ctx.fillText(medals[i] || (i+1)+'.', PAD, y + 8);
+    // Name
+    ctx.fillStyle = i === 0 ? '#FFFFFF' : 'rgba(255,255,255,.85)';
+    ctx.font = (i===0?'800':'700') + ' ' + fs(15) + 'px ' + FONT;
+    ctx.fillText(p.name + (s.host===p.name ? ' ★' : ''), PAD+38, y+8);
+    // Sub: bought in / cashed out
+    ctx.fillStyle = '#6B7280';
+    ctx.font = '500 ' + fs(9) + 'px ' + MONO;
+    ctx.fillText('Bought in: '+fmt(p.buyins*buyin_)+'  ·  Cashed out: '+fmt(p.cashOut||0), PAD+38, y+26);
+    // Net result (right-aligned, big)
+    ctx.fillStyle = netColor;
+    ctx.font = '900 ' + fs(18) + 'px ' + MONO;
+    ctx.textAlign = 'right';
+    var netSign = net >= 0 ? '+' : '-';
+    ctx.fillText(netSign + '$' + (Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, y+10);
+    ctx.textAlign = 'left';
+    y += 62;
+  });
+
+  if (transfers.length) {
+    y += 8;
+    ctx.fillStyle = 'rgba(6,182,212,.25)';
+    ctx.fillRect(PAD, y, W - PAD*2, 1);
+    y += 18;
+
+    // === WHO PAYS WHOM ===
+    ctx.fillStyle = 'rgba(6,182,212,.75)';
+    ctx.font = '700 ' + fs(8.5) + 'px ' + MONO;
+    ctx.fillText('WHO PAYS WHOM', PAD, y + 4);
+    y += 22;
+
+    transfers.forEach(function(t) {
+      ctx.fillStyle = 'rgba(255,255,255,.025)';
+      _roundRect(ctx, PAD - 12, y - 20, W - PAD*2 + 24, 50, 9);
+      ctx.fill();
+      ctx.fillStyle = '#EF4444';
+      ctx.font = '700 ' + fs(14) + 'px ' + FONT;
+      ctx.textAlign = 'left';
+      ctx.fillText(t.from, PAD, y + 6);
+      var fw = ctx.measureText(t.from).width;
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = '400 ' + fs(11.5) + 'px ' + FONT;
+      ctx.fillText('  pays  ', PAD+fw, y + 6);
+      var pw = ctx.measureText('  pays  ').width;
+      ctx.fillStyle = '#22C55E';
+      ctx.font = '700 ' + fs(14) + 'px ' + FONT;
+      ctx.fillText(t.to, PAD+fw+pw, y + 6);
+      var amtStr = '$'+(Number.isInteger(rd(t.amt))?rd(t.amt):rd(t.amt).toFixed(2));
+      ctx.fillStyle = '#A78BFA';
+      ctx.font = '900 ' + fs(19) + 'px ' + MONO;
+      ctx.textAlign = 'right';
+      ctx.fillText(amtStr, W - PAD, y + 8);
+      ctx.textAlign = 'left';
+      y += 60;
+    });
+  }
+
+  // Footer
+  y += 10;
+  ctx.fillStyle = 'rgba(124,58,237,.2)';
+  ctx.fillRect(PAD, y, W - PAD*2, 1);
+  y += 20;
+  ctx.fillStyle = '#374151';
+  ctx.font = '400 ' + fs(9) + 'px ' + MONO;
+  ctx.textAlign = 'center';
+  ctx.fillText('♠ Hutto Showdown  —  huttopoker.github.io', W/2, y);
+  ctx.textAlign = 'left';
+  return canvas;
 }
 
 /* ═══ MARK SETTLED ═══ */
@@ -7307,7 +7472,7 @@ function previewEnd() {
     !p.earlyOut && (session.cashOuts[p.name] == null)
   );
   if (missing.length) {
-    notify('Still needed: '+missing.map(p=>p.name).join(', '),'err');
+    notify('Missing chip count for: '+missing.map(function(p){return p.name;}).join(', ')+' — enter how many chips each player is cashing out', 'err');
     goCashout(); return;
   }
   session.players.forEach(p => {
@@ -7456,11 +7621,27 @@ function updateReviewBal() {
     'Diff: <b style="color:'+(ok?'var(--c-green)':'var(--c-red)')+'">'+(ok?'$0.0':fmtS(diff))+'</b>';
 
   document.getElementById('rv-banner').innerHTML=ok
-    ?'<div class="banner ok">\u2705 Balanced \u2014 '+fmt(pIn)+' in = '+fmt(pOut)+' out</div>'
-    :small?'<div class="banner warn"><b style="color:var(--c-gold)">'+(diff>0?'Over':'Short')+' by '+fmt(abs)+'</b><br>'+
-      '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">Fix above or tap Smart Adjustment to distribute proportionally.</span></div>'
-    :'<div class="banner err"><b style="color:var(--c-red)">'+(diff>0?'Over':'Short')+' by '+fmt(abs)+'</b><br>'+
-      '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">\u2265$5 difference \u2014 fix cashout entries.</span></div>';
+    ?'<div class="banner ok">\u2705 Pot balanced \u2014 '+fmt(pIn)+' in = '+fmt(pOut)+' out. Ready to settle!</div>'
+    :small
+      ?'<div class="banner warn">'+
+          '<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+(diff>0?'\u26a0\ufe0f Pot OVER by '+fmt(abs)+' \u2014 too many chips counted':'\u26a0\ufe0f Pot SHORT by '+fmt(abs)+' \u2014 chips unaccounted for')+'</div>'+
+          '<div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.7);line-height:1.7">'+
+            (diff>0
+              ? 'Cashouts ('+fmt(pOut)+') exceed buyins ('+fmt(pIn)+'). Someone may have counted chips incorrectly, or a buy-in was entered twice.'
+              : 'Cashouts ('+fmt(pOut)+') are less than buyins ('+fmt(pIn)+'). A player\u2019s chips may not be entered, or a re-buy was missed.'
+            )+
+          '</div>'+
+          '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-top:6px;opacity:.8">Edit cashouts above \u00b7 or tap \u2728 Smart Adjustment below</div>'+
+        '</div>'
+      :'<div class="banner err">'+
+          '<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+(diff>0?'\ud83d\udd34 OVER by '+fmt(abs)+' \u2014 fix required':'\ud83d\udd34 SHORT by '+fmt(abs)+' \u2014 fix required')+'</div>'+
+          '<div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.7);line-height:1.7">'+
+            (diff>0
+              ? 'Total out is '+fmt(pOut)+' but only '+fmt(pIn)+' was bought in. Reduce one or more cashout amounts above until they balance.'
+              : 'Total out is '+fmt(pOut)+' but '+fmt(pIn)+' was bought in. Check that every player\u2019s cashout is entered, and that all re-buys are recorded.'
+            )+
+          '</div>'+
+        '</div>';
 
   // Smart adjustment preview
   const adjEl = document.getElementById('rv-adj');
