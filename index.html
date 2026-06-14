@@ -7615,10 +7615,22 @@ function updateReviewBal() {
   const pIn=potTotal(), pOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
   const diff=rd(pOut-pIn),abs=Math.abs(diff),ok=abs<0.05,small=abs>=0.05&&abs<5;
 
+  var _statusBg  = ok ? 'rgba(34,197,94,.14)'   : diff>0 ? 'rgba(239,68,68,.14)'   : 'rgba(245,158,11,.14)';
+  var _statusBdr = ok ? 'rgba(34,197,94,.35)'   : diff>0 ? 'rgba(239,68,68,.35)'   : 'rgba(245,158,11,.35)';
+  var _statusClr = ok ? 'var(--c-green)'        : diff>0 ? 'var(--c-red)'          : 'var(--c-orange)';
+  var _statusTxt = ok ? '✓ Balanced'        : diff>0 ? '▲ OVER '+fmt(abs) : '▼ SHORT '+fmt(abs);
   document.getElementById('rv-totals').innerHTML=
-    'In: <b style="color:var(--c-gold)">'+fmt(pIn)+'</b> &nbsp;|&nbsp; '+
-    'Out: <b style="color:'+(ok?'var(--c-green)':'var(--c-red)')+'">'+fmt(pOut)+'</b> &nbsp;|&nbsp; '+
-    'Diff: <b style="color:'+(ok?'var(--c-green)':'var(--c-red)')+'">'+(ok?'$0.0':fmtS(diff))+'</b>';
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<span style="flex:1;min-width:0">'+
+        'Pot in <b style="color:var(--c-gold)">'+fmt(pIn)+'</b>'+
+        '<span style="color:var(--c-muted);margin:0 6px">→</span>'+
+        'Cashed out <b style="color:'+(ok?'var(--c-green)':'inherit')+'">'+fmt(pOut)+'</b>'+
+      '</span>'+
+      '<span style="flex-shrink:0;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.4px;'+
+        'background:'+_statusBg+';border:1px solid '+_statusBdr+';color:'+_statusClr+'">'+
+        _statusTxt+
+      '</span>'+
+    '</div>';
 
   document.getElementById('rv-banner').innerHTML=ok
     ?'<div class="banner ok">\u2705 Pot balanced \u2014 '+fmt(pIn)+' in = '+fmt(pOut)+' out. Ready to settle!</div>'
