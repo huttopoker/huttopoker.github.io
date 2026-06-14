@@ -1037,13 +1037,12 @@ body:not(.nav-open) .wrap {
 .p-card {
   background:rgba(var(--c-bg-rgb,8,10,24),.82);
   border:1px solid rgba(255,255,255,.09);
-  border-left:4px solid var(--c-gold,#8B5CF6);
   border-radius:14px;
-  margin-bottom:7px; overflow:hidden; transition:border-left-color .25s, box-shadow .25s, transform .12s;
+  margin-bottom:7px; overflow:hidden; transition:box-shadow .25s, transform .12s;
 }
 .p-card:active { background:rgba(var(--c-bg-rgb,8,10,24),.94); }
-.p-card:hover { box-shadow:0 4px 24px rgba(var(--c-gold-rgb,139,92,246),.2); }
-.p-card.early-out { opacity:.5; border-left-color:rgba(239,68,68,.55); }
+.p-card:hover { box-shadow:0 2px 16px rgba(0,0,0,.35); }
+.p-card.early-out { opacity:.5; }
 .p-card-main { display:flex; align-items:center; min-height:52px; padding:0 10px 0 14px; gap:10px; }
 .p-card-name { flex:1; min-width:0; font-family:var(--font-body); font-size:14px; font-weight:600; color:#F1F5F9;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.2px; }
@@ -2103,14 +2102,14 @@ let isOnline = false;
 const THEMES = [
   { name:'Royal Violet',  accent:'#8B5CF6', accentRgb:'139,92,246',  comp:'#06B6D4', compRgb:'6,182,212',    glow:'rgba(139,92,246,.5)'  },
   { name:'Golden Hour',   accent:'#F59E0B', accentRgb:'245,158,11',  comp:'#F97316', compRgb:'249,115,22',   glow:'rgba(245,158,11,.5)'  },
-  { name:'Neon Sakura',   accent:'#EC4899', accentRgb:'236,72,153',  comp:'#A855F7', compRgb:'168,85,247',   glow:'rgba(236,72,153,.5)'  },
+  { name:'Teal Storm',    accent:'#0891B2', accentRgb:'8,145,178',   comp:'#6366F1', compRgb:'99,102,241',   glow:'rgba(8,145,178,.5)'   },
   { name:'Ocean Breeze',  accent:'#0EA5E9', accentRgb:'14,165,233',  comp:'#2DD4BF', compRgb:'45,212,191',   glow:'rgba(14,165,233,.5)'  },
   { name:'Emerald Luxe',  accent:'#10B981', accentRgb:'16,185,129',  comp:'#06B6D4', compRgb:'6,182,212',    glow:'rgba(16,185,129,.5)'  },
   { name:'Cyberpunk',     accent:'#00E5FF', accentRgb:'0,229,255',   comp:'#A855F7', compRgb:'168,85,247',   glow:'rgba(0,229,255,.4)'   },
   { name:'Sunset Neon',   accent:'#F97316', accentRgb:'249,115,22',  comp:'#EAB308', compRgb:'234,179,8',    glow:'rgba(249,115,22,.5)'  },
-  { name:'Rose Gold',     accent:'#F43F5E', accentRgb:'244,63,94',   comp:'#FB923C', compRgb:'251,146,60',   glow:'rgba(244,63,94,.5)'   },
-  { name:'Chrome',        accent:'#CBD5E1', accentRgb:'203,213,225', comp:'#818CF8', compRgb:'129,140,248',  glow:'rgba(203,213,225,.35)'},
-  { name:'Midnight',      accent:'#6366F1', accentRgb:'99,102,241',  comp:'#22D3EE', compRgb:'34,211,238',   glow:'rgba(99,102,241,.5)'  },
+  { name:'Poker Red',     accent:'#DC2626', accentRgb:'220,38,38',   comp:'#F97316', compRgb:'249,115,22',   glow:'rgba(220,38,38,.5)'   },
+  { name:'Deep Forest',   accent:'#16A34A', accentRgb:'22,163,74',   comp:'#0EA5E9', compRgb:'14,165,233',   glow:'rgba(22,163,74,.5)'   },
+  { name:'Electric',      accent:'#818CF8', accentRgb:'129,140,248', comp:'#22D3EE', compRgb:'34,211,238',   glow:'rgba(129,140,248,.5)' },
 ];
 let currentTheme = THEMES[0];
 
@@ -5291,7 +5290,7 @@ function buildDashboardTab() {
       '<div style="font-size:52px;margin-bottom:16px">🃏</div>'+
       '<div style="font-weight:800;font-size:20px;color:var(--c-txt);margin-bottom:8px">Welcome to Poker Night</div>'+
       '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);margin-bottom:24px">Start a game to see your stats and history</div>'+
-      '<button onclick="setHTab(\'poll\')" style="padding:12px 24px;background:rgba(167,139,250,.18);border:1px solid rgba(167,139,250,.35);border-radius:12px;color:#A78BFA;font-family:var(--font-mono);font-size:12px;font-weight:700;cursor:pointer">Set up Tonight →</button>'+
+      '<button onclick="setHTab(\'poll\')" style="padding:12px 24px;background:rgba(167,139,250,.18);border:1px solid rgba(167,139,250,.35);border-radius:12px;color:#A78BFA;font-family:var(--font-mono);font-size:12px;font-weight:700;cursor:pointer">Set up Game →</button>'+
     '</div>';
   }
 
@@ -7020,8 +7019,7 @@ function renderGame() {
       }
       if (p.buyins > MAX_BALLS) ballHtml += '<span class="p-ball-more">+'+(p.buyins-MAX_BALLS)+'</span>';
 
-      card.style.borderLeftColor = bColor;
-      card.style.boxShadow = '-1px 0 10px '+bColor+'28';
+      // no colored left sidebar — buy-in count color already signals status
       card.innerHTML =
         '<div class="pc-fill-r"></div>'+
         '<div class="pc-fill-l"></div>'+
