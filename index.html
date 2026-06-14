@@ -420,9 +420,75 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
 .section-lbl { font-family:var(--font-body); font-size:10px; text-transform:uppercase;
   letter-spacing:2.5px; color:rgba(255,255,255,.82); border-bottom:none; font-weight:600;
   padding:0 0 9px 12px; margin-bottom:13px; display:flex; align-items:center; gap:8px;
-  position:relative; border-left:2px solid rgba(124,58,237,.85); }
+  position:relative; border-left:2px solid var(--c-gold,rgba(124,58,237,.85)); }
 .section-lbl::after { content:''; position:absolute; left:0; bottom:0; width:100%; height:1px;
-  background:linear-gradient(90deg,rgba(124,58,237,.3) 0%,rgba(6,182,212,.15) 60%,transparent 100%); }
+  background:linear-gradient(90deg,rgba(var(--c-gold-rgb,124,58,237),.3) 0%,rgba(var(--c-comp-rgb,6,182,212),.15) 60%,transparent 100%); }
+
+/* ── Tonight's Game HUD ── */
+.g-pot-hero {
+  background:rgba(var(--c-bg-rgb,8,10,24),.6);
+  border:1px solid rgba(var(--c-gold-rgb,139,92,246),.22);
+  border-radius:20px; padding:16px 20px 14px;
+  text-align:center; margin-bottom:10px; position:relative; overflow:hidden;
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+}
+.g-pot-hero::before {
+  content:''; position:absolute; inset:0; border-radius:20px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(var(--c-gold-rgb,139,92,246),.14) 0%, transparent 70%);
+  pointer-events:none;
+}
+.g-pot-lbl {
+  font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:3px;
+  text-transform:uppercase; color:rgba(var(--c-gold-rgb,139,92,246),.7); margin-bottom:4px;
+}
+.g-pot-val {
+  font-family:var(--font-heading); font-size:44px; font-weight:900; line-height:1;
+  letter-spacing:-2px; color:var(--c-txt,#fff);
+  text-shadow:0 0 40px rgba(var(--c-gold-rgb,139,92,246),.35);
+}
+.g-pot-meta {
+  font-family:var(--font-mono); font-size:11px; color:rgba(255,255,255,.4);
+  margin-top:6px; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.g-pot-meta-dot { color:rgba(255,255,255,.2); }
+.g-pot-meta-tag {
+  background:rgba(var(--c-gold-rgb,139,92,246),.12);
+  border:1px solid rgba(var(--c-gold-rgb,139,92,246),.22);
+  border-radius:20px; padding:2px 9px; font-size:10px; font-weight:600;
+  color:rgba(var(--c-gold-rgb,139,92,246),.9);
+}
+/* Host row — minimal inline */
+.g-host-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 4px 10px; margin-bottom:2px;
+}
+.g-host-row-lbl {
+  font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:rgba(255,255,255,.3); flex-shrink:0;
+}
+.g-host-row select {
+  background:transparent; border:none; outline:none; cursor:pointer;
+  color:rgba(255,255,255,.65); font-family:var(--font-body); font-size:13px;
+  font-weight:600; -webkit-appearance:none; flex:1; min-width:0;
+}
+/* Players bar — replaces section-lbl */
+.g-players-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 2px 8px; margin-bottom:4px;
+}
+.g-players-count {
+  font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:rgba(255,255,255,.35);
+}
+.g-seat-btn {
+  display:flex; align-items:center; gap:5px;
+  padding:5px 10px; border-radius:20px; border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04); color:rgba(255,255,255,.45);
+  font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:1px;
+  cursor:pointer; text-transform:uppercase; transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.g-seat-btn:active { background:rgba(var(--c-gold-rgb,139,92,246),.12); color:var(--c-gold); border-color:rgba(var(--c-gold-rgb,139,92,246),.35); }
 .back-btn { background:none; border:none; color:var(--c-muted); font-family:var(--font-body);
   font-size:12px; letter-spacing:.5px; cursor:pointer;
   padding:10px 0 10px; min-height:44px; display:flex; align-items:center; gap:6px; font-weight:500; }
@@ -1783,10 +1849,11 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- GAME -->
   <div id="screen-game" class="screen">
+    <!-- Compact live header -->
     <div class="live-hdr">
       <div class="live-hdr-left">
         <span class="live-dot-pulse"></span>
-        <span class="live-title">Game</span>
+        <span class="live-title">Tonight</span>
         <span id="sync-dot-inline" class="sync-dot-inline" title="Sync status"></span>
       </div>
       <div class="live-timer-wrap">
@@ -1794,6 +1861,8 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
         <div id="g-date" style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:1px"></div>
       </div>
     </div>
+
+    <!-- Status / read-only banners — unchanged logic -->
     <div id="live-game-status" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-align:center;padding:4px 0;margin-bottom:6px"></div>
     <div id="read-only-banner" style="display:none;background:rgba(59,130,246,.12);border:1.5px solid rgba(59,130,246,.3);border-radius:12px;padding:10px 14px;margin-bottom:10px">
       <div>
@@ -1802,16 +1871,25 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       </div>
       <button onclick="requestHostTransfer()" aria-label="Take over as game host" style="padding:8px 14px;background:var(--c-blue);color:#fff;border:none;border-radius:9px;font-family:var(--font-mono);font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">&#127918; Take Over</button>
     </div>
-    <div class="stats-row s3" id="g-stats"></div>
+
+    <!-- Hero pot + meta (JS-rendered) -->
+    <div id="g-stats"></div>
+
+    <!-- Host row (JS-rendered, minimal) -->
     <div id="g-host-bar"></div>
+
+    <!-- Recent activity ticker -->
     <div id="activity-bar" class="activity-bar" style="display:none"></div>
-    <div class="section-lbl" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Players</span>
-      <button class="cfs-btn" onclick="openCfsModal()" style="width:auto;padding:8px 14px;min-height:36px;margin:0;font-size:10px;letter-spacing:0.5px;gap:5px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="10" height="14" rx="2"/><rect x="12" y="8" width="10" height="14" rx="2"/></svg>
-        CUT FOR SEAT
+
+    <!-- Players count + seat draw -->
+    <div class="g-players-bar">
+      <span class="g-players-count" id="g-player-count"></span>
+      <button class="g-seat-btn" onclick="openCfsModal()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="10" height="14" rx="2"/><rect x="12" y="8" width="10" height="14" rx="2"/></svg>
+        Seat Draw
       </button>
     </div>
+
     <div id="p-list"></div>
   </div>
 
@@ -6869,25 +6947,40 @@ function _renderActivity() {
 
 function renderGame() {
   document.getElementById('g-date').textContent = session.date;
-  // Live pot progress bar
-  const pot = potTotal();
-  document.getElementById('g-stats').innerHTML =
-    '<div class="chip"><div class="chip-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>Pot</div><div class="chip-val gold">'+fmt(pot)+'</div></div>'+
-    '<div class="chip"><div class="chip-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Players</div><div class="chip-val">'+session.players.length+'</div></div>'+
-    '<div class="chip"><div class="chip-lbl" style="display:flex;align-items:center;justify-content:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M22 10H2"/></svg>Buy-in</div><div class="chip-val">'+fmt(session.buyin||BUYIN)+'</div></div>';
 
-  const hbar = document.getElementById('g-host-bar');
-  const _hostOpts = '<option value="">— No host —</option>'+
+  // ── Hero pot display
+  const pot = potTotal();
+  const activePl = session.players.filter(p=>!p.earlyOut).length;
+  const totalPl  = session.players.length;
+  const plLabel  = activePl === totalPl
+    ? totalPl + ' player' + (totalPl !== 1 ? 's' : '')
+    : activePl + ' of ' + totalPl + ' active';
+  document.getElementById('g-stats').innerHTML =
+    '<div class="g-pot-hero">'+
+      '<div class="g-pot-lbl">&#9824; Pot Total</div>'+
+      '<div class="g-pot-val">'+fmt(pot)+'</div>'+
+      '<div class="g-pot-meta">'+
+        '<span class="g-pot-meta-tag">'+plLabel+'</span>'+
+        '<span class="g-pot-meta-dot">·</span>'+
+        '<span>'+fmt(session.buyin||BUYIN)+' buy-in</span>'+
+      '</div>'+
+    '</div>';
+
+  // ── Compact host row
+  const _hostOpts = '<option value="">No host assigned</option>'+
     session.players.map(p=>'<option value="'+escH(p.name)+'"'+(session.host===p.name?' selected':'')+'>'+escH(p.name)+'</option>').join('');
-  hbar.innerHTML =
-    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;background:var(--c-surf);'+
-    'border:1px solid var(--c-bdr);border-radius:10px;padding:5px 10px">'+
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold,#F59E0B)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/><circle cx="19" cy="7" r="2" fill="var(--c-gold,#F59E0B)" stroke="none"/></svg>'+
-      '<span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.6);flex-shrink:0">Host</span>'+
-      '<select id="host-sel" style="flex:1;background:transparent;border:none;color:var(--c-txt);font-size:14px;font-weight:700;outline:none;cursor:pointer;-webkit-appearance:none" onchange="setHostInline(this.value)">'+
+  document.getElementById('g-host-bar').innerHTML =
+    '<div class="g-host-row">'+
+      '<span class="g-host-row-lbl">Host</span>'+
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 2l1.9 5.8H20l-5 3.6 1.9 5.8L12 14l-4.9 3.2L9 11.4 4 7.8h6.1z"/></svg>'+
+      '<select id="host-sel" style="flex:1;background:transparent;border:none;color:rgba(255,255,255,.65);font-family:var(--font-body);font-size:13px;font-weight:600;outline:none;cursor:pointer;-webkit-appearance:none;min-width:0" onchange="setHostInline(this.value)">'+
         _hostOpts+
       '</select>'+
     '</div>';
+
+  // ── Player count label
+  const pcEl = document.getElementById('g-player-count');
+  if (pcEl) pcEl.textContent = totalPl + (totalPl === 1 ? ' Player' : ' Players');
 
   const list = document.getElementById('p-list');
   // Preserve scroll position — renderGame() rebuilds the list which resets scroll on iOS
