@@ -335,7 +335,15 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
 .spinner { width:36px; height:36px; border:2px solid rgba(255,255,255,.08);
   border-top-color:#7C3AED; border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
-@keyframes suit-spin { to { transform:rotate(360deg); } }
+@keyframes play-ring-pulse {
+  0%   { transform:scale(1);     opacity:.7;  }
+  65%  { transform:scale(1.055); opacity:0;   }
+  100% { transform:scale(1.055); opacity:0;   }
+}
+.play-btn-wrap { position:relative; padding-top:10px; margin-bottom:10px; }
+.play-btn-ring { position:absolute;inset:-5px;border-radius:20px;
+  border:1.5px solid rgba(147,51,234,.6);pointer-events:none;
+  animation:play-ring-pulse 2.4s ease-out infinite; }
 @keyframes btn-shimmer {
   0%,55%,100% { left:-90%; opacity:0; }
   30% { left:135%; opacity:1; }
@@ -1672,13 +1680,13 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <div style="padding-top:10px;margin-bottom:10px">
+    <div class="play-btn-wrap">
       <button class="btn btn-gold" id="start-btn" onclick="goSetup()" aria-label="Start game"
         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font-size:15px;letter-spacing:.5px">
         <span id="start-suit" style="font-size:20px;transition:opacity .25s ease;display:inline-block;line-height:1;min-width:22px;text-align:center">&#9824;</span>
         <span id="start-btn-label">Let&#39;s Play...</span>
-        <span style="font-size:12px;display:inline-block;animation:suit-spin 1.6s linear infinite;line-height:1;opacity:0.75;flex-shrink:0">&#9654;</span>
       </button>
+      <span class="play-btn-ring" aria-hidden="true"></span>
     </div>
     <div id="resume-slot" style="padding:0 2px"></div>
     <div id="home-body" style="margin-top:0;padding-bottom:90px"></div>
@@ -5320,15 +5328,18 @@ function buildStatsTab() {
         const mc=['#F59E0B','#94A3B8','#CD7F32'], mb=['rgba(245,158,11,.15)','rgba(148,163,184,.1)','rgba(205,127,50,.12)'];
         const rank = i<3 ? '<span style="font-family:var(--font-mono);font-size:10px;font-weight:900;color:'+mc[i]+';background:'+mb[i]+';border-radius:6px;padding:2px 6px;flex-shrink:0">'+(i===0?'#1':i===1?'#2':'#3')+'</span>'
                          : '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);flex-shrink:0;min-width:20px">'+(i+1)+'.</span>';
-        return '<div style="margin-bottom:9px">'+
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'+
+        const wrBarClr = wr>=60?'var(--c-green)':wr>=40?'#F59E0B':'var(--c-red)';
+        return '<div style="margin-bottom:10px">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+
             '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'+rank+
               '<span style="font-size:13px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</span>'+
-              '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);flex-shrink:0">'+wr+'%</span>'+
+              '<span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:8px;background:'+(wr>=50?'rgba(34,197,94,.12)':'rgba(239,68,68,.1)')+';color:'+wrBarClr+';flex-shrink:0">'+wr+'%</span>'+
             '</div>'+
             '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+(pos?'var(--c-green)':'var(--c-red)')+';flex-shrink:0;margin-left:8px">'+fmtS(d.net)+'</span>'+
           '</div>'+
-          '<div style="height:6px;background:var(--c-bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+';border-radius:4px;opacity:.85"></div></div>'+
+          '<div style="height:8px;background:var(--c-bg3);border-radius:5px;overflow:hidden">'+
+            '<div style="height:100%;width:'+pct+'%;border-radius:5px;background:'+(pos?'linear-gradient(90deg,#059669,#34D399)':'linear-gradient(90deg,#DC2626,#F87171)')+';opacity:.9"></div>'+
+          '</div>'+
         '</div>';
       }).join('')+
     '</div>';
@@ -5341,24 +5352,27 @@ function buildStatsTab() {
           '<th style="padding:6px 14px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600;text-transform:uppercase">Player</th>'+
           '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">GP</th>'+
           '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Win%</th>'+
-          '<th style="padding:6px 6px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Avg/G</th>'+
+          '<th style="padding:6px 6px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Form</th>'+
           '<th style="padding:6px 14px;text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--c-muted);font-weight:600">Net</th>'+
         '</tr></thead><tbody>'+
         atEntries.map(([n,d],i) => {
           const wr=d.sessions>0?Math.round(d.wins/d.sessions*100):0;
-          const avg=d.sessions>0?rd(d.net/d.sessions):0;
           const nc=d.net>0?'var(--c-green)':d.net<0?'var(--c-red)':'var(--c-muted)';
-          const ac=avg>0?'var(--c-green)':avg<0?'var(--c-red)':'var(--c-muted)';
+          const wrClr=wr>=60?'var(--c-green)':wr>=40?'#F59E0B':'var(--c-red)';
+          const recentSess=statsSessions.slice().sort(function(a,b){return (b.id||0)-(a.id||0);})
+            .filter(function(s){return s.players.some(function(p){return p.name===n;});}).slice(0,5);
+          const formDots=recentSess.map(function(s){
+            var pl=s.players.find(function(p){return p.name===n;});
+            var net=rd((pl.cashOut||0)-pl.buyins*(s.buyin||BUYIN));
+            return net>0?'W':net<0?'L':'E';
+          }).map(function(r){
+            return '<span style="width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;background:'+(r==='W'?'var(--c-green)':r==='L'?'rgba(239,68,68,.85)':'rgba(100,116,139,.45)')+'"></span>';
+          }).join('');
           return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+'">'+
             '<td style="padding:9px 14px;font-weight:700;color:var(--c-txt)">'+escH(n)+'</td>'+
             '<td style="padding:9px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
-            '<td style="padding:9px 6px;text-align:center">'+
-              '<div style="display:inline-flex;align-items:center;gap:3px">'+
-                '<div style="width:28px;height:4px;background:var(--c-bg3);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+wr+'%;background:'+accent+';border-radius:2px"></div></div>'+
-                '<span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+wr+'%</span>'+
-              '</div>'+
-            '</td>'+
-            '<td style="padding:9px 6px;text-align:right;font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+ac+'">'+fmtS(avg)+'</td>'+
+            '<td style="padding:9px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+wrClr+'">'+wr+'%</td>'+
+            '<td style="padding:9px 6px;text-align:center"><div style="display:inline-flex;align-items:center;gap:3px">'+formDots+'</div></td>'+
             '<td style="padding:9px 14px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+'">'+fmtS(d.net)+'</td>'+
           '</tr>';
         }).join('')+
@@ -7571,6 +7585,20 @@ function smartBalance() {
     session.cashOuts[p.name]=p.cashOut;
     session.adjLog.entries.push({ name:p.name, amt:shareAmt, pct:Math.round(pcts[i]*100) });
   });
+
+  // Post-loop residual check: if floor-clipping (cashout hit $0) left the pot still unbalanced,
+  // absorb the remainder from the player with the highest cashout who can take it.
+  const newPotOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
+  const residualD=dimes(rd(newPotOut-potIn));
+  if(Math.abs(residualD)>0){
+    const absorber=session.players.slice()
+      .sort((a,b)=>b.cashOut-a.cashOut)
+      .find(p=>isOver ? p.cashOut>fromD(Math.abs(residualD)) : true);
+    if(absorber){
+      absorber.cashOut=rd(absorber.cashOut-fromD(residualD));
+      session.cashOuts[absorber.name]=absorber.cashOut;
+    }
+  }
 }
 
 function buildAdjTable() {
