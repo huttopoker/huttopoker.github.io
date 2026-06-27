@@ -636,16 +636,30 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 /* Action badge — edge-anchored label+icon */
 .pc-act-r {
   position:absolute; left:0; top:0; bottom:0; z-index:1;
-  display:flex; align-items:center; gap:7px; padding:0 20px;
-  color:#fff; font-family:var(--font-mono); font-size:13px; font-weight:900; letter-spacing:.8px; text-transform:uppercase;
+  display:flex; align-items:center; gap:8px; padding:0 22px;
+  color:#fff; font-family:var(--font-mono); font-size:14px; font-weight:900; letter-spacing:.8px; text-transform:uppercase;
   pointer-events:none; opacity:0; transform:scale(0.78) translateX(-6px); transform-origin:left center;
+  text-shadow:0 1px 6px rgba(0,0,0,.5);
 }
 .pc-act-l {
   position:absolute; right:0; top:0; bottom:0; z-index:1;
-  display:flex; align-items:center; gap:7px; padding:0 20px;
-  color:#fff; font-family:var(--font-mono); font-size:13px; font-weight:900; letter-spacing:.8px; text-transform:uppercase;
+  display:flex; align-items:center; gap:8px; padding:0 22px;
+  color:#fff; font-family:var(--font-mono); font-size:14px; font-weight:900; letter-spacing:.8px; text-transform:uppercase;
   pointer-events:none; opacity:0; transform:scale(0.78) translateX(6px); transform-origin:right center;
+  text-shadow:0 1px 6px rgba(0,0,0,.5);
 }
+/* Swipe affordance hint — shows briefly on load, hides during swipe */
+.swipe-hint-bar {
+  display:flex; justify-content:space-between; padding:0 12px 7px;
+  font-family:var(--font-mono); font-size:8px; letter-spacing:.6px;
+  color:rgba(255,255,255,.16); pointer-events:none; user-select:none;
+  transition:opacity .15s;
+}
+.swipe-hint-bar span:first-child::before { content:'← '; }
+.swipe-hint-bar span:last-child::after  { content:' →'; }
+.p-card.p-swiping .swipe-hint-bar,
+.p-card.swipe-commit-r .swipe-hint-bar,
+.p-card.swipe-commit-l .swipe-hint-bar { opacity:0; }
 /* Committed state: badge pops, fill covers whole card */
 .swipe-commit-r .pc-fill-r { width:100% !important; transition:width .2s cubic-bezier(.34,1.15,.64,1) !important; }
 .swipe-commit-l .pc-fill-l { width:100% !important; transition:width .2s cubic-bezier(.34,1.15,.64,1) !important; }
@@ -2859,7 +2873,7 @@ function _buildGameSummaryCanvas(s) {
   var cRgb = currentTheme ? currentTheme.compRgb : '6,182,212';
   var aHex = currentTheme ? currentTheme.accent : '#7C3AED';
   var cHex = currentTheme ? currentTheme.comp : '#06B6D4';
-  var H = 195 + srt.length * 56 + (transfers.length ? (46 + transfers.length * 56) : 0);
+  var H = 162 + srt.length * 52 + (transfers.length ? (30 + transfers.length * 50) : 0);
   var canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
@@ -2872,7 +2886,7 @@ function _buildGameSummaryCanvas(s) {
   hGrad.addColorStop(0, 'rgba('+aRgb+',.38)');
   hGrad.addColorStop(1, 'rgba('+cRgb+',.15)');
   ctx.fillStyle = hGrad;
-  ctx.fillRect(0, 0, W, 88);
+  ctx.fillRect(0, 0, W, 76);
   // Left accent bar
   ctx.fillStyle = aHex;
   ctx.fillRect(0, 0, 4, H);
@@ -2881,16 +2895,16 @@ function _buildGameSummaryCanvas(s) {
   ctx.fillStyle = 'rgba('+aRgb+',.9)';
   ctx.font = '700 ' + fs(10) + 'px ' + MONO;
   ctx.textAlign = 'left';
-  ctx.fillText('HUTTO', PAD, 24);
+  ctx.fillText('HUTTO', PAD, 20);
 
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '900 ' + fs(27) + 'px ' + FONT;
-  ctx.fillText('SHOWDOWN', PAD, 58);
+  ctx.fillText('SHOWDOWN', PAD, 50);
 
   ctx.fillStyle = 'rgba(255,255,255,.35)';
   ctx.font = '600 ' + fs(9) + 'px ' + MONO;
   ctx.textAlign = 'right';
-  ctx.fillText('GAME SUMMARY', W - PAD, 24);
+  ctx.fillText('GAME SUMMARY', W - PAD, 20);
   ctx.textAlign = 'left';
 
   // Date · Players · Pot
@@ -2898,19 +2912,19 @@ function _buildGameSummaryCanvas(s) {
   var potFmt = '$'+(Number.isInteger(totalPot)?totalPot:totalPot.toFixed(2));
   ctx.fillStyle = 'rgba(255,255,255,.48)';
   ctx.font = '500 ' + fs(10.5) + 'px ' + MONO;
-  ctx.fillText((s.date||'') + '   ·   ' + s.players.length + ' Players   ·   Pot ' + potFmt, PAD, 76);
+  ctx.fillText((s.date||'') + '   ·   ' + s.players.length + ' Players   ·   Pot ' + potFmt, PAD, 66);
 
-  var y = 100;
+  var y = 84;
   // Separator
   ctx.fillStyle = 'rgba('+aRgb+',.22)';
   ctx.fillRect(PAD, y, W - PAD*2, 1);
-  y += 14;
+  y += 12;
 
   // === FINAL STANDINGS ===
   ctx.fillStyle = 'rgba('+aRgb+',.8)';
   ctx.font = '700 ' + fs(8.5) + 'px ' + MONO;
   ctx.fillText('FINAL STANDINGS', PAD, y + 4);
-  y += 18;
+  y += 16;
 
   var medals = ['🥇','🥈','🥉'];
   srt.forEach(function(p, i) {
@@ -2940,24 +2954,24 @@ function _buildGameSummaryCanvas(s) {
     var netSign = net >= 0 ? '+' : '-';
     ctx.fillText(netSign + '$' + (Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, y+8);
     ctx.textAlign = 'left';
-    y += 56;
+    y += 52;
   });
 
   if (transfers.length) {
-    y += 6;
+    y += 2;
     ctx.fillStyle = 'rgba('+cRgb+',.22)';
     ctx.fillRect(PAD, y, W - PAD*2, 1);
-    y += 14;
+    y += 10;
 
     // === WHO PAYS WHOM ===
     ctx.fillStyle = 'rgba('+cRgb+',.8)';
     ctx.font = '700 ' + fs(8.5) + 'px ' + MONO;
     ctx.fillText('WHO PAYS WHOM', PAD, y + 4);
-    y += 18;
+    y += 14;
 
     transfers.forEach(function(t) {
-      ctx.fillStyle = 'rgba(255,255,255,.03)';
-      _roundRect(ctx, PAD - 8, y - 18, W - PAD*2 + 16, 46, 8);
+      ctx.fillStyle = 'rgba(255,255,255,.04)';
+      _roundRect(ctx, PAD - 8, y - 14, W - PAD*2 + 16, 42, 8);
       ctx.fill();
       ctx.fillStyle = '#EF4444';
       ctx.font = '700 ' + fs(14) + 'px ' + FONT;
@@ -2977,15 +2991,15 @@ function _buildGameSummaryCanvas(s) {
       ctx.textAlign = 'right';
       ctx.fillText(amtStr, W - PAD, y + 6);
       ctx.textAlign = 'left';
-      y += 56;
+      y += 50;
     });
   }
 
   // Footer
-  y += 8;
+  y += 6;
   ctx.fillStyle = 'rgba('+aRgb+',.15)';
   ctx.fillRect(PAD, y, W - PAD*2, 1);
-  y += 16;
+  y += 14;
   ctx.fillStyle = 'rgba(255,255,255,.2)';
   ctx.font = '400 ' + fs(9) + 'px ' + MONO;
   ctx.textAlign = 'center';
@@ -7040,6 +7054,7 @@ function renderGame() {
           '<span class="p-card-total">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
           '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out" style="opacity:.55"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>'+
         '</div>'+
+        '<div class="swipe-hint-bar"><span>undo</span><span>buyin</span></div>'+
         '<div class="eco-panel" id="'+safeId+'">'+
           '<div class="eco-panel-row">'+
             '<span class="eco-panel-lbl">&#9679; Early cash out amount</span>'+
@@ -7064,8 +7079,8 @@ function renderGame() {
       var actR   = card.querySelector('.pc-act-r');
       var actL   = card.querySelector('.pc-act-l');
 
-      // Commit = 40% of card width — responsive but not accidental
-      var COMMIT_FRAC = 0.40;
+      // Commit = 30% of card width — snappy but not hair-trigger
+      var COMMIT_FRAC = 0.30;
 
       function _tReset() {
         _ttracking = false; _tlocked = false; _tcommitted = false;
@@ -7112,8 +7127,8 @@ function renderGame() {
 
         if (!_tlocked) {
           if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
-          // More vertical → let page scroll
-          if (Math.abs(dy) > Math.abs(dx) * 0.65) { _ttracking = false; return; }
+          // More vertical → let page scroll (0.85 = ~40° from horizontal, more forgiving)
+          if (Math.abs(dy) > Math.abs(dx) * 0.85) { _ttracking = false; return; }
           _tlocked = true;
           card.classList.add('p-swiping');
           haptic('light');
@@ -7138,8 +7153,8 @@ function renderGame() {
 
         // Physical card slide: main layer moves with finger (rubber-band at commit)
         var main = card.querySelector('.p-card-main');
-        var slideMax = commit * 0.28;
-        var slideAmt = nowCommit ? (dx > 0 ? slideMax : -slideMax) : dx * 0.28;
+        var slideMax = commit * 0.45;
+        var slideAmt = nowCommit ? (dx > 0 ? slideMax : -slideMax) : dx * 0.45;
         if (main) main.style.transform = 'translateX(' + slideAmt.toFixed(1) + 'px)';
 
         if (dx > 0) {
@@ -7749,7 +7764,7 @@ function buildAdjTable() {
 
 function updateReviewBal() {
   const pIn=potTotal(), pOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
-  const diff=rd(pOut-pIn),abs=Math.abs(diff),ok=abs<0.05,small=abs>=0.05&&abs<5;
+  const diff=rd(pOut-pIn),abs=Math.abs(diff),ok=abs<0.05,small=abs>=0.05&&abs<11;
 
   var _statusBg  = ok ? 'rgba(34,197,94,.14)'   : diff>0 ? 'rgba(239,68,68,.14)'   : 'rgba(245,158,11,.14)';
   var _statusBdr = ok ? 'rgba(34,197,94,.35)'   : diff>0 ? 'rgba(239,68,68,.35)'   : 'rgba(245,158,11,.35)';
@@ -7804,7 +7819,7 @@ function updateReviewBal() {
         '<button class="btn btn-green mt" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
         '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
       :'<button class="btn btn-ghost" onclick="goCashout()">\u2190 Fix Cashouts</button>'+
-        '<p style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:center;margin-top:8px">Reduce difference below $5 to continue</p>';
+        '<p style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:center;margin-top:8px">Reduce difference below $11 to continue</p>';
 }
 
 function doSmartBalance() {
@@ -8353,29 +8368,11 @@ async function captureResultsScreenshot() {
   const btn = document.getElementById('res-share-btn-top');
   if (btn) { btn.disabled = true; btn.innerHTML = '\u23f3'; }
 
-  /* \u2500\u2500 Try html2canvas on the whole results screen first \u2500\u2500 */
-  const sc = document.getElementById('screen-results');
-  if (sc && typeof html2canvas === 'function') {
-    try {
-      notify('\ud83d\udcf8 Capturing screenshot\u2026', 'info');
-      const canvas = await html2canvas(sc, {
-        backgroundColor: '#0F0F1A',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        ignoreElements: el => el.id === 'res-share-btn'
-      });
-      if (btn) { btn.disabled = false; btn.innerHTML = '\ud83d\udcf8 <span>Save</span>'; }
-      _showScreenshotModal(canvas);
-      return;
-    } catch(e) {
-      console.warn('[screenshot] html2canvas failed, using canvas fallback:', e.message);
-    }
-  }
-
-  /* \u2500\u2500 Canvas fallback: manually draw a clean results card \u2500\u2500 */
-  if (btn) { btn.disabled = false; btn.innerHTML = '\ud83d\udcf8 Screenshot'; }
-  _drawResultsCanvas();
+  /* \u2500\u2500 Always use the clean summary canvas \u2014 tight, consistent card \u2500\u2500 */
+  notify('\ud83d\udcf8 Building summary\u2026', 'info');
+  const canvas = _buildGameSummaryCanvas(session);
+  if (btn) { btn.disabled = false; btn.innerHTML = '\ud83d\udcf8 <span>Save</span>'; }
+  _showScreenshotModal(canvas);
 }
 
 function _drawResultsCanvas() {
