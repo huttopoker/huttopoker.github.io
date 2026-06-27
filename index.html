@@ -2887,7 +2887,7 @@ function _buildGameSummaryCanvas(s) {
   var cRgb = currentTheme ? currentTheme.compRgb : '6,182,212';
   var aHex = currentTheme ? currentTheme.accent : '#7C3AED';
   var cHex = currentTheme ? currentTheme.comp : '#06B6D4';
-  var H = 176 + srt.length * 52 + (transfers.length ? (30 + transfers.length * 50) : 0);
+  var H = 170 + srt.length * 44 + (transfers.length ? (28 + transfers.length * 42) : 0);
   var canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
@@ -2946,66 +2946,74 @@ function _buildGameSummaryCanvas(s) {
     var netColor = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : '#9CA3AF';
     // Row background
     ctx.fillStyle = i === 0 ? 'rgba('+aRgb+',.12)' : 'rgba(255,255,255,.03)';
-    _roundRect(ctx, PAD - 8, y - 18, W - PAD*2 + 16, 48, 8);
+    _roundRect(ctx, PAD - 8, y - 13, W - PAD*2 + 16, 40, 7);
     ctx.fill();
     // Medal/rank
     ctx.fillStyle = '#9CA3AF';
-    ctx.font = '600 ' + fs(13) + 'px ' + FONT;
+    ctx.font = '600 ' + fs(12) + 'px ' + FONT;
     ctx.textAlign = 'left';
-    ctx.fillText(medals[i] || (i+1)+'.', PAD, y + 6);
+    ctx.fillText(medals[i] || (i+1)+'.', PAD, y + 4);
     // Name
     ctx.fillStyle = i === 0 ? '#FFFFFF' : 'rgba(255,255,255,.85)';
-    ctx.font = (i===0?'800':'700') + ' ' + fs(15) + 'px ' + FONT;
-    ctx.fillText(p.name + (s.host===p.name ? ' ★' : ''), PAD+36, y+6);
+    ctx.font = (i===0?'800':'700') + ' ' + fs(14) + 'px ' + FONT;
+    ctx.fillText(p.name + (s.host===p.name ? ' ★' : ''), PAD+32, y+4);
     // Sub: bought in / cashed out
-    ctx.fillStyle = 'rgba(255,255,255,.35)';
-    ctx.font = '500 ' + fs(9) + 'px ' + MONO;
-    ctx.fillText('in '+fmt(p.buyins*buyin_)+'  ·  out '+fmt(p.cashOut||0), PAD+36, y+22);
-    // Net result (right-aligned, big)
+    ctx.fillStyle = 'rgba(255,255,255,.32)';
+    ctx.font = '500 ' + fs(8.5) + 'px ' + MONO;
+    ctx.fillText('in '+fmt(p.buyins*buyin_)+'  ·  out '+fmt(p.cashOut||0), PAD+32, y+18);
+    // Net result (right-aligned)
     ctx.fillStyle = netColor;
-    ctx.font = '900 ' + fs(17) + 'px ' + MONO;
+    ctx.font = '800 ' + fs(15) + 'px ' + MONO;
     ctx.textAlign = 'right';
     var netSign = net >= 0 ? '+' : '-';
-    ctx.fillText(netSign + '$' + (Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, y+8);
+    ctx.fillText(netSign + '$' + (Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, y+5);
     ctx.textAlign = 'left';
-    y += 52;
+    y += 44;
   });
 
   if (transfers.length) {
-    y += 2;
+    y += 4;
     ctx.fillStyle = 'rgba('+cRgb+',.22)';
     ctx.fillRect(PAD, y, W - PAD*2, 1);
-    y += 10;
+    y += 8;
 
     // === WHO PAYS WHOM ===
     ctx.fillStyle = 'rgba('+cRgb+',.8)';
     ctx.font = '700 ' + fs(8.5) + 'px ' + MONO;
     ctx.fillText('WHO PAYS WHOM', PAD, y + 4);
-    y += 14;
+    y += 12;
 
+    // Fixed column layout: FROM | →  | TO | AMT
+    var col1 = PAD;                        // FROM starts here
+    var colMid = PAD + (W - PAD*2) * 0.44; // arrow at 44%
+    var col2 = colMid + fs(14);            // TO starts after arrow
     transfers.forEach(function(t) {
       ctx.fillStyle = 'rgba(255,255,255,.04)';
-      _roundRect(ctx, PAD - 8, y - 14, W - PAD*2 + 16, 42, 8);
+      _roundRect(ctx, PAD - 8, y - 11, W - PAD*2 + 16, 36, 7);
       ctx.fill();
-      ctx.fillStyle = '#EF4444';
-      ctx.font = '700 ' + fs(14) + 'px ' + FONT;
+      // FROM name
+      ctx.fillStyle = '#F87171';
+      ctx.font = '700 ' + fs(13) + 'px ' + FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t.from, PAD, y + 5);
-      var fw = ctx.measureText(t.from).width;
-      ctx.fillStyle = 'rgba(255,255,255,.4)';
-      ctx.font = '400 ' + fs(11.5) + 'px ' + FONT;
-      ctx.fillText('  pays  ', PAD+fw, y + 5);
-      var pw = ctx.measureText('  pays  ').width;
-      ctx.fillStyle = '#22C55E';
-      ctx.font = '700 ' + fs(14) + 'px ' + FONT;
-      ctx.fillText(t.to, PAD+fw+pw, y + 5);
+      ctx.fillText(t.from, col1, y + 4);
+      // Arrow
+      ctx.fillStyle = 'rgba(255,255,255,.3)';
+      ctx.font = '400 ' + fs(11) + 'px ' + FONT;
+      ctx.textAlign = 'center';
+      ctx.fillText('→', colMid, y + 4);
+      // TO name
+      ctx.fillStyle = '#4ADE80';
+      ctx.font = '700 ' + fs(13) + 'px ' + FONT;
+      ctx.textAlign = 'left';
+      ctx.fillText(t.to, col2, y + 4);
+      // Amount (right-aligned, bold)
       var amtStr = '$'+(Number.isInteger(rd(t.amt))?rd(t.amt):rd(t.amt).toFixed(2));
       ctx.fillStyle = aHex;
-      ctx.font = '900 ' + fs(18) + 'px ' + MONO;
+      ctx.font = '900 ' + fs(16) + 'px ' + MONO;
       ctx.textAlign = 'right';
-      ctx.fillText(amtStr, W - PAD, y + 6);
+      ctx.fillText(amtStr, W - PAD, y + 5);
       ctx.textAlign = 'left';
-      y += 50;
+      y += 42;
     });
   }
 
@@ -8385,8 +8393,11 @@ function renderResults() {
       const net = rd(p.cashOut - p.buyins*(session.buyin||BUYIN));
       const cls = net>0?'pos':net<0?'neg':'zero';
       playersHtml += '<div class="lb-row" style="border-left:3px solid '+(net>0?'var(--c-green)':net<0?'var(--c-red)':'var(--c-bdr)')+'">'+
-        '<div><div><span class="lb-rank">'+(i+4)+'.</span><span class="lb-name">'+escH(p.name)+'</span></div>'+
-        '<div class="lb-sub">'+p.buyins+' buyin'+(p.buyins!==1?'s':'')+' \u00b7 paid '+fmt(p.buyins*(session.buyin||BUYIN))+' \u00b7 out '+fmt(p.cashOut)+'</div></div>'+
+        '<span class="lb-rank">'+(i+4)+'.</span>'+
+        '<div style="padding:10px 8px;min-width:0;overflow:hidden">'+
+          '<div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(p.name)+'</div>'+
+          '<div class="lb-sub" style="white-space:nowrap;margin-top:3px">'+p.buyins+' buyin'+(p.buyins!==1?'s':'')+' \u00b7 paid '+fmt(p.buyins*(session.buyin||BUYIN))+' \u00b7 out '+fmt(p.cashOut)+'</div>'+
+        '</div>'+
         '<div class="lb-net '+cls+'">'+fmtS(net)+'</div></div>';
     });
   }
