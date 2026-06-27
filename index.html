@@ -7656,8 +7656,9 @@ function onRvEdit(n,v) {
 
 /* ═══════════════════════════════════════
    SMART BALANCE ADJUSTMENT (50/30/20)
-   SHORT (potOut < potIn): top 3 winners absorb shortage → cashouts rise
-   OVER  (potOut > potIn): bottom 3 losers absorb excess  → cashouts fall
+   Both SHORT and OVER target top 3 WINNERS (highest net):
+   SHORT (potOut < potIn): winners' cashouts RISE  to fill the gap
+   OVER  (potOut > potIn): winners' cashouts FALL  to drain the excess
 ═══════════════════════════════════════ */
 function smartBalance() {
   const potIn=potTotal();
@@ -7672,23 +7673,12 @@ function smartBalance() {
     rd(b.cashOut-b.buyins*buyin_)-rd(a.cashOut-a.buyins*buyin_)
   );
 
-  // SHORT → top 3 winners absorb (their cashout rises to fill the gap)
-  // OVER  → bottom 3 losers absorb (their cashout falls to drain the excess)
-  //         but skip anyone with $0 cashout — can't reduce below 0
+  // Always target top winners — SHORT: they absorb extra (cashout+), OVER: they give back (cashout-)
   let targets;
-  if (!isOver) {
-    targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
-    if(!targets.length) targets=byNet.slice(0,3);
-  } else {
-    const bottom=byNet.slice().reverse();
-    // Only target players who actually have chips to give back (cashout > 0)
-    targets=bottom.filter(p=>rd(p.cashOut-p.buyins*buyin_)<0 && p.cashOut>0).slice(0,3);
-    // Fallback 1: any loser with cashout > 0
-    if(!targets.length) targets=bottom.filter(p=>p.cashOut>0).slice(0,3);
-    // Fallback 2: top winners (they have chips to give back)
-    if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
-    if(!targets.length) targets=byNet.slice(0,3);
-  }
+  targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
+  // Fallback: players with any cashout (covers edge case where nobody is net positive)
+  if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
+  if(!targets.length) targets=byNet.slice(0,3);
 
   const n=targets.length;
   if(!n) return;
@@ -7731,31 +7721,22 @@ function buildAdjTable() {
   const isOver=diff>0;
   const buyin__=session.buyin||BUYIN;
   const sorted=session.players.slice().sort((a,b)=>rd(b.cashOut-b.buyins*buyin__)-rd(a.cashOut-a.buyins*buyin__));
-  // SHORT → top 3 winners; OVER → bottom 3 losers (with cashout > 0)
+  // Always target top winners (highest net) — same pool for both SHORT and OVER
   let targets;
-  if (!isOver) {
-    targets=sorted.filter(p=>rd(p.cashOut-p.buyins*buyin__)>0).slice(0,3);
-    if(!targets.length) targets=sorted.slice(0,3);
-  } else {
-    const bot=sorted.slice().reverse();
-    targets=bot.filter(p=>rd(p.cashOut-p.buyins*buyin__)<0 && p.cashOut>0).slice(0,3);
-    if(!targets.length) targets=bot.filter(p=>p.cashOut>0).slice(0,3);
-    if(!targets.length) targets=sorted.filter(p=>p.cashOut>0).slice(0,3);
-    if(!targets.length) targets=sorted.slice(0,3);
-  }
+  targets=sorted.filter(p=>rd(p.cashOut-p.buyins*buyin__)>0).slice(0,3);
+  if(!targets.length) targets=sorted.filter(p=>p.cashOut>0).slice(0,3);
+  if(!targets.length) targets=sorted.slice(0,3);
   const n=targets.length, pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
   const amtD=dimes(Math.abs(diff)); let rows='';
   targets.forEach((p,i)=>{
     const shareD=i<n-1?Math.round(amtD*pcts[i]):(amtD-targets.slice(0,i).reduce((s,_,j)=>s+Math.round(amtD*pcts[j]),0));
     const share=fromD(shareD);
-    // OVER: winners give back (-), SHORT: winners absorb shortage (+)
+    // OVER: winners give back (-), SHORT: winners receive (+)
     rows+='<div class="adj-row"><span>'+escH(p.name)+'<span style="color:var(--c-muted);font-size:9px"> '+Math.round(pcts[i]*100)+'%</span></span>'+
       '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(2))+'</span></div>';
   });
   const pctLabel = n===1?'100%':n===2?'60/40':'50/30/20';
-  const whoLabel = isOver
-    ? (n===1?'biggest loser':'top '+n+' losers')
-    : (n===1?'top winner':'top '+n+' winners');
+  const whoLabel = n===1?'top winner':'top '+n+' winners';
   return '<div class="adj-banner">'+
     '<b style="color:var(--c-gold)">'+(isOver?'Over':'Short')+' by '+fmt(Math.abs(diff))+'</b> &mdash; '+
     (isOver?'Deducted from '+whoLabel:'Absorbed by '+whoLabel)+' ('+pctLabel+'):<br>'+
