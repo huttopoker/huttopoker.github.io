@@ -1382,6 +1382,20 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 .adj-row { display:flex; justify-content:space-between; font-size:11px; padding:3px 0;
   border-bottom:1px solid rgba(255,255,255,.06); }
 .adj-row:last-child { border-bottom:none; }
+/* ── Smart Adjustment Preview Modal ── */
+.sadj-modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
+.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:22px 18px calc(env(safe-area-inset-bottom,0px)+22px);animation:slideUpBanner .22s ease; }
+.sadj-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
+.sadj-title { font-family:var(--font-mono);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--c-gold); }
+.sadj-badge { font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px; }
+.sadj-why { font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:10px; }
+.sadj-player-row { display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08); }
+.sadj-player-name { flex:1;font-family:var(--font-body);font-size:14px;font-weight:700;color:#F1F5F9; }
+.sadj-player-pct  { font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.35);flex-shrink:0; }
+.sadj-arrow { font-size:11px;color:rgba(255,255,255,.3); }
+.sadj-old { font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.4);flex-shrink:0;text-decoration:line-through; }
+.sadj-new { font-family:var(--font-mono);font-size:14px;font-weight:800;flex-shrink:0; }
+.sadj-delta { font-family:var(--font-mono);font-size:11px;font-weight:700;min-width:48px;text-align:right;flex-shrink:0; }
 
 /* ── Smart Adjustment Log ────────────────────────── */
 .adj-log-banner {
@@ -7796,14 +7810,86 @@ function updateReviewBal() {
     ?'<button class="btn btn-green" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
       '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
     :small
-      ?'<button class="btn btn-gold" onclick="doSmartBalance()">\u2728 Apply Smart Adjustment (50/30/20)</button>'+
+      ?'<button class="btn btn-gold" onclick="showSmartAdjModal()">\u2728 Smart Adjustment (50/30/20)</button>'+
         '<button class="btn btn-green mt" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
         '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
       :'<button class="btn btn-ghost" onclick="goCashout()">\u2190 Fix Cashouts</button>'+
         '<p style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:center;margin-top:8px">Reduce difference below $11 to continue</p>';
 }
 
+function showSmartAdjModal() {
+  const potIn=potTotal();
+  const potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
+  const diff=rd(potOut-potIn);
+  if(Math.abs(diff)<0.05) return;
+  const isOver=diff>0;
+  const abs=Math.abs(diff);
+  const buyin_=session.buyin||BUYIN;
+
+  // Compute targets (mirrors smartBalance logic)
+  const byNet=session.players.slice().sort((a,b)=>rd(b.cashOut-b.buyins*buyin_)-rd(a.cashOut-a.buyins*buyin_));
+  let targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
+  if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
+  if(!targets.length) targets=byNet.slice(0,3);
+  const n=targets.length;
+  const pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
+  const amtD=dimes(abs);
+
+  // Build per-player rows with before\u2192after
+  let playerRows='';
+  let rem=amtD;
+  targets.forEach((p,i)=>{
+    const shareD=i<n-1?Math.round(amtD*pcts[i]):rem;
+    rem-=shareD;
+    const shareAmt=fromD(shareD);
+    const oldCO=p.cashOut||0;
+    const newCO=rd(isOver?Math.max(0,oldCO-shareAmt):oldCO+shareAmt);
+    const delta=rd(newCO-oldCO);
+    const deltaStr=(delta>=0?'+':'−')+fmt(delta);
+    const deltaClr=delta>=0?'var(--c-green)':'var(--c-red)';
+    const pctLbl=Math.round(pcts[i]*100)+'%';
+    playerRows+=
+      '<div class="sadj-player-row">'+
+        '<div class="sadj-player-name">'+escH(p.name)+'</div>'+
+        '<div class="sadj-player-pct">'+pctLbl+'</div>'+
+        '<div class="sadj-old">'+fmt(oldCO)+'</div>'+
+        '<div class="sadj-arrow">\u2192</div>'+
+        '<div class="sadj-new" style="color:'+deltaClr+'">'+fmt(newCO)+'</div>'+
+        '<div class="sadj-delta" style="color:'+deltaClr+'">'+deltaStr+'</div>'+
+      '</div>';
+  });
+
+  const pctLabel=n===1?'100%':n===2?'60/40':'50/30/20';
+  const badgeBg=isOver?'rgba(239,68,68,.18)':'rgba(245,158,11,.18)';
+  const badgeClr=isOver?'var(--c-red)':'var(--c-gold)';
+  const badgeTxt=(isOver?'\u25b2 OVER ':'\u25bc SHORT ')+fmt(abs);
+  const whyTxt=isOver
+    ?"Cashouts exceed buyins by "+fmt(abs)+". Winners' cashouts are reduced proportionally \u2014 the over-count comes out of what they take home, not from losers."
+    :"Cashouts are short of buyins by "+fmt(abs)+". Winners' cashouts are increased proportionally \u2014 they absorb the unaccounted chips.";
+
+  const el=document.createElement('div');
+  el.className='sadj-modal-bg';
+  el.id='sadj-modal';
+  el.innerHTML=
+    '<div class="sadj-modal" onclick="event.stopPropagation()">'+
+      '<div class="sadj-head">'+
+        '<div class="sadj-title">\u2728 Smart Adjustment</div>'+
+        '<span class="sadj-badge" style="background:'+badgeBg+';color:'+badgeClr+'">'+badgeTxt+'</span>'+
+      '</div>'+
+      '<div class="sadj-why">'+whyTxt+'<br><span style="color:rgba(255,255,255,.55);font-weight:700">Split: '+pctLabel+' across top '+n+' winner'+(n>1?'s':'')+'</span></div>'+
+      playerRows+
+      '<div style="display:flex;gap:8px;margin-top:16px">'+
+        '<button class="btn btn-ghost" style="flex:1" onclick="document.getElementById(\'sadj-modal\').remove()">Cancel</button>'+
+        '<button class="btn btn-gold" style="flex:2" onclick="doSmartBalance()">Apply \u2014 Balance to '+fmt(potIn)+'</button>'+
+      '</div>'+
+    '</div>';
+  el.addEventListener('click',()=>el.remove());
+  document.body.appendChild(el);
+}
+
 function doSmartBalance() {
+  const m=document.getElementById('sadj-modal');
+  if(m) m.remove();
   smartBalance();
   renderReview();
   notify('\u2728 Smart adjustment applied');
