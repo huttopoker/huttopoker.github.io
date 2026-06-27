@@ -1383,9 +1383,9 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   border-bottom:1px solid rgba(255,255,255,.06); }
 .adj-row:last-child { border-bottom:none; }
 /* ── Smart Adjustment Preview Modal ── */
-.sadj-modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
-.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:22px 18px calc(env(safe-area-inset-bottom,0px)+22px);animation:slideUpBanner .22s ease; }
-.sadj-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
+.sadj-modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:flex-end;justify-content:center;padding:0 10px 0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
+.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:26px 22px calc(env(safe-area-inset-bottom,0px)+26px);animation:slideUpBanner .22s ease; }
+.sadj-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
 .sadj-title { font-family:var(--font-mono);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--c-gold); }
 .sadj-badge { font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px; }
 .sadj-why { font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:10px; }
@@ -2879,7 +2879,7 @@ function _buildGameSummaryCanvas(s) {
     return (b.cashOut - b.buyins*buyin_) - (a.cashOut - a.buyins*buyin_);
   });
   var W = Math.min(window.innerWidth * 2, 900);
-  var SCALE = 2, PAD = 28;
+  var SCALE = 2, PAD = 38;
   var FONT = 'Inter, system-ui, sans-serif';
   var MONO = 'JetBrains Mono, monospace';
   var fs = function(sz) { return sz / SCALE * (W / 400); };
@@ -2887,7 +2887,7 @@ function _buildGameSummaryCanvas(s) {
   var cRgb = currentTheme ? currentTheme.compRgb : '6,182,212';
   var aHex = currentTheme ? currentTheme.accent : '#7C3AED';
   var cHex = currentTheme ? currentTheme.comp : '#06B6D4';
-  var H = 162 + srt.length * 52 + (transfers.length ? (30 + transfers.length * 50) : 0);
+  var H = 176 + srt.length * 52 + (transfers.length ? (30 + transfers.length * 50) : 0);
   var canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
@@ -2900,7 +2900,7 @@ function _buildGameSummaryCanvas(s) {
   hGrad.addColorStop(0, 'rgba('+aRgb+',.38)');
   hGrad.addColorStop(1, 'rgba('+cRgb+',.15)');
   ctx.fillStyle = hGrad;
-  ctx.fillRect(0, 0, W, 76);
+  ctx.fillRect(0, 0, W, 92);
   // Left accent bar
   ctx.fillStyle = aHex;
   ctx.fillRect(0, 0, 4, H);
@@ -2909,16 +2909,16 @@ function _buildGameSummaryCanvas(s) {
   ctx.fillStyle = 'rgba('+aRgb+',.9)';
   ctx.font = '700 ' + fs(10) + 'px ' + MONO;
   ctx.textAlign = 'left';
-  ctx.fillText('HUTTO', PAD, 20);
+  ctx.fillText('HUTTO', PAD, 28);
 
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '900 ' + fs(27) + 'px ' + FONT;
-  ctx.fillText('SHOWDOWN', PAD, 50);
+  ctx.fillText('SHOWDOWN', PAD, 60);
 
   ctx.fillStyle = 'rgba(255,255,255,.35)';
   ctx.font = '600 ' + fs(9) + 'px ' + MONO;
   ctx.textAlign = 'right';
-  ctx.fillText('GAME SUMMARY', W - PAD, 20);
+  ctx.fillText('GAME SUMMARY', W - PAD, 28);
   ctx.textAlign = 'left';
 
   // Date · Players · Pot
@@ -2926,9 +2926,9 @@ function _buildGameSummaryCanvas(s) {
   var potFmt = '$'+(Number.isInteger(totalPot)?totalPot:totalPot.toFixed(2));
   ctx.fillStyle = 'rgba(255,255,255,.48)';
   ctx.font = '500 ' + fs(10.5) + 'px ' + MONO;
-  ctx.fillText((s.date||'') + '   ·   ' + s.players.length + ' Players   ·   Pot ' + potFmt, PAD, 66);
+  ctx.fillText((s.date||'') + '   ·   ' + s.players.length + ' Players   ·   Pot ' + potFmt, PAD, 78);
 
-  var y = 84;
+  var y = 98;
   // Separator
   ctx.fillStyle = 'rgba('+aRgb+',.22)';
   ctx.fillRect(PAD, y, W - PAD*2, 1);
@@ -7880,7 +7880,7 @@ function showSmartAdjModal() {
       playerRows+
       '<div style="display:flex;gap:8px;margin-top:16px">'+
         '<button class="btn btn-ghost" style="flex:1" onclick="document.getElementById(\'sadj-modal\').remove()">Cancel</button>'+
-        '<button class="btn btn-gold" style="flex:2" onclick="doSmartBalance()">Apply \u2014 Balance to '+fmt(potIn)+'</button>'+
+        '<button class="btn btn-gold" style="flex:2;white-space:nowrap;font-size:13px" onclick="doSmartBalance()">\u2728 Apply \u00b7 '+fmt(potIn)+'</button>'+
       '</div>'+
     '</div>';
   el.addEventListener('click',()=>el.remove());
