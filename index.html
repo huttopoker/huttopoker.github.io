@@ -57,6 +57,7 @@ ALTER TABLE daily_polls     ENABLE ROW LEVEL SECURITY;
 -- BLOCK 3: Policies (run each line separately if you get duplicate errors)
 CREATE POLICY "rds" ON poker_sessions   FOR SELECT USING (true);
 CREATE POLICY "ins" ON poker_sessions   FOR INSERT WITH CHECK (true);
+CREATE POLICY "del" ON poker_sessions   FOR DELETE USING (true);
 CREATE POLICY "rda" ON player_accounts  FOR SELECT USING (true);
 CREATE POLICY "ina" ON player_accounts  FOR INSERT WITH CHECK (true);
 CREATE POLICY "upa" ON player_accounts  FOR UPDATE USING (true);
@@ -184,17 +185,17 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
 ══════════════════════════════════════════════════════════ */
 @media(prefers-color-scheme:light) {
   :root {
-    --c-bg:#F5F7FA; --c-bg2:#FFFFFF; --c-bg3:#EDEEF4; --c-bg4:#E2E4EE;
-    --c-bg-rgb:245,247,250;
-    --c-surf:rgba(var(--c-gold-rgb,255,215,0),.06); --c-surf2:rgba(var(--c-gold-rgb,255,215,0),.11); --c-surf3:rgba(var(--c-gold-rgb,255,215,0),.17);
+    --c-bg:#E8EBF4; --c-bg2:#FFFFFF; --c-bg3:#F2F4FA; --c-bg4:#DDE0EC;
+    --c-bg-rgb:232,235,244;
+    --c-surf:#FFFFFF; --c-surf2:rgba(0,0,0,.04); --c-surf3:rgba(0,0,0,.08);
     --c-bdr:rgba(0,0,0,.09); --c-bdr2:rgba(0,0,0,.16);
     --c-txt:#0F1117; --c-txt2:#30333F;
     --c-muted:#6B7080; --c-muted2:#9BA0B0;
-    --shd:0 1px 10px rgba(0,0,0,.09), 0 0 0 1px rgba(0,0,0,.04);
-    --shd-lg:0 4px 28px rgba(0,0,0,.13), 0 0 0 1px rgba(0,0,0,.05);
+    --shd:0 1px 12px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.05);
+    --shd-lg:0 4px 28px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.06);
   }
   body {
-    background-color: #F5F7FA !important;
+    background-color: #E8EBF4 !important;
     background-image: none !important;
   }
   #bg-overlay { background: rgba(245,247,250,0.82) !important; }
@@ -205,9 +206,9 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   }
   /* Header */
   #app-header {
-    background: rgba(250,251,255,.94) !important;
+    background: rgba(235,238,248,.97) !important;
     border-bottom: 1px solid rgba(var(--c-gold-rgb,255,215,0),.22) !important;
-    box-shadow: 0 1px 0 rgba(var(--c-gold-rgb,255,215,0),.18), 0 2px 14px rgba(0,0,0,.07) !important;
+    box-shadow: 0 1px 0 rgba(var(--c-gold-rgb,255,215,0),.18), 0 2px 14px rgba(0,0,0,.08) !important;
   }
   .app-title, .ah-title { color: #0F1117 !important; }
   .ah-logo-name { color: #0F1117 !important; }
@@ -216,9 +217,9 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .ah-icon-btn { color: rgba(15,17,23,.6) !important; border-color: rgba(0,0,0,.12) !important; }
   /* Bottom nav */
   #home-nav, #sticky-nav:not(.game-nav) {
-    background: rgba(250,251,255,.96) !important;
+    background: rgba(235,238,248,.97) !important;
     border-top: 1px solid rgba(var(--c-gold-rgb,255,215,0),.18) !important;
-    box-shadow: 0 -1px 0 rgba(var(--c-gold-rgb,255,215,0),.12) !important;
+    box-shadow: 0 -1px 0 rgba(var(--c-gold-rgb,255,215,0),.12), 0 -4px 16px rgba(0,0,0,.06) !important;
   }
   /* Game nav stays dark even in light mode */
   #sticky-nav.game-nav {
@@ -283,6 +284,16 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .poll-card { background: linear-gradient(135deg,rgba(237,233,254,.8) 0%,rgba(221,214,254,.6) 100%) !important; }
   /* Modals */
   .modal-box { background: rgba(247,245,255,.98) !important; border-color: rgba(0,0,0,.12) !important; }
+  /* Dash / stats cards that use hardcoded white-alpha borders turn invisible in light mode */
+  .dash-section > div, .dash-section > button,
+  .hist-card, .pperf-card, .stile-card, .co-section-card {
+    box-shadow: var(--shd) !important;
+    border-color: rgba(0,0,0,.07) !important;
+  }
+  /* Any inline-style element using white-alpha background becomes white card */
+  .screen:not(#screen-game):not(#screen-cashout):not(#screen-review) [style*="rgba(255,255,255,.0"] {
+    background: rgba(0,0,0,.04) !important;
+  }
 }
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 /* ── ACCESSIBILITY — keyboard focus rings ── */
@@ -329,7 +340,7 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 }
 #bg-photo {
   position:fixed; inset:0; z-index:0;
-  background-size:cover; background-position:center; background-attachment:fixed;
+  background-size:cover; background-position:center;
   pointer-events:none; opacity:0;
   transition:opacity 1.2s ease;
 }
@@ -5568,7 +5579,7 @@ function buildDashboardTab() {
 
   /* ── SECTION D: LEADERBOARD — clean list, no bar charts ── */
   if (st && Object.keys(st.AT).length) {
-    var leaders = Object.entries(st.AT).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,5);
+    var leaders = Object.entries(st.AT).filter(function(e){return !archivedPlayers.has(e[0]);}).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,5);
     var medals = ['🥇','🥈','🥉'];
     html += '<div class="dash-section">'+
       '<div style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden">'+
@@ -5665,7 +5676,7 @@ function buildStatsTab() {
   const avgPot = rd(tp / tot);
   const accent = currentTheme ? currentTheme.accent : 'var(--c-gold)';
   const accentRgb = currentTheme ? currentTheme.accentRgb : '245,158,11';
-  const atEntries = Object.entries(st.AT).sort((a,b)=>b[1].net-a[1].net);
+  const atEntries = Object.entries(st.AT).filter(([n])=>!archivedPlayers.has(n)).sort((a,b)=>b[1].net-a[1].net);
 
   /* ── SECTION 1: OVERVIEW ─────────────────────── */
   let sOverview = '';
