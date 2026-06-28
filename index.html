@@ -571,17 +571,17 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
   -webkit-backdrop-filter:blur(20px) saturate(1.4);
   border:1px solid rgba(255,255,255,.08);
   border-bottom:2px solid rgba(var(--c-gold-rgb,124,58,237),.4);
-  border-radius:13px; padding:7px 8px 6px; flex:1; min-width:0;
+  border-radius:13px; padding:10px 10px 8px; flex:1; min-width:0;
   text-align:center;
   box-shadow:0 1px 12px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
 }
-.chip-lbl { font-family:var(--font-body); font-size:8px; color:rgba(255,255,255,.4);
-  text-transform:uppercase; letter-spacing:1.5px; margin-bottom:2px;
+.chip-lbl { font-family:var(--font-body); font-size:10px; color:rgba(255,255,255,.45);
+  text-transform:uppercase; letter-spacing:1.2px; margin-bottom:3px;
   display:flex; align-items:center; justify-content:center; gap:3px; font-weight:600; }
-.chip-val { font-family:var(--font-heading); font-size:16px; font-weight:700; color:#F9FAFB;
+.chip-val { font-family:var(--font-heading); font-size:17px; font-weight:700; color:#F9FAFB;
   font-variant-numeric:tabular-nums; letter-spacing:0; line-height:1.2; }
 .chip-val.gold { color:var(--c-gold,#A78BFA); text-shadow:0 0 14px rgba(var(--c-gold-rgb,124,58,237),.38); }
-.chip-val.sm { font-size:13px; font-weight:600; }
+.chip-val.sm { font-size:14px; font-weight:600; }
 /* ── Live game compact header ── */
 .live-hdr { display:flex; align-items:center; justify-content:space-between;
   padding:8px 0 6px; margin-bottom:4px; }
@@ -1177,35 +1177,35 @@ body:not(.nav-open) .wrap {
 .sp-row {
   background:var(--c-surf);
   border:1px solid var(--c-bdr);
-  border-radius:11px;
+  border-radius:12px;
   display:grid;
-  grid-template-columns: 1fr 14px 1fr 62px 34px;
+  grid-template-columns: 1fr 16px 1fr 68px 38px;
   align-items:center;
   gap:0;
   overflow:hidden;
-  min-height:46px;
+  min-height:52px;
 }
 .sp-row.sp-settled { opacity:.38; }
 /* FROM cell */
 .sp-from {
-  font-family:var(--font-body); font-size:13px; font-weight:700; color:var(--c-red);
+  font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--c-red);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  padding:10px 6px 10px 12px;
+  padding:12px 6px 12px 14px;
 }
 /* → arrow cell */
 .sp-arr {
-  font-size:11px; color:var(--c-muted); text-align:center; padding:0;
+  font-size:12px; color:var(--c-muted); text-align:center; padding:0;
 }
 /* TO cell */
 .sp-to {
-  font-family:var(--font-body); font-size:13px; font-weight:700; color:var(--c-green);
+  font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--c-green);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  padding:10px 6px;
+  padding:12px 6px;
 }
 /* Amount cell */
 .sp-amt {
-  font-family:var(--font-mono); font-size:13px; font-weight:800; color:#A78BFA;
-  text-align:right; padding:10px 8px; white-space:nowrap;
+  font-family:var(--font-mono); font-size:14px; font-weight:800; color:#A78BFA;
+  text-align:right; padding:12px 10px; white-space:nowrap;
   border-left:1px solid var(--c-bdr);
   font-variant-numeric:tabular-nums;
 }
@@ -1331,12 +1331,12 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
   margin-bottom:5px; background:var(--c-surf); border-radius:12px;
   border:1px solid var(--c-bdr); overflow:hidden;
 }
-.lb-rank { font-family:var(--font-mono); font-size:11px; color:var(--c-muted);
-  padding:12px 0 12px 14px; }
-.lb-name { font-size:14px; font-weight:700; padding:12px 10px; }
-.lb-sub { font-family:var(--font-mono); font-size:10px; color:var(--c-muted); margin-top:2px; }
-.lb-net { font-family:var(--font-mono); font-weight:700; font-size:15px; white-space:nowrap;
-  padding:12px 14px; text-align:right; border-left:1px solid var(--c-bdr); min-width:72px; }
+.lb-rank { font-family:var(--font-mono); font-size:12px; color:var(--c-muted);
+  padding:14px 0 14px 14px; }
+.lb-name { font-size:15px; font-weight:700; padding:14px 10px; }
+.lb-sub { font-family:var(--font-mono); font-size:11px; color:var(--c-muted); margin-top:3px; }
+.lb-net { font-family:var(--font-mono); font-weight:700; font-size:16px; white-space:nowrap;
+  padding:14px 14px; text-align:right; border-left:1px solid var(--c-bdr); min-width:76px; }
 .pos { color:var(--c-green); } .neg { color:var(--c-red); } .zero { color:var(--c-muted); }
 /* ── HISTORY — table cards ── */
 .gh-card { background:var(--c-surf); border:1px solid var(--c-bdr); border-radius:14px;
@@ -2883,10 +2883,10 @@ function _buildGameSummaryCanvas(s) {
   // so that at the shared image's natural resolution text is comfortably readable.
   var W = Math.min(window.innerWidth * 2, 900);
   var px = function(n) { return Math.round(n * W / 400); }; // 400 = base reference width
-  var PAD   = px(22);   // side padding
-  var ROW_H = px(44);   // standings row height
-  var XFR_H = px(37);   // settlement row height
-  var HDR_H = px(88);   // header zone height
+  var PAD   = px(24);   // side padding
+  var ROW_H = px(56);   // standings row height
+  var XFR_H = px(48);   // settlement row height
+  var HDR_H = px(100);  // header zone height
   var FONT = 'Inter, system-ui, sans-serif';
   var MONO = 'JetBrains Mono, monospace';
   var aRgb = currentTheme ? currentTheme.accentRgb : '124,58,237';
@@ -2915,25 +2915,21 @@ function _buildGameSummaryCanvas(s) {
   ctx.fillRect(0, 0, px(3), H);
 
   // ── HEADER ──
-  // "HUTTO" small label top-left
   ctx.fillStyle = 'rgba('+aRgb+',.85)';
-  ctx.font = '700 '+px(13)+'px '+MONO;
+  ctx.font = '700 '+px(15)+'px '+MONO;
   ctx.textAlign = 'left';
-  ctx.fillText('HUTTO', PAD + px(3), px(17));
+  ctx.fillText('HUTTO', PAD, px(19));
 
-  // "SHOWDOWN" big hero
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 '+px(40)+'px '+FONT;
-  ctx.fillText('SHOWDOWN', PAD + px(3), px(57));
+  ctx.font = '900 '+px(46)+'px '+FONT;
+  ctx.fillText('SHOWDOWN', PAD, px(66));
 
-  // "GAME SUMMARY" top-right
   ctx.fillStyle = 'rgba(255,255,255,.28)';
-  ctx.font = '600 '+px(11)+'px '+MONO;
+  ctx.font = '600 '+px(12)+'px '+MONO;
   ctx.textAlign = 'right';
-  ctx.fillText('GAME SUMMARY', W - PAD, px(17));
+  ctx.fillText('GAME SUMMARY', W - PAD, px(19));
   ctx.textAlign = 'left';
 
-  // Meta line: date · host · players · pot · duration
   var totalPot = srt.reduce(function(acc,p){return acc+p.buyins*buyin_;},0);
   var potFmt = '$'+(Number.isInteger(totalPot)?totalPot:totalPot.toFixed(2));
   var durStr = '';
@@ -2942,53 +2938,58 @@ function _buildGameSummaryCanvas(s) {
     durStr = ' · '+(dh>0?dh+'h ':'')+dm+'m';
   }
   var hostStr = s.host ? ' · '+s.host : '';
-  var metaLine = (s.date||'')+hostStr+' · '+s.players.length+'P · Pot '+potFmt+durStr;
-  ctx.fillStyle = 'rgba(255,255,255,.46)';
-  ctx.font = '500 '+px(12)+'px '+MONO;
-  ctx.fillText(metaLine, PAD+px(3), px(78));
+  var metaLine = (s.date||'')+hostStr+' · '+s.players.length+'P · '+potFmt+durStr;
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  // Shrink font until the meta fits within the content width
+  var metaSz = px(14);
+  ctx.font = '500 '+metaSz+'px '+MONO;
+  while (ctx.measureText(metaLine).width > W - PAD*2 - px(4) && metaSz > px(9)) {
+    metaSz -= 1;
+    ctx.font = '500 '+metaSz+'px '+MONO;
+  }
+  ctx.fillText(metaLine, PAD, px(88));
 
   // ── FINAL STANDINGS ──
-  var y = HDR_H + px(10);
+  var y = HDR_H + px(12);
   ctx.fillStyle = 'rgba('+aRgb+',.65)';
-  ctx.font = '800 '+px(14)+'px '+MONO;
+  ctx.font = '800 '+px(15)+'px '+MONO;
   ctx.textAlign = 'left';
-  ctx.fillText('FINAL STANDINGS', PAD, y + px(12));
-  y += px(18);
+  ctx.fillText('FINAL STANDINGS', PAD, y + px(14));
+  y += px(22);
 
   var medals = ['🥇','🥈','🥉'];
   srt.forEach(function(p, i) {
     var net = rd(p.cashOut - p.buyins*buyin_);
     var netColor = net > 0 ? '#22C55E' : net < 0 ? '#F87171' : '#9CA3AF';
 
-    // Alternating row bg, gold tint for winner
-    ctx.fillStyle = i === 0 ? 'rgba('+aRgb+',.15)' : (i % 2 === 0 ? 'rgba(255,255,255,.025)' : 'rgba(255,255,255,.045)');
-    _roundRect(ctx, PAD - px(4), y + px(1), W - PAD*2 + px(8), ROW_H - px(2), px(5));
+    ctx.fillStyle = i === 0 ? 'rgba('+aRgb+',.15)' : (i % 2 === 0 ? 'rgba(255,255,255,.03)' : 'rgba(255,255,255,.05)');
+    _roundRect(ctx, PAD - px(4), y + px(1), W - PAD*2 + px(8), ROW_H - px(2), px(6));
     ctx.fill();
 
-    var mid = y + ROW_H * 0.5; // vertical center of row
+    var mid = y + ROW_H * 0.5;
 
     // Medal / rank
-    ctx.fillStyle = '#9CA3AF';
-    ctx.font = '600 '+px(16)+'px '+FONT;
+    ctx.fillStyle = i < 3 ? '#D1D5DB' : '#6B7280';
+    ctx.font = '600 '+px(18)+'px '+FONT;
     ctx.textAlign = 'left';
     ctx.fillText(medals[i] || (i+1)+'.', PAD, mid + px(6));
 
     // Player name
-    ctx.fillStyle = i === 0 ? '#FFFFFF' : 'rgba(255,255,255,.88)';
-    ctx.font = (i===0?'800':'700')+' '+px(22)+'px '+FONT;
-    ctx.fillText(p.name+(s.host===p.name?' ★':''), PAD+px(28), mid - px(2));
+    ctx.fillStyle = i === 0 ? '#FFFFFF' : 'rgba(255,255,255,.9)';
+    ctx.font = (i===0?'800':'700')+' '+px(26)+'px '+FONT;
+    ctx.fillText(p.name+(s.host===p.name?' ★':''), PAD+px(32), mid - px(4));
 
-    // Buy-in / cashout sub-line
-    ctx.fillStyle = 'rgba(255,255,255,.38)';
-    ctx.font = '500 '+px(13)+'px '+MONO;
-    ctx.fillText('in '+fmt(p.buyins*buyin_)+'  ·  out '+fmt(p.cashOut||0), PAD+px(28), mid + px(14));
+    // Sub-line
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.font = '500 '+px(15)+'px '+MONO;
+    ctx.fillText('in '+fmt(p.buyins*buyin_)+'  ·  out '+fmt(p.cashOut||0), PAD+px(32), mid + px(16));
 
-    // Net (right-aligned, large)
+    // Net (right-aligned)
     ctx.fillStyle = netColor;
-    ctx.font = '900 '+px(24)+'px '+MONO;
+    ctx.font = '900 '+px(28)+'px '+MONO;
     ctx.textAlign = 'right';
     var netSign = net >= 0 ? '+' : '-';
-    ctx.fillText(netSign+'$'+(Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, mid + px(8));
+    ctx.fillText(netSign+'$'+(Number.isInteger(Math.abs(net))?Math.abs(net):Math.abs(net).toFixed(2)), W - PAD, mid + px(10));
     ctx.textAlign = 'left';
 
     y += ROW_H;
@@ -3002,47 +3003,42 @@ function _buildGameSummaryCanvas(s) {
     y += px(10);
 
     ctx.fillStyle = 'rgba('+cRgb+',.7)';
-    ctx.font = '800 '+px(14)+'px '+MONO;
+    ctx.font = '800 '+px(15)+'px '+MONO;
     ctx.textAlign = 'left';
-    ctx.fillText('WHO PAYS WHOM', PAD, y + px(12));
-    y += px(18);
+    ctx.fillText('WHO PAYS WHOM', PAD, y + px(14));
+    y += px(22);
 
-    // Fixed column positions: FROM | → | TO | AMT
     var cFrom  = PAD;
     var cArrow = PAD + Math.round((W - PAD*2) * 0.42);
-    var cTo    = cArrow + px(22);
+    var cTo    = cArrow + px(26);
 
     transfers.forEach(function(t) {
       ctx.fillStyle = 'rgba(255,255,255,.04)';
-      _roundRect(ctx, PAD - px(4), y + px(1), W - PAD*2 + px(8), XFR_H - px(2), px(5));
+      _roundRect(ctx, PAD - px(4), y + px(1), W - PAD*2 + px(8), XFR_H - px(2), px(6));
       ctx.fill();
 
       var mid = y + XFR_H * 0.5;
 
-      // FROM name (red)
       ctx.fillStyle = '#F87171';
-      ctx.font = '700 '+px(20)+'px '+FONT;
+      ctx.font = '700 '+px(24)+'px '+FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t.from, cFrom, mid + px(7));
+      ctx.fillText(t.from, cFrom, mid + px(8));
 
-      // Arrow
-      ctx.fillStyle = 'rgba(255,255,255,.28)';
-      ctx.font = '400 '+px(16)+'px '+FONT;
+      ctx.fillStyle = 'rgba(255,255,255,.3)';
+      ctx.font = '400 '+px(18)+'px '+FONT;
       ctx.textAlign = 'center';
-      ctx.fillText('→', cArrow, mid + px(7));
+      ctx.fillText('→', cArrow, mid + px(8));
 
-      // TO name (green)
       ctx.fillStyle = '#4ADE80';
-      ctx.font = '700 '+px(20)+'px '+FONT;
+      ctx.font = '700 '+px(24)+'px '+FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t.to, cTo, mid + px(7));
+      ctx.fillText(t.to, cTo, mid + px(8));
 
-      // Amount (right-aligned, accent color)
       var amtStr = '$'+(Number.isInteger(rd(t.amt))?rd(t.amt):rd(t.amt).toFixed(2));
       ctx.fillStyle = aHex;
-      ctx.font = '900 '+px(22)+'px '+MONO;
+      ctx.font = '900 '+px(26)+'px '+MONO;
       ctx.textAlign = 'right';
-      ctx.fillText(amtStr, W - PAD, mid + px(7));
+      ctx.fillText(amtStr, W - PAD, mid + px(9));
       ctx.textAlign = 'left';
 
       y += XFR_H;
