@@ -8624,7 +8624,8 @@ function _drawResultsCanvas() {
 function shareHistoryByDate(dateStr) {
   const s = allSessions.find(ss => ss.date === dateStr);
   if (!s) { notify('Game not found', 'err'); return; }
-  _drawSessionCanvas(s);
+  const canvas = _buildGameSummaryCanvas(s);
+  _showScreenshotModal(canvas);
 }
 
 // Draw a shareable canvas for ANY session object (historical or current)
