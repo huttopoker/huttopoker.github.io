@@ -3007,8 +3007,15 @@ function _buildGameSummaryCanvas(s) {
     y += px(22);
 
     var cFrom  = PAD;
-    var cArrow = PAD + Math.round((W - PAD*2) * 0.42);
-    var cTo    = cArrow + px(26);
+    var cArrow = PAD + Math.round((W - PAD*2) * 0.36);
+    var cTo    = cArrow + px(22);
+
+    var _cTrunc = function(text, maxW) {
+      if (ctx.measureText(text).width <= maxW) return text;
+      var s = text;
+      while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+      return s + '…';
+    };
 
     transfers.forEach(function(t) {
       ctx.fillStyle = 'rgba(255,255,255,.04)';
@@ -3016,11 +3023,16 @@ function _buildGameSummaryCanvas(s) {
       ctx.fill();
 
       var mid = y + XFR_H * 0.5;
+      var amtStr = '$'+(Number.isInteger(rd(t.amt))?rd(t.amt):rd(t.amt).toFixed(2));
+
+      // measure amount width first so we can truncate names to avoid overlap
+      ctx.font = '800 '+px(23)+'px '+MONO;
+      var amtW = ctx.measureText(amtStr).width + px(8);
 
       ctx.fillStyle = '#F87171';
       ctx.font = '700 '+px(24)+'px '+FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t.from, cFrom, mid + px(8));
+      ctx.fillText(_cTrunc(t.from, cArrow - cFrom - px(10)), cFrom, mid + px(8));
 
       ctx.fillStyle = 'rgba(255,255,255,.3)';
       ctx.font = '400 '+px(18)+'px '+FONT;
@@ -3030,13 +3042,12 @@ function _buildGameSummaryCanvas(s) {
       ctx.fillStyle = '#4ADE80';
       ctx.font = '700 '+px(24)+'px '+FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t.to, cTo, mid + px(8));
+      ctx.fillText(_cTrunc(t.to, (W - PAD) - cTo - amtW), cTo, mid + px(8));
 
-      var amtStr = '$'+(Number.isInteger(rd(t.amt))?rd(t.amt):rd(t.amt).toFixed(2));
       ctx.fillStyle = aHex;
-      ctx.font = '900 '+px(26)+'px '+MONO;
+      ctx.font = '800 '+px(23)+'px '+MONO;
       ctx.textAlign = 'right';
-      ctx.fillText(amtStr, W - PAD, mid + px(9));
+      ctx.fillText(amtStr, W - PAD, mid + px(8));
       ctx.textAlign = 'left';
 
       y += XFR_H;
@@ -5273,27 +5284,6 @@ function buildDashboardTab() {
       '</div>';
     }
   } catch(e) {}
-
-  /* ── SECTION C: TONIGHT POLL PREVIEW ── */
-  var inVoters = todayPoll ? todayPoll.filter(function(n){return n&&n.length>0;}) : [];
-  if (inVoters.length > 0) {
-    var myVote = inVoters.indexOf(myLinkedPlayer) >= 0;
-    html += '<div class="dash-section">'+
-      '<div class="dash-card">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-          '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--c-green);display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--c-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Active</div>'+
-          '<button onclick="setHTab(\'poll\')" style="padding:4px 10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:20px;color:var(--c-green);font-family:var(--font-mono);font-size:9px;cursor:pointer">View →</button>'+
-        '</div>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:4px">'+
-          inVoters.map(function(n){
-            var isMe = n===myLinkedPlayer;
-            return '<span style="padding:3px 9px;border-radius:20px;font-family:var(--font-mono);font-size:11px;background:'+(isMe?'rgba(167,139,250,.2)':'rgba(52,211,153,.08)')+';color:'+(isMe?'#A78BFA':'var(--c-green)')+';border:1px solid '+(isMe?'rgba(167,139,250,.3)':'rgba(52,211,153,.15)')+'">'+escH(n)+'</span>';
-          }).join('')+
-        '</div>'+
-        (!myVote && myLinkedPlayer ? '<button onclick="setHTab(\'poll\')" style="display:block;width:100%;margin-top:10px;padding:8px;background:rgba(52,211,153,.08);border:1px dashed rgba(52,211,153,.3);border-radius:10px;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer">+ Add your vote</button>' : '')+
-      '</div>'+
-    '</div>';
-  }
 
   /* ── SECTION D: LEADERBOARD — clean list, no bar charts ── */
   if (st && Object.keys(st.AT).length) {
@@ -8804,14 +8794,14 @@ function _showScreenshotModal(canvas) {
   shareBtn.onclick = async () => {
     try {
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], 'rake-results.png', { type: 'image/png' });
+      const file = new File([blob], 'hutto-showdown.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ title: 'Showdown Results', files: [file] });
       } else {
         // Fallback: download
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = 'rake-results.png';
+        a.download = 'hutto-showdown.png';
         a.click();
       }
     } catch(e) { if (e.name !== 'AbortError') notify('Could not share: ' + e.message, 'err'); }
