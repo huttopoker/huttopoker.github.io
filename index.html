@@ -139,14 +139,15 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   /* ── Status ── */
   --c-green:#22C55E; --c-red:#EF4444; --c-blue:#3B82F6; --c-purple:#8B5CF6; --c-orange:#F59E0B;
 
-  /* ── Backgrounds — deep navy, not pure black ── */
-  --c-bg:#060816; --c-bg2:#0D1117; --c-bg3:#111827; --c-bg4:#1a2130;
+  /* ── Backgrounds — near-black, modern 2025 ── */
+  --c-bg:#08080E; --c-bg2:#101018; --c-bg3:#16161F; --c-bg4:#1C1C28;
+  --c-bg-rgb:8,8,14;
 
-  /* ── Glass surfaces ── */
-  --c-surf:rgba(255,255,255,.04); --c-surf2:rgba(255,255,255,.07); --c-surf3:rgba(255,255,255,.11);
+  /* ── Solid dark surfaces (cards) ── */
+  --c-surf:rgba(255,255,255,.05); --c-surf2:rgba(255,255,255,.09); --c-surf3:rgba(255,255,255,.13);
 
-  /* ── Borders — barely-there, elegant ── */
-  --c-bdr:rgba(255,255,255,.08); --c-bdr2:rgba(255,255,255,.13);
+  /* ── Borders — crisp and modern ── */
+  --c-bdr:rgba(255,255,255,.09); --c-bdr2:rgba(255,255,255,.15);
 
   /* ── Text ── */
   --c-txt:#F9FAFB; --c-txt2:#9CA3AF; --c-muted:#6B7280; --c-muted2:#4B5563;
@@ -201,20 +202,24 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 html { height:100%; font-size:16px; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-body { background:var(--c-bg); color:var(--c-txt); font-family:var(--font-body);
+body { background:linear-gradient(180deg, #0E0A1C 0%, #09090E 30%, #06060A 100%);
+  color:var(--c-txt); font-family:var(--font-body);
   min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale; line-height:1.65; font-size:16px;
   font-feature-settings:'kern' 1,'liga' 1,'calt' 1; letter-spacing:0.01em; }
-/* Modern background — clean grid mesh with single top glow */
+/* Premium background — strong violet crown glow + crisp grid */
 body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background:
-    radial-gradient(ellipse 100% 55% at 50% -5%, rgba(139,92,246,.13) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 35% at 100% 100%, rgba(6,182,212,.06) 0%, transparent 60%); }
+    radial-gradient(ellipse 130% 55% at 50% -8%, rgba(109,40,217,.35) 0%, rgba(124,58,237,.10) 40%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,92,246,.18) 0%, transparent 45%),
+    radial-gradient(ellipse 40% 25% at 90% 95%, rgba(6,182,212,.09) 0%, transparent 55%); }
 body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background-image:
-    linear-gradient(rgba(139,92,246,.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139,92,246,.055) 1px, transparent 1px);
-  background-size: 36px 36px; mask-image:radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent 100%); -webkit-mask-image:radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent 100%); }
+    linear-gradient(rgba(139,92,246,.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,.09) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image:radial-gradient(ellipse 110% 70% at 50% 0%, black 20%, transparent 90%);
+  -webkit-mask-image:radial-gradient(ellipse 110% 70% at 50% 0%, black 20%, transparent 90%); }
 /* orbs hidden — CSS grid replaces them */
 #bg-orbs { display:none; }
 .bg-orb { display:none; }
@@ -838,9 +843,9 @@ html { -webkit-text-size-adjust: 100%; }
 /* ── LEFT SIDE NAV DRAWER ── */
 #more-sheet {
   position:fixed;
-  top:calc(env(safe-area-inset-top,0px) + 56px); left:0; bottom:0;
-  width:260px;
-  z-index:3200;
+  top:0; left:0; bottom:0;
+  width:min(300px,85vw);
+  z-index:4200;
   background:linear-gradient(160deg, rgba(12,8,28,.99) 0%, rgba(6,8,22,.98) 60%, rgba(4,12,20,.99) 100%);
   backdrop-filter:blur(40px) saturate(2); -webkit-backdrop-filter:blur(40px) saturate(2);
   border-right:1px solid rgba(var(--c-gold-rgb,124,58,237),.2);
@@ -856,15 +861,9 @@ html { -webkit-text-size-adjust: 100%; }
 #more-sheet.qp-open {
   transform:translateX(0);
 }
-/* Main content shifts right when drawer opens */
-body.nav-open .wrap {
-  transform:translateX(260px);
-  transition:transform .26s cubic-bezier(.4,0,.2,1);
-}
-body:not(.nav-open) .wrap {
-  transform:translateX(0);
-  transition:transform .26s cubic-bezier(.4,0,.2,1);
-}
+/* Drawer overlays — content stays in place */
+body.nav-open .wrap { transform:none; }
+body:not(.nav-open) .wrap { transform:none; }
 /* Header stays fixed — only .wrap shifts */
 /* dropdown row — clean, no icon boxes */
 .mdd-row {
@@ -896,12 +895,12 @@ body:not(.nav-open) .wrap {
 .mdd-text { flex:1; min-width:0; }
 .mdd-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.75); line-height:1; letter-spacing:.2px; }
 .mdd-row.mdd-active .mdd-label { color:var(--c-gold,#C4B5FD); font-weight:700; }
-.mdd-desc { font-size:10px; color:rgba(255,255,255,.3); margin-top:2px; }
+.mdd-desc { font-family:var(--font-body); font-size:12px; color:rgba(255,255,255,.35); margin-top:3px; }
 .mdd-check { display:none; }
 .mdd-section-lbl {
-  font-family:var(--font-mono); font-size:9px; color:rgba(var(--c-gold-rgb,167,139,250),.5);
-  text-transform:uppercase; letter-spacing:2px;
-  padding:12px 16px 6px;
+  font-family:var(--font-body); font-size:11px; font-weight:700; color:rgba(var(--c-gold-rgb,167,139,250),.55);
+  text-transform:uppercase; letter-spacing:1.2px;
+  padding:16px 16px 6px;
 }
 .mdd-divider { height:1px; background:rgba(255,255,255,.06); margin:6px 0; }
 
@@ -1929,16 +1928,16 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
 <!-- LEFT SIDE NAV DRAWER -->
 <div id="more-sheet-bg" onclick="closeHomeMore()"
-  style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px)+56px);left:260px;right:0;bottom:0;z-index:3100;
-    background:rgba(0,0,0,.2)"></div>
+  style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:4100;
+    background:rgba(0,0,0,.65);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)"></div>
 <div id="more-sheet" role="dialog" aria-label="Navigation menu">
 
   <!-- Drawer Brand Header -->
-  <div style="padding:18px 16px 14px;background:linear-gradient(135deg,rgba(var(--c-gold-rgb,124,58,237),.18) 0%,rgba(var(--c-comp-rgb,6,182,212),.08) 100%);border-bottom:1px solid rgba(var(--c-gold-rgb,124,58,237),.18);position:relative;overflow:hidden">
+  <div style="padding:calc(env(safe-area-inset-top,20px) + 24px) 18px 16px;background:linear-gradient(135deg,rgba(var(--c-gold-rgb,124,58,237),.22) 0%,rgba(var(--c-comp-rgb,6,182,212),.06) 100%);border-bottom:1px solid rgba(var(--c-gold-rgb,124,58,237),.18);position:relative;overflow:hidden">
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 0% 50%,rgba(var(--c-gold-rgb,124,58,237),.12) 0%,transparent 70%);pointer-events:none"></div>
     <div style="font-family:var(--font-logo);font-size:9.5px;font-weight:700;letter-spacing:4px;color:rgba(var(--c-gold-rgb,167,139,250),.9);text-transform:uppercase;line-height:1;margin-bottom:3px;position:relative">HUTTO</div>
     <div style="font-family:var(--font-logo);font-size:20px;font-weight:900;letter-spacing:2.5px;background:linear-gradient(115deg,#DDD6FE 0%,#ffffff 45%,#BAE6FD 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;position:relative">SHOWDOWN</div>
-    <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-top:5px;position:relative">Poker Night Tracker</div>
+    <div style="font-family:var(--font-body);font-size:12px;font-weight:500;letter-spacing:.5px;color:rgba(255,255,255,.35);margin-top:6px;position:relative">Poker Night Tracker</div>
   </div>
 
   <!-- SECTION: Navigate -->
