@@ -240,7 +240,7 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .mdd-section-lbl { color: rgba(var(--c-gold-rgb,124,58,237),.65) !important; }
   .mdd-row + .mdd-row { border-top-color: rgba(0,0,0,.06) !important; }
   /* Cards use CSS vars so they auto-adapt via --c-bg2/--c-bg3 */
-  .section-lbl { color: rgba(26,16,53,.7) !important; border-left-color: var(--c-gold,#7C3AED) !important; }
+  .section-lbl { color: var(--c-gold,#B45309) !important; background: rgba(var(--c-gold-rgb,255,215,0),.10) !important; border-color: rgba(var(--c-gold-rgb,255,215,0),.3) !important; }
   .btn-ghost { border-color: rgba(0,0,0,.14) !important; color: rgba(26,16,53,.7) !important; }
   /* Input fields */
   .finp { background: #FFFFFF !important; border-color: rgba(0,0,0,.14) !important; color: #1A1035 !important; }
@@ -260,7 +260,7 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .g-live-pot { color: var(--c-gold,#FFD700) !important; text-shadow: 0 0 16px rgba(var(--c-gold-rgb,255,215,0),.3) !important; }
   .g-live-meta { color: rgba(240,242,255,.45) !important; }
   .g-live-host select { color: rgba(240,242,255,.75) !important; }
-  .p-card { background: linear-gradient(135deg,rgba(7,8,12,.96),rgba(7,8,12,.88)) !important; border-color: rgba(var(--c-gold-rgb,255,215,0),.10) !important; }
+  .p-card { background: rgba(255,255,255,.09) !important; border-color: rgba(var(--c-gold-rgb,255,215,0),.28) !important; }
   .p-card-main { background: transparent !important; }
   .p-card-name { color: #F0F2FF !important; }
   .p-card-total { color: rgba(240,242,255,.5) !important; }
@@ -385,15 +385,37 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 .ah-right { display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0; }
 .ah-more-btn {
   display:flex; align-items:center; justify-content:center;
-  width:40px; height:40px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-  border-radius:11px; cursor:pointer; color:rgba(255,255,255,.65); transition:all .18s;
+  width:40px; height:40px; background:rgba(var(--c-gold-rgb,255,215,0),.12); border:1.5px solid rgba(var(--c-gold-rgb,255,215,0),.3);
+  border-radius:11px; cursor:pointer; color:var(--c-gold,#FFD700); transition:all .18s;
   flex-shrink:0;
 }
-.ah-more-btn:active, .ah-more-btn:hover { background:rgba(var(--c-gold-rgb,124,58,237),.18); color:var(--c-gold,#A78BFA); border-color:rgba(var(--c-gold-rgb,124,58,237),.35); }
+.ah-more-btn:active, .ah-more-btn:hover { background:rgba(var(--c-gold-rgb,255,215,0),.22); border-color:rgba(var(--c-gold-rgb,255,215,0),.55); }
+@media(prefers-color-scheme:light) {
+  .ah-more-btn { background:rgba(var(--c-gold-rgb,255,215,0),.15) !important; border-color:rgba(var(--c-gold-rgb,255,215,0),.45) !important; color:var(--c-gold,#B45309) !important; }
+}
 .ah-more-btn.menu-open { background:rgba(var(--c-gold-rgb,124,58,237),.18); color:var(--c-gold,#A78BFA); border-color:rgba(var(--c-gold-rgb,124,58,237),.35); }
 .ah-right-stack { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
 .wrap { position:relative; z-index:1; width:100%;
-  padding:calc(env(safe-area-inset-top,0px) + 72px) 18px calc(env(safe-area-inset-bottom,0px) + 88px); }
+  padding:calc(env(safe-area-inset-top,0px) + 72px) 14px calc(env(safe-area-inset-bottom,0px) + 88px); }
+/* Game screens: edge-to-edge, fill viewport so no light body bleeds below */
+#screen-game, #screen-cashout, #screen-review {
+  margin-left:-14px; margin-right:-14px; padding-left:14px; padding-right:14px;
+  min-height:calc(100dvh - 60px);
+}
+/* When a game screen is active, darken the body/overlay so no white shows below content */
+@media(prefers-color-scheme:light) {
+  body:has(#screen-game.active),
+  body:has(#screen-cashout.active),
+  body:has(#screen-review.active) {
+    background-color:#07080C !important;
+    background-image:none !important;
+  }
+  body:has(#screen-game.active) #bg-overlay,
+  body:has(#screen-cashout.active) #bg-overlay,
+  body:has(#screen-review.active) #bg-overlay {
+    background: rgba(7,8,12,0.72) !important;
+  }
+}
 .screen { display:none; }
 .screen.active { display:block; animation:fadeIn .18s ease; }
 /* No transform in animation — transform creates stacking context that breaks position:fixed children on iOS Safari */
@@ -499,11 +521,13 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 .page-title { font-family:var(--font-heading); font-size:26px; font-weight:700; letter-spacing:0.2px; color:var(--c-txt,#FFFFFF);
   margin-bottom:16px; padding-top:20px; padding-bottom:4px; overflow:visible; line-height:1.3;
   text-shadow:none; -webkit-text-fill-color:var(--c-txt,#FFFFFF); }
-.section-lbl { font-family:var(--font-body); font-size:12px; text-transform:uppercase;
-  letter-spacing:.8px; color:var(--c-muted,rgba(255,255,255,.7)); border-bottom:none; font-weight:700;
-  padding:0 0 9px 12px; margin-bottom:13px; display:flex; align-items:center; gap:8px;
-  position:relative; border-left:2px solid var(--c-gold,rgba(139,92,246,.85)); }
-.section-lbl::after { content:''; position:absolute; left:0; bottom:0; width:100%; height:1px;
+.section-lbl { font-family:var(--font-body); font-size:11px; text-transform:uppercase;
+  letter-spacing:1px; color:var(--c-gold,#FFD700); font-weight:700;
+  padding:3px 10px; margin-bottom:13px; display:inline-flex; align-items:center; gap:6px;
+  width:fit-content;
+  background:rgba(var(--c-gold-rgb,255,215,0),.12); border:1px solid rgba(var(--c-gold-rgb,255,215,0),.28);
+  border-radius:6px; }
+.section-lbl::after { display:none; content:''; position:absolute; left:0; bottom:0; width:100%; height:1px;
   background:linear-gradient(90deg,rgba(var(--c-gold-rgb,124,58,237),.3) 0%,rgba(var(--c-comp-rgb,6,182,212),.15) 60%,transparent 100%); }
 
 /* ── Tonight's Game HUD ── */
@@ -517,7 +541,7 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
   box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.06), 0 2px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
 }
 .g-live-pot {
-  font-family:var(--font-heading); font-size:36px; font-weight:900; letter-spacing:-2px;
+  font-family:'JetBrains Mono','Fira Mono',monospace; font-size:34px; font-weight:700; letter-spacing:-1px;
   color:var(--c-gold,#FFD700); line-height:1;
   text-shadow: 0 0 28px rgba(var(--c-gold-rgb,255,215,0),.5), 0 0 60px rgba(var(--c-gold-rgb,255,215,0),.2);
 }
@@ -698,8 +722,8 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 /* Card does NOT move — action strip reveals at the edge (iOS Reminders / Mail pattern) */
 .p-card { position:relative; overflow:hidden; cursor:grab; }
 .p-card.early-out { cursor:default; }
-/* p-card-main sits on top with its own background so color only shows at edges */
-.p-card-main { position:relative; z-index:2; background:rgba(var(--c-bg-rgb,8,10,24),.88); }
+/* p-card-main: transparent so the card border/bg shows cleanly */
+.p-card-main { position:relative; z-index:2; background:transparent; }
 /* Swipe fill layers — gradient behind card, reveal from each edge */
 .pc-fill-r { position:absolute; top:0; bottom:0; left:0; width:0;
   background:linear-gradient(135deg,#059669 0%,#10B981 60%,#34D399 100%);
@@ -1100,21 +1124,21 @@ body:not(.nav-open) .wrap { transform:none; }
 /* ── PLAYER CARD (game) ── */
 /* ── COMPACT PLAYER CARD (live game) — game HUD style ── */
 .p-card {
-  background: linear-gradient(135deg, rgba(var(--c-bg-rgb,7,8,12),.96) 0%, rgba(var(--c-bg-rgb,7,8,12),.88) 100%);
-  border:1px solid rgba(var(--c-gold-rgb,255,215,0),.10);
-  border-radius:16px;
-  margin-bottom:8px; overflow:hidden;
+  background: rgba(255,255,255,.07);
+  border:1px solid rgba(var(--c-gold-rgb,255,215,0),.22);
+  border-radius:14px;
+  margin-bottom:6px; overflow:hidden;
   transition:box-shadow .25s, transform .12s, border-color .25s;
-  box-shadow: 0 2px 12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 1px 6px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .p-card:active { transform:scale(.985); }
-.p-card:hover { border-color:rgba(var(--c-gold-rgb,255,215,0),.22); box-shadow:0 4px 24px rgba(0,0,0,.5), 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.08); }
+.p-card:hover { border-color:rgba(var(--c-gold-rgb,255,215,0),.4); background:rgba(255,255,255,.10); }
 .p-card.early-out { opacity:.45; }
-.p-card-main { display:flex; align-items:center; min-height:56px; padding:0 10px 0 14px; gap:10px; }
+.p-card-main { display:flex; align-items:center; min-height:52px; padding:0 12px; gap:10px; }
 .p-card-name { flex:1; min-width:0; font-family:var(--font-body); font-size:15px; font-weight:700; color:var(--c-txt,#F0F2FF);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.1px; }
 /* Count + total as horizontal siblings — spread across card */
-.p-card-count { font-family:var(--font-heading); font-size:22px; font-weight:900; line-height:1; letter-spacing:-1px; flex-shrink:0; transition:color .2s, text-shadow .2s; }
+.p-card-count { font-family:'JetBrains Mono','Fira Mono',monospace; font-size:22px; font-weight:700; line-height:1; letter-spacing:-0.5px; flex-shrink:0; transition:color .2s, text-shadow .2s; }
 .p-card-total { font-family:var(--font-body); font-size:12px; font-weight:700; color:var(--c-muted); letter-spacing:0.1px; white-space:nowrap; flex-shrink:0; min-width:38px; text-align:right; }
 .p-card-sub { font-family:var(--font-body); font-size:12px; color:var(--c-txt2,rgba(255,255,255,.55)); margin-top:3px; }
 .p-card-controls { display:flex; align-items:center; gap:6px; padding-right:12px; flex-shrink:0; }
@@ -1846,12 +1870,8 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 
 <!-- ══ GLOBAL STICKY HEADER — appears on every screen ══ -->
 <header id="app-header">
-  <!-- Hamburger LEFT — opens left drawer -->
-  <button id="ah-more-btn" class="ah-more-btn" onclick="toggleHomeMore()" aria-label="Menu" style="display:none;flex-shrink:0">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
-  </button>
-  <!-- Brand centered -->
-  <div class="ah-brand" style="flex:1;display:flex;align-items:center;justify-content:flex-start;gap:0;margin-left:10px">
+  <!-- Brand LEFT -->
+  <div class="ah-brand" style="flex:1;display:flex;align-items:center;gap:0">
     <div class="ah-logo-wrap">
       <div class="ah-logo-row">
         <span class="ah-badge" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.9"><path d="M12 2L9 9H2l5.5 4L5 20l7-5 7 5-2.5-7L22 9h-7z"/></svg></span>
@@ -1862,11 +1882,15 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       </div>
     </div>
   </div>
-  <!-- Right: page context + sync -->
+  <!-- Right: sync + page label + hamburger -->
   <div class="ah-right" style="flex-shrink:0">
     <div id="sync-pill" class="sync-pill live" role="status" aria-live="polite" style="display:none"><div class="sync-dot"></div><span>LIVE SYNC</span></div>
-    <div id="ah-page" style="font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <div id="ah-page" style="font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
     <div id="theme-pill" style="display:none"></div>
+    <!-- Hamburger RIGHT -->
+    <button id="ah-more-btn" class="ah-more-btn" onclick="toggleHomeMore()" aria-label="Menu" style="display:none;flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 </header>
 <div id="sync-warn-bar" class="sync-warn-bar" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="sync-warn-msg">Sync lost — changes may not save</span></div>
@@ -3676,7 +3700,12 @@ async function bootApp() {
     autoArchiveInactive();
     _cleanStuckSessions().catch(function(){});
     patchMay30Payments().catch(function(){});
-    if (dbOk) { isOnline = true; setSyncPill(true); saveCache(); }
+    if (dbOk) {
+      isOnline = true; setSyncPill(true); saveCache();
+      // Re-render home tabs with fresh DB data so deleted sessions disappear
+      try { buildDashboardTab(); } catch(_) {}
+      try { buildHistoryTab && buildHistoryTab(); } catch(_) {}
+    }
     else { isOnline = false; setSyncPill(false); }
   } catch(e) {
     console.warn('Boot DB error:', e.message || e);
@@ -6775,7 +6804,10 @@ async function refreshData() {
     if (accts!==null) accounts=accts;
     todayPoll = poll;
     buildRoster(); isOnline=true; setSyncPill(true); saveCache();
-    renderHome(); notify('Refreshed \u2714');
+    renderHome();
+    try { buildDashboardTab(); } catch(_) {}
+    try { if (typeof buildHistoryTab === 'function') buildHistoryTab(); } catch(_) {}
+    notify('Refreshed \u2714');
   } catch(e) { notify('Could not reach server','err'); }
 }
 
@@ -8895,25 +8927,31 @@ function _drawSessionCanvas(s) {
   const srt = s.players.slice().sort((a,b) =>
     (b.cashOut - b.buyins * BUYIN_AMT) - (a.cashOut - a.buyins * BUYIN_AMT));
 
-  const W = Math.min(window.innerWidth * 2, 900);
-  const SCALE = 2;
-  const PAD = 40;
   const FONT = 'Inter, system-ui, sans-serif';
   const MONO = 'JetBrains Mono, monospace';
   const totalPot = s.players.reduce((t,p) => t + p.buyins * BUYIN_AMT, 0);
   const dur = s.durationSecs ? (()=>{const h=Math.floor(s.durationSecs/3600),m=Math.floor((s.durationSecs%3600)/60);return (h>0?h+'h ':'')+m+'m';})() : null;
 
+  // Draw in a fixed 780-wide reference space, then scale to fill the phone's physical pixels
+  const SCALE = 2; // reference scale factor (font sizes were calibrated at this)
+  const REF_W = 780; // reference canvas width
+  const DPR = window.devicePixelRatio || 2;
+  const SC = Math.round(window.innerWidth) * DPR / REF_W; // scale: ref→physical
+  const PAD = 40; // reference space padding
+  const W = REF_W; // draw in reference space; canvas.width is scaled below
+
   const rows = srt.length + transfers.length;
-  const H = 220 + rows * 56 + (transfers.length ? 90 : 0) + 80;
+  const H = 220 + rows * 56 + (transfers.length ? 90 : 0) + 80; // reference height
   const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
+  canvas.width = Math.round(REF_W * SC); canvas.height = Math.round(H * SC);
   const ctx = canvas.getContext('2d');
+  ctx.scale(SC, SC); // everything drawn in reference space fills the physical canvas
 
   // Background
   ctx.fillStyle = '#0F0F1A'; ctx.fillRect(0, 0, W, H);
   const grad = ctx.createLinearGradient(0, 0, W, 0);
   grad.addColorStop(0, 'rgba(245,158,11,.22)'); grad.addColorStop(1, 'rgba(245,158,11,0)');
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, 90);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, REF_W, 90);
 
   // Title
   ctx.fillStyle = '#F59E0B';
