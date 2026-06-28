@@ -284,16 +284,24 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .poll-card { background: linear-gradient(135deg,rgba(237,233,254,.8) 0%,rgba(221,214,254,.6) 100%) !important; }
   /* Modals */
   .modal-box { background: rgba(247,245,255,.98) !important; border-color: rgba(0,0,0,.12) !important; }
-  /* Dash / stats cards that use hardcoded white-alpha borders turn invisible in light mode */
-  .dash-section > div, .dash-section > button,
-  .hist-card, .pperf-card, .stile-card, .co-section-card {
+  /* Stats player performance cards */
+  .pperf-card { background: #FFFFFF !important; border-color: rgba(0,0,0,.09) !important; box-shadow: var(--shd) !important; }
+  .pperf-card.pperf-open { background: #F8F9FF !important; border-color: rgba(var(--c-gold-rgb,124,58,237),.25) !important; }
+  .pperf-body { border-top-color: rgba(0,0,0,.08) !important; }
+  .pperf-header:active { background: rgba(0,0,0,.04) !important; }
+  /* Settle tiles — keep dark since settle screen is always dark game flow */
+  /* Dashboard and history cards */
+  .dash-section [style*="background:var(--c-bg2)"], .hist-card {
     box-shadow: var(--shd) !important;
-    border-color: rgba(0,0,0,.07) !important;
   }
-  /* Any inline-style element using white-alpha background becomes white card */
-  .screen:not(#screen-game):not(#screen-cashout):not(#screen-review) [style*="rgba(255,255,255,.0"] {
-    background: rgba(0,0,0,.04) !important;
-  }
+  /* History card borders */
+  .hist-card { border-color: rgba(0,0,0,.08) !important; }
+  .hist-card.mine { border-color: rgba(var(--c-gold-rgb,124,58,237),.25) !important; }
+  /* Cashout progress */
+  .co-progress { box-shadow: var(--shd) !important; }
+  /* Stats tab pills */
+  .stat-tabs { background: rgba(0,0,0,.06) !important; }
+  .stat-tab { color: var(--c-muted) !important; }
 }
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 /* ── ACCESSIBILITY — keyboard focus rings ── */
@@ -718,20 +726,20 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 /* sync pill replaced by .sync-dot-inline */
 .live-timer-wrap { text-align:right; }
 /* ── Stats: player performance view ── */
-.stat-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;}
-.stat-tab{flex:1;padding:7px 4px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:.5px;cursor:pointer;text-transform:uppercase;transition:all .18s;}
+.stat-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--c-surf2);border-radius:10px;padding:3px;}
+.stat-tab{flex:1;padding:7px 4px;border-radius:7px;border:none;background:transparent;color:var(--c-muted);font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:.5px;cursor:pointer;text-transform:uppercase;transition:all .18s;}
 .stat-tab.stat-tab-on{background:rgba(var(--c-gold-rgb,124,58,237),.3);color:var(--c-gold,#DDD6FE);}
-.pperf-card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
-.pperf-card.pperf-open{border-color:rgba(255,255,255,.14);}
+.pperf-card{background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:12px;padding:0;margin-bottom:8px;overflow:hidden;transition:border-color .2s,background .2s;box-shadow:var(--shd);}
+.pperf-card.pperf-open{border-color:rgba(var(--c-gold-rgb,167,139,250),.4);background:var(--c-surf2);}
 .pperf-header{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
-.pperf-header:active{background:rgba(255,255,255,.03);}
+.pperf-header:active{background:var(--c-surf3);}
 .pperf-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;}
 .pperf-name{font-size:13px;font-weight:700;color:var(--c-txt);}
 .pperf-net{font-family:var(--font-mono);font-size:14px;font-weight:800;}
 .pperf-meta{font-family:var(--font-body);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.3px;}
-.pperf-chevron{margin-left:auto;flex-shrink:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);transition:transform .25s;}
-.pperf-open .pperf-chevron{transform:rotate(180deg);color:rgba(255,255,255,.5);}
-.pperf-body{display:none;padding:0 12px 12px;border-top:1px solid rgba(255,255,255,.05);}
+.pperf-chevron{margin-left:auto;flex-shrink:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--c-muted2);transition:transform .25s;}
+.pperf-open .pperf-chevron{transform:rotate(180deg);color:var(--c-txt2);}
+.pperf-body{display:none;padding:0 12px 12px;border-top:1px solid var(--c-bdr);}
 .pperf-open .pperf-body{display:block;}
 /* Dashboard cards */
 .dash-section{margin-bottom:14px;}
@@ -5366,7 +5374,7 @@ async function buildSettleHomeTab() {
   } else {
     recentGames.forEach((s, i) => {
       if (!s.players || !s.players.every(p=>p.cashOut!=null)) return;
-      const txns = settle(s.players);
+      const txns = settleWithBuyin(s.players, s.buyin);
       if (!txns.length) return;
       const bid = 'sh-'+i;
       const txnHtml = txns.map(t =>
@@ -5377,11 +5385,16 @@ async function buildSettleHomeTab() {
           '<div style="font-family:var(--font-mono);font-weight:700;color:var(--c-gold)">'+fmt(t.amt)+'</div>'+
         '</div>'
       ).join('');
+      // Verify balance: sum of cashouts must equal sum of buyins
+      var _pIn2 = s.players.reduce(function(sum,p){return sum+dimes(rd(p.buyins*(s.buyin||BUYIN)));},0);
+      var _pOut2 = s.players.reduce(function(sum,p){return sum+dimes(rd(p.cashOut||0));},0);
+      var _balanced = Math.abs(_pOut2-_pIn2)<=1;
+      var _potAmt = fromD(_pIn2);
       html += '<div class="gh-card" style="margin-bottom:8px">'+
         '<div class="gh-hdr" onclick="var b=document.getElementById(\''+bid+'\');var c=this.querySelector(\'.gh-chev\');b.classList.toggle(\'open\');c.classList.toggle(\'open\')">'+
           '<div>'+
             '<div class="gh-date" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>'+escH(s.date)+'</div>'+
-            '<div class="gh-meta">'+txns.length+' transfer'+(txns.length!==1?'s':'')+(s.host?' &middot; <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'+escH(s.host):'')+'</div>'+
+            '<div class="gh-meta">'+txns.length+' transfer'+(txns.length!==1?'s':'')+' &middot; <span style="font-family:var(--font-mono);font-weight:700">'+fmt(_potAmt)+'</span> pot'+(_balanced?' <span style="color:var(--c-green)">&#10003;</span>':'<span style="color:var(--c-red)"> !</span>')+'</div>'+
           '</div>'+
           '<div class="gh-chev">&#9660;</div>'+
         '</div>'+
@@ -5577,27 +5590,88 @@ function buildDashboardTab() {
     }
   } catch(e) {}
 
-  /* ── SECTION D: LEADERBOARD — clean list, no bar charts ── */
+  /* ── SECTION D: LEADERBOARD + GROUP STATS ── */
   if (st && Object.keys(st.AT).length) {
     var leaders = Object.entries(st.AT).filter(function(e){return !archivedPlayers.has(e[0]);}).sort(function(a,b){return b[1].net-a[1].net;}).slice(0,5);
     var medals = ['🥇','🥈','🥉'];
+    // Group stats
+    var totalPot = allSessions.reduce(function(s,g){return s+g.players.reduce(function(a,p){return a+p.buyins*(g.buyin||BUYIN);},0);},0);
+    var totalGames = allSessions.length;
+    var activePcount = Object.keys(st.AT).filter(function(n){return !archivedPlayers.has(n);}).length;
+    var lastThree = allSessions.slice().sort(function(a,b){return (b.id||0)-(a.id||0);})
+      .filter(function(s){return s.ended&&s.players.some(function(p){return p.cashOut!=null&&p.cashOut>0;});})
+      .slice(0,3);
+    // Recent winners for each of last 3 games
+    var recentWinners = lastThree.map(function(s){
+      var winners = s.players.filter(function(p){return p.cashOut!=null;}).sort(function(a,b){
+        return rd((b.cashOut||0)-b.buyins*(s.buyin||BUYIN))-rd((a.cashOut||0)-a.buyins*(s.buyin||BUYIN));
+      });
+      var w = winners[0];
+      var wNet = w ? rd((w.cashOut||0)-w.buyins*(s.buyin||BUYIN)) : 0;
+      return {date:s.date||'', name:w?w.name:'?', net:wNet, players:s.players.length};
+    });
     html += '<div class="dash-section">'+
-      '<div style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px">'+
-          '<span style="font-size:12px;font-weight:600;color:var(--c-txt)">Leaderboard</span>'+
-          '<button onclick="setHTab(\'stats\')" style="font-size:11px;color:var(--c-muted);background:none;border:none;cursor:pointer;padding:2px 0">All stats →</button>'+
+      // KPI strip
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">'+
+        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
+          '<div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-gold,#FFD700)">'+totalGames+'</div>'+
+          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Games</div>'+
+        '</div>'+
+        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
+          '<div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:var(--c-txt)">'+fmt(totalPot)+'</div>'+
+          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Total Pot</div>'+
+        '</div>'+
+        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
+          '<div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-txt)">'+activePcount+'</div>'+
+          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Players</div>'+
+        '</div>'+
+      '</div>'+
+      // Leaderboard
+      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;overflow:hidden;box-shadow:var(--shd);margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 8px">'+
+          '<span style="font-size:12px;font-weight:700;color:var(--c-txt);text-transform:uppercase;letter-spacing:.5px">Leaderboard</span>'+
+          '<button onclick="setHTab(\'stats\')" style="font-size:11px;color:var(--c-gold,#FFD700);background:none;border:none;cursor:pointer;padding:2px 0;font-weight:600">All stats →</button>'+
         '</div>'+
         leaders.map(function(e,i){
           var n=e[0], d=e[1];
           var isMe = n===myLinkedPlayer;
           var pos = d.net >= 0;
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid rgba(255,255,255,.04);'+(isMe?'background:rgba(var(--c-gold-rgb,255,215,0),.05)':'')+'">'+
-            '<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0">'+(i<3?medals[i]:'')+'</span>'+
-            '<span style="flex:1;font-size:13px;font-weight:'+(isMe?'700':'500')+';color:'+(isMe?'var(--c-gold,#FFD700)':'var(--c-txt)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</span>'+
-            '<span style="font-size:13px;font-weight:700;color:'+(pos?'var(--c-green)':'var(--c-red)')+'">'+fmtS(d.net)+'</span>'+
+          var wr2 = d.sessions>0?Math.round(d.wins/d.sessions*100):0;
+          // Mini form dots (last 4 games)
+          var pForm = allSessions.slice().sort(function(a,b){return (b.id||0)-(a.id||0);})
+            .filter(function(s){return s.players.some(function(p){return p.name===n;});}).slice(0,4)
+            .map(function(s){
+              var pl=s.players.find(function(p){return p.name===n;});
+              var net2=rd((pl.cashOut||0)-pl.buyins*(s.buyin||BUYIN));
+              return '<span style="width:6px;height:6px;border-radius:50%;display:inline-block;background:'+(net2>0?'var(--c-green)':net2<0?'rgba(239,68,68,.8)':'var(--c-muted)')+'"></span>';
+            }).reverse().join('');
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--c-bdr);'+(isMe?'background:rgba(var(--c-gold-rgb,255,215,0),.07)':'')+'">'+
+            '<span style="font-size:14px;width:18px;text-align:center;flex-shrink:0">'+(i<3?medals[i]:'<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+(i+1)+'</span>')+'</span>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:13px;font-weight:'+(isMe?'700':'500')+';color:'+(isMe?'var(--c-gold,#FFD700)':'var(--c-txt)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</div>'+
+              '<div style="display:inline-flex;gap:2px;align-items:center;margin-top:2px">'+pForm+'</div>'+
+            '</div>'+
+            '<div style="text-align:right;flex-shrink:0">'+
+              '<div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:'+(pos?'var(--c-green)':'var(--c-red)')+'">'+fmtS(d.net)+'</div>'+
+              '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">'+wr2+'% win</div>'+
+            '</div>'+
           '</div>';
         }).join('')+
       '</div>'+
+      // Recent winners
+      (recentWinners.length ? '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:14px;overflow:hidden;box-shadow:var(--shd)">'+
+        '<div style="padding:10px 14px 6px;font-size:11px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px">Recent Games</div>'+
+        recentWinners.map(function(r,i){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--c-bdr)">'+
+            '<div style="width:28px;height:28px;border-radius:50%;background:'+(r.net>0?'rgba(34,197,94,.12)':'rgba(239,68,68,.1)')+';border:1px solid '+(r.net>0?'rgba(34,197,94,.25)':'rgba(239,68,68,.2)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:'+(r.net>0?'var(--c-green)':'var(--c-red)')+'">'+(r.net>0?'W':'L')+'</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:12px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(r.name)+' won</div>'+
+              '<div style="font-size:10px;color:var(--c-muted)">'+escH(r.date)+' · '+r.players+' players</div>'+
+            '</div>'+
+            '<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--c-green);flex-shrink:0">+'+fmt(r.net)+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>':'') +
     '</div>';
   }
 
@@ -5613,7 +5687,7 @@ function buildDashboardTab() {
     var lgSummary = lgWinner ? escH(lgWinner.name)+' won' : lastGame.players.length+' players';
     if (myLgNet !== null) lgSummary += ' · you '+fmtS(myLgNet);
     html += '<div class="dash-section">'+
-      '<button onclick="setHTab(\'history\')" style="width:100%;background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;text-align:left">'+
+      '<button onclick="setHTab(\'history\')" style="width:100%;background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;text-align:left">'+
         '<div>'+
           '<div style="font-size:12px;font-weight:600;color:var(--c-txt)">Last Game</div>'+
           '<div style="font-size:11px;color:var(--c-muted);margin-top:2px">'+lgSummary+'</div>'+
@@ -5742,7 +5816,7 @@ function buildStatsTab() {
       '<style>.trend-pill-on{background:rgba('+accentRgb+',.2)!important;border-color:rgba('+accentRgb+',.5)!important;color:'+accent+'!important}</style>'+
       // Tap chart to expand
       '<div id="trend-svg-wrap" onclick="expandTrendChart()" style="cursor:pointer" title="Tap to expand">'+_buildTrendSVG('__group__')+'</div>'+
-      '<div style="text-align:center;margin-top:5px"><span style="font-family:var(--font-body);font-size:11px;color:rgba(255,255,255,.25)">tap chart to expand</span></div>'+
+      '<div style="text-align:center;margin-top:5px"><span style="font-family:var(--font-body);font-size:11px;color:var(--c-muted2)">tap chart to expand</span></div>'+
     '</div>';
   }
 
@@ -5800,7 +5874,7 @@ function buildStatsTab() {
           }).map(function(r){
             return '<span style="width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;background:'+(r==='W'?'var(--c-green)':r==='L'?'rgba(239,68,68,.85)':'rgba(100,116,139,.45)')+'"></span>';
           }).join('');
-          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+'">'+
+          return '<tr style="border-bottom:1px solid var(--c-bdr);background:'+(i%2===0?'transparent':'var(--c-surf2)')+'">'+
             '<td style="padding:9px 14px;font-weight:700;color:var(--c-txt)">'+escH(n)+'</td>'+
             '<td style="padding:9px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+d.sessions+'</td>'+
             '<td style="padding:9px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+wrClr+'">'+wr+'%</td>'+
@@ -5851,7 +5925,7 @@ function buildStatsTab() {
           const mpl=Object.keys(st.MO[k]).length;
           const top=Object.entries(st.MO[k]).sort((a,b)=>b[1].net-a[1].net)[0];
           const isCur=k===mKey();
-          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04);background:'+(i%2===0?'transparent':'rgba(255,255,255,.02)')+(isCur?';border-left:3px solid '+accent:'')+'">'+
+          return '<tr style="border-bottom:1px solid var(--c-bdr);background:'+(i%2===0?'transparent':'var(--c-surf2)')+(isCur?';border-left:3px solid '+accent:'')+'">'+
             '<td style="padding:9px 14px"><div style="font-weight:700;color:var(--c-txt);font-size:12px">'+k+(isCur?' <span style="font-family:var(--font-mono);font-size:9px;color:'+accent+';background:rgba('+accentRgb+',.12);border-radius:10px;padding:1px 6px">now</span>':'')+'</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+fmt(mp)+'</div></td>'+
             '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-txt)">'+ms.length+'</td>'+
             '<td style="padding:9px 8px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">'+mpl+'</td>'+
@@ -5933,14 +6007,14 @@ function buildStatsTab() {
             var p=s.players.find(function(pp){return pp.name===name;});
             var invested=p?p.buyins*(s.buyin||BUYIN):0, cashed=p?p.cashOut:0;
             var net=rd(cashed-invested), nc2=net>0?'var(--c-green)':net<0?'var(--c-red)':'var(--c-muted)';
-            return '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">'+
+            return '<tr style="border-bottom:1px solid var(--c-bdr)">'+
               '<td style="padding:8px 10px;font-size:11px;color:var(--c-txt)">'+escH(s.date||'—')+'</td>'+
               '<td style="padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+fmt(invested)+'</td>'+
               '<td style="padding:8px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+fmt(cashed)+'</td>'+
               '<td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc2+'">'+fmtS(net)+'</td>'+
             '</tr>';
           }).join('')+
-          '<tr style="border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">'+
+          '<tr style="border-top:1px solid var(--c-bdr2);background:var(--c-surf2)">'+
             '<td colspan="3" style="padding:8px 10px;font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+thisMoSessions.length+' game'+(thisMoSessions.length!==1?'s':'')+' this month</td>'+
             '<td style="padding:8px 10px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:900;color:'+(moNet>0?'var(--c-green)':moNet<0?'var(--c-red)':'var(--c-muted)')+'">'+fmtS(rd(moNet))+'</td>'+
           '</tr>'+
@@ -5974,12 +6048,12 @@ function buildStatsTab() {
           '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:6px">Cumulative P&amp;L · '+pSess.length+' games <span style="color:rgba(167,139,250,.5);font-size:7px">↗ tap to expand</span></div>'+
           '<svg viewBox="0 0 '+W2+' '+H2+'" width="100%" style="display:block;overflow:visible">'+
             '<defs><linearGradient id="'+gid2+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col2+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col2+'" stop-opacity=".02"/></linearGradient></defs>'+
-            '<line x1="0" y1="'+zY2+'" x2="'+W2+'" y2="'+zY2+'" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="3,2"/>'+
+            '<line x1="0" y1="'+zY2+'" x2="'+W2+'" y2="'+zY2+'" style="stroke:var(--c-bdr2)" stroke-width="1" stroke-dasharray="3,2"/>'+
             '<polyline points="'+poly2+' '+W2+','+H2+' 0,'+H2+'" fill="url(#'+gid2+')" stroke="none"/>'+
             '<polyline points="'+poly2+'" fill="none" stroke="'+col2+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
-            '<circle cx="'+toX2(sparkPts.length-1)+'" cy="'+toY2(sparkPts[sparkPts.length-1].y)+'" r="3" fill="'+col2+'" stroke="rgba(6,8,22,.8)" stroke-width="1.5"/>'+
-            '<text x="0" y="'+H2+'" dy="10" text-anchor="start" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+escH(pSess[0].date||'First')+'</text>'+
-            '<text x="'+W2+'" y="'+H2+'" dy="10" text-anchor="end" fill="rgba(255,255,255,.3)" font-size="7" font-family="monospace">'+escH(pSess[pSess.length-1].date||'Latest')+'</text>'+
+            '<circle cx="'+toX2(sparkPts.length-1)+'" cy="'+toY2(sparkPts[sparkPts.length-1].y)+'" r="3" fill="'+col2+'" style="stroke:var(--c-bg3);stroke-width:1.5"/>'+
+            '<text x="0" y="'+H2+'" dy="10" text-anchor="start" style="fill:var(--c-muted2)" font-size="7" font-family="monospace">'+escH(pSess[0].date||'First')+'</text>'+
+            '<text x="'+W2+'" y="'+H2+'" dy="10" text-anchor="end" style="fill:var(--c-muted2)" font-size="7" font-family="monospace">'+escH(pSess[pSess.length-1].date||'Latest')+'</text>'+
           '</svg>'+
         '</div>';
         // Recent game rows
@@ -5988,7 +6062,7 @@ function buildStatsTab() {
           var invested=p?p.buyins*(s.buyin||BUYIN):0, cashed=p?p.cashOut:0;
           var net=rd(cashed-invested), nc3=net>0?'var(--c-green)':net<0?'var(--c-red)':'var(--c-muted)';
           var isWin=net>0;
-          return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--c-bdr)">'+
             '<div style="width:20px;height:20px;border-radius:50%;background:'+(isWin?'rgba(34,197,94,.15)':'rgba(239,68,68,.12)')+';display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0">'+(isWin?'W':'L')+'</div>'+
             '<div style="flex:1;min-width:0">'+
               '<div style="font-size:12px;font-weight:600;color:var(--c-txt)">'+escH(s.date||'—')+'</div>'+
@@ -6023,7 +6097,7 @@ function buildStatsTab() {
         var yd=st.YR[yk][name];
         var ywr=yd.sessions>0?Math.round(yd.wins/yd.sessions*100):0;
         var ync=yd.net>0?'var(--c-green)':yd.net<0?'var(--c-red)':'var(--c-muted)';
-        yrBreakdown+='<tr style="border-bottom:1px solid rgba(255,255,255,.04)">'+
+        yrBreakdown+='<tr style="border-bottom:1px solid var(--c-bdr)">'+
           '<td style="padding:7px 10px;font-weight:700;color:var(--c-txt);font-size:12px">'+yk+'</td>'+
           '<td style="padding:7px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+yd.sessions+'</td>'+
           '<td style="padding:7px 6px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">'+ywr+'%</td>'+
@@ -6059,8 +6133,11 @@ function buildStatsTab() {
             '<div class="pperf-avatar" style="background:'+ab+';color:'+nc+';border:1px solid '+nc+'40">'+escH(name.charAt(0).toUpperCase())+'</div>'+
           '</div>'+
           '<div style="flex:1;min-width:0">'+
-            '<div class="pperf-name">'+escH(name)+(isMe?' <span style="font-family:var(--font-mono);font-size:8px;color:#A78BFA;background:rgba(167,139,250,.12);border-radius:8px;padding:1px 5px;vertical-align:middle">you</span>':'')+'</div>'+
-            '<div class="pperf-meta">'+d.sessions+' games &middot; '+wr+'% win &middot; <span style="color:'+ac+'">'+fmtS(avg)+'/g</span></div>'+
+            '<div class="pperf-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+escH(name)+(isMe?' <span style="font-family:var(--font-mono);font-size:8px;color:#A78BFA;background:rgba(167,139,250,.12);border-radius:8px;padding:1px 5px">you</span>':'')+(curStreak>=3?'<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-green);background:rgba(34,197,94,.12);border-radius:8px;padding:1px 5px">⚡'+curStreak+'</span>':'')+'</div>'+
+            '<div class="pperf-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+              '<span>'+d.sessions+' games &middot; '+wr+'% win</span>'+
+              (function(){var last5=pSess.slice(-5);return last5.length?'<span style="display:inline-flex;gap:2px;align-items:center">'+last5.map(function(s){var p=s.players.find(function(pp){return pp.name===name;});var n2=rd((p?p.cashOut:0)-(p?p.buyins:1)*(s.buyin||BUYIN));return '<span style="width:7px;height:7px;border-radius:50%;display:inline-block;background:'+(n2>0?'var(--c-green)':n2<0?'rgba(239,68,68,.8)':'var(--c-muted)')+'"></span>';}).join('')+'</span>':'';})()+
+            '</div>'+
           '</div>'+
           '<div style="text-align:right;flex-shrink:0;margin-right:4px">'+
             '<div class="pperf-net" style="color:'+nc+'">'+fmtS(d.net)+'</div>'+
