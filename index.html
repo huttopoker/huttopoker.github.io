@@ -10,7 +10,7 @@
 <title>Hutto Showdown</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&family=Bebas+Neue&family=Cinzel:wght@600&family=Cinzel+Decorative&family=Oswald:wght@600&family=Exo+2:wght@600&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600&family=Italiana&family=Inter:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500&family=Lato:wght@400;700&family=Nunito:wght@400;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" defer></script>
 <!--
 ═══════════════════════════════════════════════════════════════
@@ -166,6 +166,15 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   --font-heading:'Space Grotesk',system-ui,sans-serif;
   --font-mono:'JetBrains Mono','Fira Mono',monospace;
   --font-logo:'Space Grotesk',system-ui,sans-serif;
+
+  /* ── New design system tokens (set by applyTheme) ── */
+  --bg:#07080C; --s1:rgba(12,13,19,0.88); --s2:rgba(20,21,30,0.92);
+  --border:rgba(255,255,255,.07);
+  --accent:#FFD700; --accent-l:#FDE68A;
+  --text:#F0F2FF; --text-sub:rgba(240,242,255,.55);
+  --table:rgba(10,10,18,0.9); --table-text:#FFD700;
+  --pattern:none; --pattern-size:28px 28px;
+  --overlay:rgba(7,8,12,0.72);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -185,18 +194,14 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
     --shd-lg:0 4px 28px rgba(0,0,0,.13), 0 0 0 1px rgba(0,0,0,.05);
   }
   body {
-    background: linear-gradient(160deg,#ECEEF5 0%,#F3F5FA 25%,#FAFBFF 100%) !important;
+    background-color: #F5F7FA !important;
+    background-image: none !important;
   }
+  #bg-overlay { background: rgba(245,247,250,0.82) !important; }
+  #bg-photo   { opacity: 0 !important; }
   body::before {
     background:
-      radial-gradient(ellipse 120% 50% at 50% -8%, rgba(var(--c-gold-rgb,255,215,0),.18) 0%, rgba(var(--c-gold-rgb,255,215,0),.05) 42%, transparent 62%),
-      radial-gradient(ellipse 40% 22% at 88% 95%, rgba(var(--c-comp-rgb,0,229,255),.06) 0%, transparent 52%) !important;
-  }
-  body::after {
-    background-image: radial-gradient(circle, rgba(var(--c-gold-rgb,255,215,0),.25) 1px, transparent 1px);
-    background-size: 20px 20px;
-    mask-image: none; -webkit-mask-image: none;
-    opacity: 1;
+      radial-gradient(ellipse 120% 50% at 50% -8%, rgba(var(--c-gold-rgb,255,215,0),.12) 0%, rgba(var(--c-gold-rgb,255,215,0),.04) 42%, transparent 62%) !important;
   }
   /* Header */
   #app-header {
@@ -262,7 +267,7 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .swipe-hint-bar { color: rgba(240,242,255,.18) !important; }
   .eco-panel { background: rgba(7,8,12,.95) !important; border-top-color: rgba(var(--c-gold-rgb,255,215,0),.12) !important; }
   .eco-panel-lbl { color: rgba(240,242,255,.55) !important; }
-  .add-buyin-quick { border-color: rgba(34,197,94,.45) !important; background: rgba(34,197,94,.08) !important; }
+  .add-buyin-quick { border-color: rgba(var(--c-gold-rgb,255,215,0),.45) !important; background: rgba(var(--c-gold-rgb,255,215,0),.08) !important; }
   /* Settle / host tiles — keep dark in game flow */
   .settle-tile { background: rgba(12,13,19,.92) !important; border-color: rgba(255,255,255,.09) !important; }
   .host-box { background: rgba(12,13,19,.9) !important; border-color: rgba(255,255,255,.09) !important; }
@@ -285,27 +290,45 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 html { height:100%; font-size:16px; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-body { background:linear-gradient(160deg, #0D0B0E 0%, #08080B 45%, #050508 100%);
-  color:var(--c-txt); font-family:var(--font-body);
+body { background-color:var(--bg,#07080C);
+  background-image:var(--pattern);
+  background-size:var(--pattern-size,28px 28px);
+  background-repeat:repeat;
+  color:var(--text,var(--c-txt,#F0F2FF)); font-family:var(--font-body);
   min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale; line-height:1.65; font-size:16px;
   font-feature-settings:'kern' 1,'liga' 1,'calt' 1; letter-spacing:0.01em; }
-/* Casino noir — theme-reactive crown glow */
+/* Theme crown glow — uses bridged vars set by applyTheme() */
 body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
   background:
-    radial-gradient(ellipse 120% 48% at 50% -6%, rgba(var(--c-gold-rgb,255,215,0),.26) 0%, rgba(var(--c-gold-rgb,255,215,0),.07) 38%, transparent 62%),
-    radial-gradient(ellipse 65% 42% at 50% 0%, rgba(var(--c-gold-rgb,255,215,0),.08) 0%, transparent 45%),
-    radial-gradient(ellipse 50% 35% at 92% 94%, rgba(var(--c-comp-rgb,0,229,255),.10) 0%, transparent 55%); }
-/* Fine dot grid — 20px, theme-reactive */
-body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:0;
-  background-image: radial-gradient(circle, rgba(var(--c-gold-rgb,255,215,0),.13) 1px, transparent 1px);
-  background-size: 20px 20px;
-  mask-image: linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 55%, transparent 100%); }
-/* orbs hidden — CSS grid replaces them */
-#bg-orbs { display:none; }
-.bg-orb { display:none; }
-/* bg-suits removed — card suit watermarks replaced by themed gradient background */
+    radial-gradient(ellipse 120% 48% at 50% -6%, rgba(var(--c-gold-rgb,255,215,0),.22) 0%, rgba(var(--c-gold-rgb,255,215,0),.06) 38%, transparent 60%),
+    radial-gradient(ellipse 55% 38% at 92% 95%, rgba(var(--c-comp-rgb,255,107,0),.10) 0%, transparent 52%); }
+/* orbs hidden — pattern system replaces them */
+#bg-orbs { display:none !important; }
+.bg-orb  { display:none !important; }
+
+/* ── Background overlay + photo layer ── */
+#bg-overlay {
+  position:fixed; inset:0; z-index:0;
+  background:var(--overlay);
+  pointer-events:none;
+  transition:background .6s ease;
+}
+/* Card suit watermark embedded in overlay */
+#bg-overlay::after {
+  content:''; position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='8' y='33' font-size='20' fill='rgba(255,255,255,.045)' font-family='Georgia,serif'%3E%E2%99%A0%3C/text%3E%3Ctext x='46' y='33' font-size='20' fill='rgba(255,255,255,.045)' font-family='Georgia,serif'%3E%E2%99%A5%3C/text%3E%3Ctext x='8' y='70' font-size='20' fill='rgba(255,255,255,.045)' font-family='Georgia,serif'%3E%E2%99%A6%3C/text%3E%3Ctext x='46' y='70' font-size='20' fill='rgba(255,255,255,.045)' font-family='Georgia,serif'%3E%E2%99%A3%3C/text%3E%3C/svg%3E");
+  background-size:80px 80px;
+  pointer-events:none;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.3) 100%);
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.3) 100%);
+}
+#bg-photo {
+  position:fixed; inset:0; z-index:0;
+  background-size:cover; background-position:center; background-attachment:fixed;
+  pointer-events:none; opacity:0;
+  transition:opacity 1.2s ease;
+}
 /* ── STICKY APP HEADER ── */
 #app-header {
   position:fixed; top:0; left:0; right:0; z-index:4000;
@@ -473,11 +496,11 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
   accent-color:var(--c-gold); cursor:pointer; }
 .tnc-agree label { font-family:var(--font-mono); font-size:12px; color:var(--c-txt); line-height:1.65; cursor:pointer; }
 /* ── TYPOGRAPHY ── */
-.page-title { font-family:var(--font-heading); font-size:26px; font-weight:700; letter-spacing:0.2px; color:#FFFFFF;
+.page-title { font-family:var(--font-heading); font-size:26px; font-weight:700; letter-spacing:0.2px; color:var(--c-txt,#FFFFFF);
   margin-bottom:16px; padding-top:20px; padding-bottom:4px; overflow:visible; line-height:1.3;
-  text-shadow:none; -webkit-text-fill-color:#FFFFFF; }
+  text-shadow:none; -webkit-text-fill-color:var(--c-txt,#FFFFFF); }
 .section-lbl { font-family:var(--font-body); font-size:12px; text-transform:uppercase;
-  letter-spacing:.8px; color:rgba(255,255,255,.7); border-bottom:none; font-weight:700;
+  letter-spacing:.8px; color:var(--c-muted,rgba(255,255,255,.7)); border-bottom:none; font-weight:700;
   padding:0 0 9px 12px; margin-bottom:13px; display:flex; align-items:center; gap:8px;
   position:relative; border-left:2px solid var(--c-gold,rgba(139,92,246,.85)); }
 .section-lbl::after { content:''; position:absolute; left:0; bottom:0; width:100%; height:1px;
@@ -494,9 +517,9 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poin
   box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.06), 0 2px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
 }
 .g-live-pot {
-  font-family:var(--font-heading); font-size:30px; font-weight:900; letter-spacing:-1.5px;
+  font-family:var(--font-heading); font-size:36px; font-weight:900; letter-spacing:-2px;
   color:var(--c-gold,#FFD700); line-height:1;
-  text-shadow: 0 0 20px rgba(var(--c-gold-rgb,255,215,0),.35);
+  text-shadow: 0 0 28px rgba(var(--c-gold-rgb,255,215,0),.5), 0 0 60px rgba(var(--c-gold-rgb,255,215,0),.2);
 }
 .g-live-meta {
   font-family:var(--font-body); font-size:11px; color:var(--c-muted);
@@ -543,7 +566,7 @@ button, a, span { -webkit-font-smoothing:antialiased; }
 h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-height:1.25; }
 /* ── BUTTONS ── */
 .btn { width:100%; padding:17px; border:none; border-radius:16px;
-  font-family:var(--font-body); font-size:16px; font-weight:600; cursor:pointer;
+  font-family:var(--font-body); font-size:16px; font-weight:600; cursor:pointer; user-select:none;
   letter-spacing:.3px; transition:all .25s cubic-bezier(.4,0,.2,1); display:block; text-align:center;
   box-shadow:var(--shd); }
 /* Primary CTA — theme-reactive accent + shimmer sweep */
@@ -560,9 +583,10 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
   transform:skewX(-18deg);
   animation:btn-shimmer 4s ease-in-out infinite; }
 .btn-gold:hover {
-  background: linear-gradient(135deg, rgba(var(--c-gold-rgb,255,215,0),.65) 0%, rgba(var(--c-gold-rgb,255,215,0),.95) 55%, rgba(var(--c-gold-rgb,255,215,0),.75) 100%);
-  box-shadow: 0 0 0 2px rgba(var(--c-gold-rgb,255,215,0),.38), 0 6px 44px rgba(var(--c-gold-rgb,255,215,0),.6); transform:translateY(-2px); animation:none; }
-.btn-gold:active { transform:scale(.97) translateY(0); box-shadow:0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.2), 0 2px 14px rgba(var(--c-gold-rgb,255,215,0),.3); animation:none; }
+  background: linear-gradient(135deg, rgba(var(--c-gold-rgb,255,215,0),.9) 0%, rgba(var(--c-gold-rgb,255,215,0),1) 50%, rgba(var(--c-gold-rgb,255,215,0),.9) 100%);
+  box-shadow: 0 0 0 3px rgba(var(--c-gold-rgb,255,215,0),.4), 0 8px 48px rgba(var(--c-gold-rgb,255,215,0),.7), 0 0 80px rgba(var(--c-gold-rgb,255,215,0),.15);
+  transform:translateY(-3px) scale(1.01); animation:none; filter:brightness(1.08); }
+.btn-gold:active { transform:scale(.97) translateY(0); box-shadow:0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.2), 0 2px 14px rgba(var(--c-gold-rgb,255,215,0),.3); animation:none; filter:none; }
 .btn-green { background:linear-gradient(135deg,#22C55E,#16A34A); color:#fff;
   box-shadow:0 0 0 1px rgba(34,197,94,.2), 0 4px 20px rgba(34,197,94,.18); }
 .btn-green:hover { transform:translateY(-1px); box-shadow:0 0 0 1px rgba(34,197,94,.3), 0 4px 24px rgba(34,197,94,.28); }
@@ -701,12 +725,12 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 }
 /* Quick buy-in tap button — alternative to swipe */
 .add-buyin-quick {
-  width:30px; height:30px; border-radius:8px; border:1.5px solid rgba(34,197,94,.4);
-  background:rgba(34,197,94,.10); color:#22C55E; display:flex; align-items:center;
+  width:30px; height:30px; border-radius:8px; border:1.5px solid rgba(var(--c-gold-rgb,255,215,0),.4);
+  background:rgba(var(--c-gold-rgb,255,215,0),.10); color:var(--c-gold,#FFD700); display:flex; align-items:center;
   justify-content:center; cursor:pointer; flex-shrink:0; transition:all .15s;
   -webkit-tap-highlight-color:transparent;
 }
-.add-buyin-quick:active { background:rgba(34,197,94,.22); transform:scale(.87); }
+.add-buyin-quick:active { background:rgba(var(--c-gold-rgb,255,215,0),.22); transform:scale(.87); }
 /* Swipe affordance hint — shows briefly on load, hides during swipe */
 .swipe-hint-bar {
   display:flex; justify-content:space-between; padding:0 14px 6px;
@@ -740,7 +764,7 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .p-ball { width:16px; height:16px; border-radius:50%; flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center;
   font-family:var(--font-mono); font-size:9px; font-weight:900; line-height:1; border:1.5px solid; }
-.p-ball.b-green { background:rgba(34,197,94,.15); border-color:#22C55E; color:#4ADE80; box-shadow:0 0 8px rgba(34,197,94,.5); }
+.p-ball.b-green { background:rgba(var(--c-gold-rgb,255,215,0),.15); border-color:var(--c-gold,#FFD700); color:var(--c-gold,#FFD700); box-shadow:0 0 8px rgba(var(--c-gold-rgb,255,215,0),.5); }
 .p-ball.b-red   { background:rgba(239,68,68,.15); border-color:#FF1744; color:#FF6B6B; box-shadow:0 0 7px rgba(255,23,68,.45); }
 .p-ball-more { font-family:var(--font-mono); font-size:9px; color:rgba(239,68,68,.7); font-weight:700; flex-shrink:0; }
 /* Activity summary line */
@@ -1614,8 +1638,12 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 </head>
 <body class="theme-bg">
 
-<!-- Animated ambient aurora — living background, no external images -->
-<div id="bg-orbs" aria-hidden="true">
+<!-- Pattern overlay — sits above body pattern, below all app content -->
+<div id="bg-overlay" aria-hidden="true"></div>
+<div id="bg-photo" aria-hidden="true"></div>
+
+<!-- bg-orbs hidden — pattern system replaces them -->
+<div id="bg-orbs" aria-hidden="true" style="display:none">
   <div class="bg-orb bg-orb1"></div>
   <div class="bg-orb bg-orb2"></div>
   <div class="bg-orb bg-orb3"></div>
@@ -1888,38 +1916,20 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
       <div id="guest-similar" style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted);min-height:14px;margin-top:3px"></div>
     </div>
 
-    <!-- Buy-in selector -->
-    <div style="display:flex;align-items:center;gap:10px;background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:10px 12px;margin-bottom:14px">
-      <div style="flex-shrink:0;color:var(--c-gold)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M22 10H2"/></svg></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--c-muted);white-space:nowrap">Buy-in</div>
-        <div id="buyin-display" style="font-size:15px;font-weight:800;color:var(--c-gold)">$10</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
-        <button onclick="setBuyin(5)"  id="bi-5"  style="padding:9px 12px;min-height:40px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:13px;font-weight:600;cursor:pointer;color:var(--c-muted)">$5</button>
-        <button onclick="setBuyin(10)" id="bi-10" style="padding:9px 12px;min-height:40px;border-radius:20px;border:1px solid var(--c-gold);background:rgba(245,158,11,.15);font-size:13px;font-weight:700;cursor:pointer;color:var(--c-gold)">$10</button>
-        <button onclick="setBuyin(20)" id="bi-20" style="padding:9px 12px;min-height:40px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:13px;font-weight:600;cursor:pointer;color:var(--c-muted)">$20</button>
-        <button onclick="setBuyin(50)" id="bi-50" style="padding:9px 12px;min-height:40px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:13px;font-weight:600;cursor:pointer;color:var(--c-muted)">$50</button>
-        <button onclick="showCustomBuyin()" id="bi-custom" style="padding:9px 12px;min-height:40px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:13px;font-weight:600;cursor:pointer;color:var(--c-muted)">Custom</button>
-      </div>
-    </div>
-    <!-- Custom buy-in input (hidden by default) -->
-    <div id="custom-buyin-row" style="display:none;align-items:center;gap:8px;margin-top:-8px;margin-bottom:14px;padding:10px 12px;background:var(--c-surf);border:1px solid var(--c-gold-md);border-radius:14px">
-      <span style="font-size:13px;color:var(--c-muted)">$</span>
-      <input id="custom-buyin-inp" type="number" min="1" max="9999" placeholder="Enter amount"
-        style="flex:1;background:transparent;border:none;outline:none;font-size:16px;font-weight:700;color:var(--c-gold);font-family:var(--font-mono)"
-        onkeydown="if(event.key==='Enter')commitCustomBuyin()" oninput="previewCustomBuyin(this.value)" onfocus="this.select()"/>
-      <button onclick="commitCustomBuyin()" style="padding:5px 14px;border-radius:20px;border:none;background:var(--c-gold);color:#0A0500;font-size:12px;font-weight:700;cursor:pointer">Set</button>
-      <button onclick="hideCustomBuyin()" style="padding:5px 10px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:12px;cursor:pointer;color:var(--c-muted)">✕</button>
+    <!-- Buy-in: shows default from settings, tap to change inline -->
+    <div id="setup-buyin-row" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px 12px;background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:12px">
+      <span style="font-size:12px;color:var(--c-muted);font-weight:500">Buy-in</span>
+      <span id="setup-buyin-val" style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--c-gold)">$10</span>
+      <div style="display:flex;gap:5px;margin-left:auto" id="setup-buyin-btns"></div>
     </div>
 
     <!-- Step 3: Host (compact row) -->
     <div id="host-section" style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:12px;background:rgba(17,24,39,.6);border:1px solid rgba(var(--c-gold-rgb,124,58,237),.22);border-radius:16px;padding:12px 14px;backdrop-filter:blur(20px)">
+      <div style="display:flex;align-items:center;gap:12px;background:var(--c-surf2);border:1px solid var(--c-bdr);border-radius:16px;padding:12px 14px;backdrop-filter:blur(20px)">
         <div style="width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,rgba(var(--c-gold-rgb,124,58,237),.3),rgba(var(--c-comp-rgb,6,182,212),.15));border:1px solid rgba(var(--c-gold-rgb,124,58,237),.35);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold,#A78BFA)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div style="flex:1;min-width:0">
-          <div style="font-family:var(--font-body);font-size:12px;color:rgba(255,255,255,.38);font-weight:600;margin-bottom:2px">Game Host</div>
-          <div class="spin-name" id="spin-name" style="font-family:var(--font-heading);font-size:17px;font-weight:600;margin:0;min-height:22px;line-height:1.3;color:rgba(255,255,255,.35)">Not selected</div>
+          <div style="font-family:var(--font-body);font-size:12px;color:var(--c-muted);font-weight:600;margin-bottom:2px">Game Host</div>
+          <div class="spin-name" id="spin-name" style="font-family:var(--font-heading);font-size:17px;font-weight:600;margin:0;min-height:22px;line-height:1.3;color:var(--c-muted)">Not selected</div>
         </div>
         <button id="spin-btn" onclick="doSpin()" style="height:40px;padding:0 20px;border-radius:20px;background:linear-gradient(135deg,var(--c-gold,#7C3AED),var(--c-comp,#06B6D4));color:#fff;border:1.5px solid rgba(255,255,255,.22);font-size:13px;font-weight:700;letter-spacing:.3px;cursor:pointer;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:7px;box-shadow:0 0 18px rgba(var(--c-gold-rgb,124,58,237),.45),0 2px 8px rgba(0,0,0,.3);text-shadow:0 1px 3px rgba(0,0,0,.4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Spin</button>
         <button onclick="showManual()" style="height:40px;padding:0 16px;border-radius:20px;background:rgba(var(--c-gold-rgb,124,58,237),.1);border:1.5px solid rgba(var(--c-gold-rgb,124,58,237),.4);color:var(--c-gold,#A78BFA);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap">Pick</button>
@@ -2211,31 +2221,153 @@ let isOnline = false;
    THEME ENGINE — refreshes accent color each load
 ═══════════════════════════════════════ */
 // ── 10 Modern App Theme Palettes (from curated set — dark modes only)
+/* ── 13-THEME DESIGN SYSTEM ── */
 const THEMES = [
-  { name:'Gold Rush',    accent:'#FFD700', accentRgb:'255,215,0',   comp:'#FF6B00', compRgb:'255,107,0',    glow:'rgba(255,215,0,.55)'   },
-  { name:'Neon Pulse',   accent:'#00E5FF', accentRgb:'0,229,255',   comp:'#BF5FFF', compRgb:'191,95,255',   glow:'rgba(0,229,255,.5)'    },
-  { name:'Crimson',      accent:'#FF1744', accentRgb:'255,23,68',   comp:'#FF6B00', compRgb:'255,107,0',    glow:'rgba(255,23,68,.55)'   },
-  { name:'Emerald',      accent:'#00DC82', accentRgb:'0,220,130',   comp:'#00B4D8', compRgb:'0,180,216',    glow:'rgba(0,220,130,.5)'    },
-  { name:'Plasma',       accent:'#FF0080', accentRgb:'255,0,128',   comp:'#BF5FFF', compRgb:'191,95,255',   glow:'rgba(255,0,128,.5)'    },
-  { name:'Arctic',       accent:'#00CFFF', accentRgb:'0,207,255',   comp:'#00DC82', compRgb:'0,220,130',    glow:'rgba(0,207,255,.5)'    },
-  { name:'Inferno',      accent:'#FF6B00', accentRgb:'255,107,0',   comp:'#FFD700', compRgb:'255,215,0',    glow:'rgba(255,107,0,.55)'   },
-  { name:'Ultraviolet',  accent:'#BF5FFF', accentRgb:'191,95,255',  comp:'#00E5FF', compRgb:'0,229,255',    glow:'rgba(191,95,255,.5)'   },
-  { name:'Matrix',       accent:'#39FF14', accentRgb:'57,255,20',   comp:'#00E5FF', compRgb:'0,229,255',    glow:'rgba(57,255,20,.45)'   },
-  { name:'Titanium',     accent:'#94A3B8', accentRgb:'148,163,184', comp:'#38BDF8', compRgb:'56,189,248',   glow:'rgba(148,163,184,.45)' },
+  { // 0 — TOXIC LIME  (00–00h)
+    name:'Toxic Lime',
+    bg:'#070C07', s1:'rgba(12,21,12,0.88)', s2:'rgba(18,32,18,0.92)',
+    border:'#1A4020', accent:'#4ADE80', accentL:'#86EFAC',
+    text:'#F0FFF4', textSub:'#BBF7D0',
+    table:'rgba(10,26,10,0.9)', tableText:'#4ADE80',
+    pattern:"radial-gradient(circle, #1a4020 1px, transparent 1px)",
+    patternSize:'28px 28px', overlay:'rgba(7,12,7,0.72)',
+    fontHead:"'Rajdhani',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#86EFAC', compRgb:'134,239,172', accentRgb:'74,222,128',
+  },
+  { // 1 — SOLAR FLARE  (01h)
+    name:'Solar Flare',
+    bg:'#0D0700', s1:'rgba(26,14,0,0.88)', s2:'rgba(46,24,0,0.92)',
+    border:'#6B2D00', accent:'#EA580C', accentL:'#FB923C',
+    text:'#FFF7ED', textSub:'#FED7AA',
+    table:'rgba(30,14,0,0.9)', tableText:'#FB923C',
+    pattern:"repeating-linear-gradient(45deg, #6b2d00 0px, #6b2d00 1px, transparent 1px, transparent 20px)",
+    patternSize:'auto', overlay:'rgba(13,7,0,0.78)',
+    fontHead:"'Bebas Neue',system-ui,sans-serif", fontBody:"'DM Sans',system-ui,sans-serif",
+    comp:'#FB923C', compRgb:'251,146,60', accentRgb:'234,88,12',
+  },
+  { // 2 — JADE PALACE  (02h)
+    name:'Jade Palace',
+    bg:'#060D0A', s1:'rgba(10,28,20,0.88)', s2:'rgba(16,46,32,0.92)',
+    border:'#1A5C36', accent:'#10B981', accentL:'#6EE7B7',
+    text:'#ECFDF5', textSub:'#A7F3D0',
+    table:'rgba(8,26,16,0.9)', tableText:'#6EE7B7',
+    pattern:"radial-gradient(circle at 0% 50%, #1a5c36 1px, transparent 1px), radial-gradient(circle at 100% 50%, #1a5c36 1px, transparent 1px)",
+    patternSize:'30px 52px', overlay:'rgba(6,13,10,0.76)',
+    fontHead:"'Cinzel',Georgia,serif", fontBody:"'Lato',system-ui,sans-serif",
+    comp:'#6EE7B7', compRgb:'110,231,183', accentRgb:'16,185,129',
+  },
+  { // 3 — LAVA CLUB  (03h)
+    name:'Lava Club',
+    bg:'#0C0604', s1:'rgba(26,10,6,0.88)', s2:'rgba(46,16,8,0.92)',
+    border:'#7C1A08', accent:'#DC2626', accentL:'#F87171',
+    text:'#FFF5F5', textSub:'#FECACA',
+    table:'rgba(30,8,6,0.9)', tableText:'#F87171',
+    pattern:"repeating-linear-gradient(0deg, #7c1a08 0px, #7c1a08 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, #7c1a08 0px, #7c1a08 1px, transparent 1px, transparent 40px)",
+    patternSize:'auto', overlay:'rgba(12,6,4,0.80)',
+    fontHead:"'Oswald',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#F87171', compRgb:'248,113,113', accentRgb:'220,38,38',
+  },
+  { // 4 — FROST BITE  (04h)
+    name:'Frost Bite',
+    bg:'#06080F', s1:'rgba(10,16,32,0.88)', s2:'rgba(15,26,48,0.92)',
+    border:'#1A3050', accent:'#06B6D4', accentL:'#67E8F9',
+    text:'#F0FDFF', textSub:'#A5F3FC',
+    table:'rgba(8,14,30,0.9)', tableText:'#67E8F9',
+    pattern:"repeating-linear-gradient(60deg, #1a3050 0px, #1a3050 1px, transparent 1px, transparent 30px), repeating-linear-gradient(-60deg, #1a3050 0px, #1a3050 1px, transparent 1px, transparent 30px)",
+    patternSize:'auto', overlay:'rgba(6,8,15,0.78)',
+    fontHead:"'Exo 2',system-ui,sans-serif", fontBody:"'Nunito',system-ui,sans-serif",
+    comp:'#67E8F9', compRgb:'103,232,249', accentRgb:'6,182,212',
+  },
+  { // 5 — BRONZE AGE  (05h)
+    name:'Bronze Age',
+    bg:'#0A0806', s1:'rgba(22,16,10,0.88)', s2:'rgba(36,26,16,0.92)',
+    border:'#5C3810', accent:'#C2410C', accentL:'#FB923C',
+    text:'#FFF7F0', textSub:'#FDBA74',
+    table:'rgba(24,14,8,0.9)', tableText:'#FB923C',
+    pattern:"radial-gradient(circle, #5c3810 1.5px, transparent 1.5px)",
+    patternSize:'22px 22px', overlay:'rgba(10,8,6,0.80)',
+    fontHead:"'Playfair Display',Georgia,serif", fontBody:"'Source Sans 3',system-ui,sans-serif",
+    comp:'#FB923C', compRgb:'251,146,60', accentRgb:'194,65,12',
+  },
+  { // 6 — DEEP INDIGO  (06h)
+    name:'Deep Indigo',
+    bg:'#08080F', s1:'rgba(16,16,30,0.88)', s2:'rgba(24,24,48,0.92)',
+    border:'#2E2E6A', accent:'#4F46E5', accentL:'#A5B4FC',
+    text:'#EEF2FF', textSub:'#C7D2FE',
+    table:'rgba(14,14,32,0.9)', tableText:'#A5B4FC',
+    pattern:"repeating-linear-gradient(0deg, #2e2e6a 0px, #2e2e6a 1px, transparent 1px, transparent 50px), repeating-linear-gradient(90deg, #2e2e6a 0px, #2e2e6a 1px, transparent 1px, transparent 50px)",
+    patternSize:'auto', overlay:'rgba(8,8,15,0.82)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A5B4FC', compRgb:'165,180,252', accentRgb:'79,70,229',
+  },
+  { // 7 — EMERALD FELT  (07h)
+    name:'Emerald Felt',
+    bg:'#0C1410', s1:'rgba(10,40,24,0.88)', s2:'rgba(6,78,59,0.92)',
+    border:'#065F46', accent:'#059669', accentL:'#34D399',
+    text:'#ECFDF5', textSub:'#6EE7B7',
+    table:'rgba(5,61,46,0.95)', tableText:'#34D399',
+    pattern:"repeating-linear-gradient(45deg, rgba(5,150,105,0.08) 0px, rgba(5,150,105,0.08) 2px, transparent 2px, transparent 8px), repeating-linear-gradient(-45deg, rgba(5,150,105,0.08) 0px, rgba(5,150,105,0.08) 2px, transparent 2px, transparent 8px)",
+    patternSize:'auto', overlay:'rgba(12,20,16,0.70)',
+    fontHead:"'Cinzel Decorative',Georgia,serif", fontBody:"'Lato',system-ui,sans-serif",
+    comp:'#34D399', compRgb:'52,211,153', accentRgb:'5,150,105',
+  },
+  { // 8 — CARBON GOLD  (08h)
+    name:'Carbon Gold',
+    bg:'#0A0A0F', s1:'rgba(20,18,16,0.88)', s2:'rgba(28,26,18,0.92)',
+    border:'#292415', accent:'#D97706', accentL:'#F59E0B',
+    text:'#F8FAFC', textSub:'#FCD34D',
+    table:'rgba(24,20,8,0.9)', tableText:'#F59E0B',
+    pattern:"repeating-linear-gradient(45deg, #292415 0px, #292415 1px, transparent 1px, transparent 4px), repeating-linear-gradient(-45deg, #292415 0px, #292415 1px, transparent 1px, transparent 4px)",
+    patternSize:'auto', overlay:'rgba(10,10,15,0.82)',
+    fontHead:"'Cormorant Garamond',Georgia,serif", fontBody:"'DM Sans',system-ui,sans-serif",
+    comp:'#F59E0B', compRgb:'245,158,11', accentRgb:'217,119,6',
+  },
+  { // 9 — SMOKE & VELVET  (09h)
+    name:'Smoke & Velvet',
+    bg:'#0E0C14', s1:'rgba(23,20,34,0.88)', s2:'rgba(42,37,64,0.92)',
+    border:'#3730A3', accent:'#8B5CF6', accentL:'#A78BFA',
+    text:'#EDE9FE', textSub:'#C4B5FD',
+    table:'rgba(30,26,56,0.9)', tableText:'#A78BFA',
+    pattern:"radial-gradient(ellipse at center, #3730a3 1px, transparent 1px)",
+    patternSize:'32px 20px', overlay:'rgba(14,12,20,0.78)',
+    fontHead:"'Italiana',Georgia,serif", fontBody:"'Nunito',system-ui,sans-serif",
+    comp:'#A78BFA', compRgb:'167,139,250', accentRgb:'139,92,246',
+  },
+  { // 10 — BOURBON & SMOKE  (10h)
+    name:'Bourbon & Smoke',
+    bg:'#0E0A06', s1:'rgba(28,18,8,0.88)', s2:'rgba(46,30,15,0.92)',
+    border:'#44260A', accent:'#B45309', accentL:'#F59E0B',
+    text:'#FFFBEB', textSub:'#FDE68A',
+    table:'rgba(36,21,8,0.9)', tableText:'#F59E0B',
+    pattern:"repeating-linear-gradient(92deg, #44260a 0px, #44260a 1px, transparent 1px, transparent 18px), repeating-linear-gradient(88deg, #44260a 0px, #44260a 1px, transparent 1px, transparent 36px)",
+    patternSize:'auto', overlay:'rgba(14,10,6,0.80)',
+    fontHead:"'Playfair Display',Georgia,serif", fontBody:"'Source Sans 3',system-ui,sans-serif",
+    comp:'#F59E0B', compRgb:'245,158,11', accentRgb:'180,83,9',
+  },
+  { // 11 — OBSIDIAN ROYAL  (11h)
+    name:'Obsidian Royal',
+    bg:'#0F0F1A', s1:'rgba(26,21,48,0.88)', s2:'rgba(42,37,69,0.92)',
+    border:'#3A3060', accent:'#7C5CFC', accentL:'#C4B5FD',
+    text:'#E8E0FF', textSub:'#9B8BFF',
+    table:'rgba(30,24,64,0.9)', tableText:'#A89BFF',
+    pattern:"radial-gradient(circle at 50% 0%, #3a3060 1px, transparent 1px), radial-gradient(circle at 50% 100%, #3a3060 1px, transparent 1px), radial-gradient(circle at 0% 50%, #3a3060 1px, transparent 1px), radial-gradient(circle at 100% 50%, #3a3060 1px, transparent 1px)",
+    patternSize:'40px 40px', overlay:'rgba(15,15,26,0.78)',
+    fontHead:"'Cormorant Garamond',Georgia,serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#C4B5FD', compRgb:'196,181,253', accentRgb:'124,92,252',
+  },
+  { // 12 — VELVET NOIR  (12h)
+    name:'Velvet Noir',
+    bg:'#0D0810', s1:'rgba(24,13,28,0.88)', s2:'rgba(44,24,56,0.92)',
+    border:'#6D1A6D', accent:'#D946EF', accentL:'#E879F9',
+    text:'#FDF4FF', textSub:'#F0ABFC',
+    table:'rgba(28,12,36,0.9)', tableText:'#E879F9',
+    pattern:"radial-gradient(circle, #6d1a6d 1px, transparent 1px)",
+    patternSize:'20px 20px', overlay:'rgba(13,8,16,0.80)',
+    fontHead:"'Italiana',Georgia,serif", fontBody:"'DM Sans',system-ui,sans-serif",
+    comp:'#E879F9', compRgb:'232,121,249', accentRgb:'217,70,239',
+  },
 ];
 let currentTheme = THEMES[0];
-
-function initTheme() {
-  // Theme rotates every hour — fresh look each hour of the night
-  const hourIdx = Math.floor(Date.now() / 3600000) % THEMES.length;
-  applyTheme(THEMES[hourIdx]);
-  // Re-apply when user switches system appearance (light ↔ dark)
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function() {
-      applyTheme(currentTheme);
-    });
-  }
-}
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1,3),16);
@@ -2244,127 +2376,137 @@ function hexToRgb(hex) {
   return r+','+g+','+b;
 }
 
-/* ── THEME PALETTES — casino-noir atmosphere per theme ── */
-const THEME_PALETTES = {
-  'Gold Rush':   { bg:'#0C0900', bg2:'#141100', bg3:'#1D1800', bg4:'#272000', txt:'#FFFBEB', txt2:'#FDE68A', surf:'rgba(255,215,0,.07)',  bdr:'rgba(255,215,0,.18)',  amb1:'rgba(255,215,0,.30)',  amb2:'rgba(255,107,0,.12)'  },
-  'Neon Pulse':  { bg:'#020A0E', bg2:'#04101A', bg3:'#071824', bg4:'#0A202E', txt:'#E0FFFE', txt2:'#67E8F9', surf:'rgba(0,229,255,.07)',  bdr:'rgba(0,229,255,.18)',  amb1:'rgba(0,229,255,.24)',  amb2:'rgba(191,95,255,.10)' },
-  'Crimson':     { bg:'#0D0204', bg2:'#180308', bg3:'#22050C', bg4:'#2C0710', txt:'#FFF5F5', txt2:'#FECACA', surf:'rgba(255,23,68,.08)',  bdr:'rgba(255,23,68,.20)',  amb1:'rgba(255,23,68,.28)',  amb2:'rgba(255,107,0,.10)'  },
-  'Emerald':     { bg:'#020C07', bg2:'#04140E', bg3:'#071D15', bg4:'#0A261C', txt:'#F0FDF4', txt2:'#86EFAC', surf:'rgba(0,220,130,.07)',  bdr:'rgba(0,220,130,.18)',  amb1:'rgba(0,220,130,.24)',  amb2:'rgba(0,180,216,.08)'  },
-  'Plasma':      { bg:'#0C0208', bg2:'#160412', bg3:'#20061C', bg4:'#2A0826', txt:'#FFF0F7', txt2:'#FCA5D9', surf:'rgba(255,0,128,.07)',  bdr:'rgba(255,0,128,.18)',  amb1:'rgba(255,0,128,.24)',  amb2:'rgba(191,95,255,.10)' },
-  'Arctic':      { bg:'#020810', bg2:'#040E1C', bg3:'#071628', bg4:'#0A1E34', txt:'#E0F8FF', txt2:'#7DD3FC', surf:'rgba(0,207,255,.07)',  bdr:'rgba(0,207,255,.18)',  amb1:'rgba(0,207,255,.24)',  amb2:'rgba(0,220,130,.08)'  },
-  'Inferno':     { bg:'#0D0500', bg2:'#180800', bg3:'#220C00', bg4:'#2C1100', txt:'#FFF7ED', txt2:'#FED7AA', surf:'rgba(255,107,0,.08)',  bdr:'rgba(255,107,0,.20)',  amb1:'rgba(255,107,0,.28)',  amb2:'rgba(255,215,0,.10)'  },
-  'Ultraviolet': { bg:'#080310', bg2:'#0E0618', bg3:'#150922', bg4:'#1C0D2C', txt:'#FAF5FF', txt2:'#E9D5FF', surf:'rgba(191,95,255,.07)', bdr:'rgba(191,95,255,.18)', amb1:'rgba(191,95,255,.25)', amb2:'rgba(0,229,255,.08)'  },
-  'Matrix':      { bg:'#030900', bg2:'#060F00', bg3:'#0A1600', bg4:'#0D1E00', txt:'#F7FEE7', txt2:'#D9F99D', surf:'rgba(57,255,20,.06)',  bdr:'rgba(57,255,20,.15)',  amb1:'rgba(57,255,20,.20)',  amb2:'rgba(0,229,255,.08)'  },
-  'Titanium':    { bg:'#08090F', bg2:'#0E1018', bg3:'#141622', bg4:'#1A1D2C', txt:'#F8FAFC', txt2:'#CBD5E1', surf:'rgba(148,163,184,.06)',bdr:'rgba(148,163,184,.15)',amb1:'rgba(148,163,184,.20)',amb2:'rgba(56,189,248,.08)' },
+// ── Per-theme background photos (atmospheric dark images per mood) ──
+const THEME_PHOTOS = {
+  'Toxic Lime':      'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1080&h=1920&fit=crop&q=72&auto=format', // neon green city
+  'Solar Flare':     'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1080&h=1920&fit=crop&q=72&auto=format', // volcano lava
+  'Jade Palace':     'https://images.unsplash.com/photo-1518005068251-37900150dfca?w=1080&h=1920&fit=crop&q=72&auto=format', // bamboo forest night
+  'Lava Club':       'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=1080&h=1920&fit=crop&q=72&auto=format', // red ember glow
+  'Frost Bite':      'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1080&h=1920&fit=crop&q=72&auto=format', // aurora cyan/blue
+  'Bronze Age':      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1080&h=1920&fit=crop&q=72&auto=format', // rust metal texture
+  'Deep Indigo':     'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1080&h=1920&fit=crop&q=72&auto=format', // deep space nebula
+  'Emerald Felt':    'https://images.unsplash.com/photo-1541278107931-e006523892df?w=1080&h=1920&fit=crop&q=72&auto=format', // casino table felt
+  'Carbon Gold':     'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1080&h=1920&fit=crop&q=72&auto=format', // luxury gold car detail
+  'Smoke & Velvet':  'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1080&h=1920&fit=crop&q=72&auto=format', // purple galaxy
+  'Bourbon & Smoke': 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1080&h=1920&fit=crop&q=72&auto=format', // whiskey glass dark
+  'Obsidian Royal':  'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=1080&h=1920&fit=crop&q=72&auto=format', // milky way
+  'Velvet Noir':     'https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=1080&h=1920&fit=crop&q=72&auto=format', // neon magenta rain
 };
 
-// ── Background photo pool — verified dark atmospheric images (all tested)
-const BG_PHOTOS = [
-  // Deep purple galaxy — cosmos, jet black space
-  'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Aurora borealis — purple/green northern lights
-  'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Earth from space — city lights on dark globe
-  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Neon city rain — purple/blue neon street at night
-  'https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Milky Way over mountains — dark starfield
-  'https://images.unsplash.com/photo-1488866022504-f2584929ca5f?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Deep space nebula — teal/cyan cosmic gas clouds
-  'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Moody dark forest — misty trees, cool blue tones
-  'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1080&h=1920&fit=crop&q=72&auto=format',
-  // Milky Way galaxy — original dark cosmos
-  'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=1080&h=1920&fit=crop&q=72&auto=format',
-];
-let _bgPhotoLoaded = false;
-
-// Layered radial gradient — cinema-dark atmosphere with vivid accent leaks
-function getThemeBgGradient(theme) {
-  const a = theme.accentRgb;
-  const c = theme.compRgb || theme.accentRgb;
-  return [
-    'radial-gradient(ellipse 90% 60% at 8% 5%,   rgba(' + a + ',0.32) 0%, transparent 52%)',
-    'radial-gradient(ellipse 75% 55% at 92% 96%, rgba(' + c + ',0.26) 0%, transparent 50%)',
-    'radial-gradient(ellipse 55% 42% at 50% 48%, rgba(' + a + ',0.08) 0%, transparent 60%)',
-    'linear-gradient(160deg, #050508 0%, #08080A 40%, #060608 70%, #040406 100%)'
-  ].join(',');
-}
-
-// Background rotation interval — changes every 15 minutes
-let _bgRotateInterval = null;
-
-function applyBgPhoto(theme, pal) {
-  const slot = Math.floor(Date.now() / 900000) % BG_PHOTOS.length;
-  const url = BG_PHOTOS[slot];
+function loadThemePhoto(theme) {
+  const url = THEME_PHOTOS[theme.name];
+  if (!url) return;
+  const photoEl = document.getElementById('bg-photo');
+  if (!photoEl) return;
   const img = new Image();
-  img.onload = () => {
-    document.body.style.backgroundImage =
-      'linear-gradient(180deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.48) 40%,rgba(0,0,0,.55) 65%,rgba(0,0,0,.80) 100%), url(' + url + '),' + getThemeBgGradient(theme);
-    document.body.style.backgroundSize = 'cover, cover, cover';
-    document.body.style.backgroundPosition = 'center, center, center';
-    document.body.style.backgroundAttachment = 'fixed, fixed, fixed';
-    _bgPhotoLoaded = true;
+  img.onload = function() {
+    photoEl.style.backgroundImage =
+      'linear-gradient(180deg,rgba(0,0,0,.65) 0%,rgba(0,0,0,.35) 40%,rgba(0,0,0,.45) 70%,rgba(0,0,0,.72) 100%), url(' + url + ')';
+    photoEl.style.backgroundSize = 'cover';
+    photoEl.style.backgroundPosition = 'center';
+    photoEl.style.opacity = '1';
   };
-  img.onerror = () => { /* gradient fallback stays */ };
+  img.onerror = function() { photoEl.style.opacity = '0'; };
+  photoEl.style.opacity = '0';
   img.src = url;
-}
-
-function startBgRotation() {
-  if (_bgRotateInterval) return; // already running
-  _bgRotateInterval = setInterval(() => {
-    applyBgPhoto(currentTheme, THEME_PALETTES[currentTheme.name]);
-  }, 900000); // rotate every 15 minutes
 }
 
 function applyTheme(theme) {
   currentTheme = theme;
   const r = document.documentElement.style;
-  const pal = THEME_PALETTES[theme.name] || THEME_PALETTES['Gold Rush'];
-  const isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme:light)').matches;
+  const aRgb = theme.accentRgb || hexToRgb(theme.accent);
+  const cRgb  = theme.compRgb  || hexToRgb(theme.comp || theme.accentL);
 
-  // ── Accent colors — always apply (work on both light and dark) ──
+  // ── New design system tokens ──
+  r.setProperty('--bg',           theme.bg);
+  r.setProperty('--s1',           theme.s1);
+  r.setProperty('--s2',           theme.s2);
+  r.setProperty('--border',       theme.border);
+  r.setProperty('--accent',       theme.accent);
+  r.setProperty('--accent-l',     theme.accentL);
+  r.setProperty('--text',         theme.text);
+  r.setProperty('--text-sub',     theme.textSub);
+  r.setProperty('--table',        theme.table);
+  r.setProperty('--table-text',   theme.tableText);
+  r.setProperty('--pattern',      theme.pattern);
+  r.setProperty('--pattern-size', theme.patternSize);
+  r.setProperty('--overlay',      theme.overlay);
+
+  // ── Bridge to existing CSS var names (backward compat) ──
   r.setProperty('--c-gold',     theme.accent);
-  r.setProperty('--c-gold-rgb', theme.accentRgb);
-  r.setProperty('--c-gold-lt',  'rgba('+theme.accentRgb+',.15)');
-  r.setProperty('--c-gold-md',  'rgba('+theme.accentRgb+',.28)');
-  r.setProperty('--theme-glow', theme.glow);
-  r.setProperty('--c-comp',     theme.comp || theme.accent);
-  r.setProperty('--c-comp-rgb', theme.compRgb || theme.accentRgb);
+  r.setProperty('--c-gold-rgb', aRgb);
+  r.setProperty('--c-gold-lt',  'rgba('+aRgb+',.15)');
+  r.setProperty('--c-gold-md',  'rgba('+aRgb+',.28)');
+  r.setProperty('--c-accent',   theme.accent);
+  r.setProperty('--c-comp',     theme.comp || theme.accentL);
+  r.setProperty('--c-comp-rgb', cRgb);
+  r.setProperty('--theme-glow', 'rgba('+aRgb+',.5)');
 
+  const isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme:light)').matches;
   if (!isLight) {
-    // ── Dark mode: apply full palette — makes every theme a different room ──
-    const _bgHex = pal.bg.replace('#','');
-    const _bR=parseInt(_bgHex.slice(0,2),16), _bG=parseInt(_bgHex.slice(2,4),16), _bB=parseInt(_bgHex.slice(4,6),16);
-    r.setProperty('--c-bg-rgb', _bR+','+_bG+','+_bB);
-    r.setProperty('--c-bg',   pal.bg);
-    r.setProperty('--c-bg2',  pal.bg2);
-    r.setProperty('--c-bg3',  pal.bg3);
-    r.setProperty('--c-bg4',  pal.bg4);
-    r.setProperty('--c-txt',  pal.txt);
-    r.setProperty('--c-txt2', pal.txt2);
-    r.setProperty('--c-muted',  pal.txt2);
-    r.setProperty('--c-muted2', 'rgba(255,255,255,0.42)');
-    r.setProperty('--c-surf', pal.surf);
-    r.setProperty('--c-bdr',  pal.bdr);
-    const _bdr2 = pal.bdr.replace(/[\d.]+\)$/, (m) => (Math.min(parseFloat(m)*2.2, 0.32)).toFixed(3) + ')');
-    r.setProperty('--c-bdr2', _bdr2);
-    r.setProperty('--theme-amb1', pal.amb1);
-    r.setProperty('--theme-amb2', pal.amb2);
+    const bgHex = theme.bg.replace('#','');
+    const bR=parseInt(bgHex.slice(0,2),16),bG=parseInt(bgHex.slice(2,4),16),bB=parseInt(bgHex.slice(4,6),16);
+    r.setProperty('--c-bg-rgb', bR+','+bG+','+bB);
+    r.setProperty('--c-bg',   theme.bg);
+    r.setProperty('--c-bg2',  theme.s1.replace('0.88','0.96'));
+    r.setProperty('--c-bg3',  theme.s1);
+    r.setProperty('--c-bg4',  theme.s2);
+    r.setProperty('--c-txt',  theme.text);
+    r.setProperty('--c-txt2', theme.textSub);
+    r.setProperty('--c-muted', theme.textSub);
+    r.setProperty('--c-muted2','rgba(255,255,255,0.38)');
+    r.setProperty('--c-surf',  'rgba('+aRgb+',.07)');
+    r.setProperty('--c-surf2', 'rgba('+aRgb+',.12)');
+    r.setProperty('--c-surf3', 'rgba('+aRgb+',.18)');
+    r.setProperty('--c-bdr',   'rgba('+aRgb+',.15)');
+    r.setProperty('--c-bdr2',  'rgba('+aRgb+',.25)');
+    r.setProperty('--theme-amb1','rgba('+aRgb+',.28)');
+    r.setProperty('--theme-amb2','rgba('+cRgb+',.12)');
   } else {
-    // ── Light mode: remove dark inline overrides so CSS media query vars take effect ──
     ['--c-bg-rgb','--c-bg','--c-bg2','--c-bg3','--c-bg4','--c-txt','--c-txt2',
-     '--c-muted','--c-muted2','--c-surf','--c-bdr','--c-bdr2','--theme-amb1','--theme-amb2'
+     '--c-muted','--c-muted2','--c-surf','--c-surf2','--c-surf3','--c-bdr','--c-bdr2',
+     '--theme-amb1','--theme-amb2'
     ].forEach(function(p){ r.removeProperty(p); });
   }
 
-  // Clear inline bg — CSS handles body background in both modes
-  document.body.style.backgroundImage = '';
-  document.body.style.backgroundSize = '';
+  // ── Body pattern ──
+  document.body.style.backgroundColor   = theme.bg;
+  document.body.style.backgroundImage   = theme.pattern;
+  document.body.style.backgroundSize    = theme.patternSize;
+  document.body.style.backgroundRepeat  = 'repeat';
   document.body.style.backgroundAttachment = '';
-  document.body.style.backgroundRepeat = '';
-  // Fade orbs in — they pick up --c-gold-rgb and --c-comp-rgb automatically
-  document.querySelectorAll('.bg-orb').forEach(function(o){ o.style.opacity = '1'; });
+
+  // ── Overlay ──
+  const overlay = document.getElementById('bg-overlay');
+  if (overlay) overlay.style.background = theme.overlay;
+
+  // ── Fonts ──
+  document.documentElement.style.setProperty('--font-heading', theme.fontHead);
+  document.documentElement.style.setProperty('--font-body',    theme.fontBody);
+
+  // ── Photo ──
+  loadThemePhoto(theme);
+
+  // ── Meta theme-color ──
+  const metaTC = document.querySelector('meta[name="theme-color"]:not([media])');
+  if (metaTC) metaTC.content = theme.bg;
+}
+
+let _themeCheckHour = -1;
+function checkTheme() {
+  const h   = new Date().getHours();
+  const idx = h % THEMES.length;   // THEMES.length === 13
+  if (h !== _themeCheckHour) { _themeCheckHour = h; applyTheme(THEMES[idx]); }
+}
+
+function initTheme() {
+  checkTheme();
+  setInterval(checkTheme, 60000);
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function() {
+      applyTheme(currentTheme);
+    });
+  }
 }
 
 // ── TEST MODE — when true, confirmEnd() will NOT save to Supabase or local history
@@ -2808,7 +2950,7 @@ setInterval(() => {
   // 6-hour hard limit
   if (sessionMs > 6 * 3600 * 1000) {
     notify('\u23f1 6-hour limit reached \u2014 ending game automatically', 'warn');
-    setTimeout(() => endGame(), 3000);
+    setTimeout(() => confirmEnd(true), 3000);
     return;
   }
   // 2-hour idle warning
@@ -2823,7 +2965,7 @@ setInterval(() => {
         '<div style="font-size:17px;font-weight:800;color:var(--c-gold);margin-bottom:8px">Still playing?</div>'+
         '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);margin-bottom:20px;line-height:1.6">Game has been idle for 2+ hours.<br>End it now or keep going?</div>'+
         '<div style="display:flex;gap:10px">'+
-          '<button onclick="endGame();document.getElementById(\'idle-alert\').remove()" '+
+          '<button onclick="confirmEnd(true);document.getElementById(\'idle-alert\').remove()" '+
             'style="flex:1;padding:13px;background:var(--c-red);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>End Game</button>'+
           '<button onclick="_lastActivity=Date.now();document.getElementById(\'idle-alert\').remove()" '+
             'style="flex:1;padding:13px;background:var(--c-surf2);border:1.5px solid var(--c-bdr2);color:var(--c-txt);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer">Still Playing</button>'+
@@ -6364,9 +6506,35 @@ function _histSetPlayer(n) {
 }
 
 
+function _buildBuyinPills() {
+  const cur = parseInt(localStorage.getItem('pn-default-buyin')||'10',10);
+  return [5,10,20,50].map(v => {
+    const on = v === cur;
+    return '<button onclick="setBuyin('+v+');_refreshAcctBuyinRow()" style="padding:6px 14px;border-radius:20px;border:1px solid '+(on?'var(--c-gold)':'var(--c-bdr)')+';background:'+(on?'rgba(var(--c-gold-rgb,255,215,0),.15)':'transparent')+';font-size:13px;font-weight:'+(on?'700':'500')+';cursor:pointer;color:'+(on?'var(--c-gold)':'var(--c-muted)')+'">' + '$'+v+'</button>';
+  }).join('');
+}
+function _refreshAcctBuyinRow() {
+  const row = document.getElementById('acct-buyin-row');
+  if (row) row.innerHTML = _buildBuyinPills();
+}
+function _promptCustomBuyin() {
+  const v = prompt('Default buy-in amount ($):');
+  if (!v) return;
+  const n = Math.round(parseFloat(v)*100)/100;
+  if (!n||isNaN(n)||n<1||n>9999){notify('Enter 1–9999','err');return;}
+  setBuyin(n); _refreshAcctBuyinRow(); notify('Buy-in set to $'+n);
+}
+
 function buildAccountsTab() {
   const INACTIVE_DAYS = 30;
-  let h = '<div class="section-lbl">Player Accounts</div>'+
+  let h = '<div class="section-lbl">Game Settings</div>'+
+    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px 14px;margin-bottom:18px">'+
+      '<div style="font-size:12px;font-weight:600;color:var(--c-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Default Buy-in</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap" id="acct-buyin-row">'+_buildBuyinPills()+
+        '<button onclick="_promptCustomBuyin()" style="padding:6px 14px;border-radius:20px;border:1px solid var(--c-bdr);background:transparent;font-size:13px;font-weight:500;cursor:pointer;color:var(--c-muted)">Custom</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="section-lbl">Player Accounts</div>'+
     '<p style="font-family:var(--font-body);font-size:14px;color:var(--c-muted);margin-bottom:14px;line-height:1.6">'+
     'Register a PIN-protected account to secure your payment links. Archive players who haven\'t played recently to keep the roster clean.</p>';
 
@@ -6619,7 +6787,7 @@ function goSetup() {
   const pollImport = window._pollImport || [];
   window._pollImport = null;
 
-  BUYIN = 10; if (typeof setBuyin === 'function') setBuyin(10);
+  BUYIN = parseInt(localStorage.getItem('pn-default-buyin')||'10',10); if (typeof setBuyin === 'function') setBuyin(BUYIN);
   setupCount = 2;
   selectedPlayers = [];
   guestPlayers = [];
@@ -6648,7 +6816,19 @@ function goSetup() {
   document.getElementById('manual-grid').style.display = 'none';
   document.getElementById('guest-inp').value = '';
   document.getElementById('guest-similar').textContent = '';
+  _refreshSetupBuyinRow();
   show('setup');
+}
+
+function _refreshSetupBuyinRow() {
+  const el = document.getElementById('setup-buyin-val');
+  const btns = document.getElementById('setup-buyin-btns');
+  if (el) el.textContent = '$' + BUYIN;
+  if (!btns) return;
+  const opts = [5,10,20,50];
+  btns.innerHTML = opts.map(v =>
+    '<button onclick="setBuyin('+v+')" style="padding:5px 10px;border-radius:20px;border:1px solid '+(v===BUYIN?'var(--c-gold)':'var(--c-bdr)')+';background:'+(v===BUYIN?'rgba(var(--c-gold-rgb,255,215,0),.15)':'transparent')+';font-size:12px;font-weight:'+(v===BUYIN?'700':'500')+';cursor:pointer;color:'+(v===BUYIN?'var(--c-gold)':'var(--c-muted)')+'">' + '$'+v + '</button>'
+  ).join('');
 }
 
 function buildCountSel() {
@@ -6694,8 +6874,10 @@ function toggleArchivedInGrid() {
 
 function setBuyin(v) {
   BUYIN = v;
+  localStorage.setItem('pn-default-buyin', String(v));
   const disp = document.getElementById('buyin-display');
   if (disp) disp.textContent = '$' + v;
+  _refreshSetupBuyinRow();
   ['5','10','20','50'].forEach(x => {
     const b = document.getElementById('bi-'+x);
     if (!b) return;
@@ -7147,7 +7329,9 @@ function renderGame() {
     } else {
       // ── Active player card — whole-card swipe right=buyin, left=undo
       const hostStar = isHost ? '<svg width="13" height="11" viewBox="0 0 24 20" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:middle;flex-shrink:0"><path d="M2 16 L2 9 L7.5 13.5 L12 2 L16.5 13.5 L22 9 L22 16"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="2" y1="19" x2="22" y2="19"/></svg>' : '';
-      const bColor  = p.buyins === 1 ? '#22C55E' : '#EF4444';
+      const bColor  = p.buyins === 1
+        ? (getComputedStyle(document.documentElement).getPropertyValue('--c-gold').trim() || '#FFD700')
+        : '#EF4444';
       const bLbl    = p.buyins === 1 ? 'buyin' : 'buyins';
       // Harvey balls: numbered, first=green (initial), rest=red (rebuys)
       const MAX_BALLS = 5;
@@ -7179,9 +7363,8 @@ function renderGame() {
           '<span class="p-card-count" style="color:'+bColor+';text-shadow:0 0 12px '+bColor+'44">'+p.buyins+'</span>'+
           '<span class="p-card-total">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
           (isHostDevice ? '<button class="add-buyin-quick" onclick="event.stopPropagation();addBuyin(\''+escQ(p.name)+'\')" title="Add buy-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
-          '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out" style="opacity:.55"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>'+
+          '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out" style="opacity:.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'+
         '</div>'+
-        '<div class="swipe-hint-bar"><span>undo</span><span>buyin</span></div>'+
         '<div class="eco-panel" id="'+safeId+'">'+
           '<div class="eco-panel-row">'+
             '<span class="eco-panel-lbl">&#9679; Early cash out amount</span>'+
@@ -7191,7 +7374,7 @@ function renderGame() {
                 ' placeholder="0.0" value="'+escH(String(ecoVal))+'"'+
                 ' oninput="session.cashOuts[\''+escQ(p.name)+'\'] = this.value" onfocus="this.select()"/>'+
             '</div>'+
-            '<button class="eco-lock-btn" onclick="confirmEarlyOut(\''+escQ(p.name)+'\')">Lock &#10003;</button>'+
+            '<button class="eco-lock-btn" onclick="confirmEarlyOut(\''+escQ(p.name)+'\')" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>Cash Out</button>'+
           '</div>'+
         '</div>';
     }
