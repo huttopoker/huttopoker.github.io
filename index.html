@@ -185,12 +185,12 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
     --shd-lg:0 4px 28px rgba(0,0,0,.13), 0 0 0 1px rgba(0,0,0,.05);
   }
   body {
-    background: linear-gradient(180deg,#EDE9FE 0%,#F3F0FF 20%,#FAFAFF 100%);
+    background: linear-gradient(180deg,#EDE9FE 0%,#F3F0FF 20%,#FAFAFF 100%) !important;
   }
   body::before {
     background:
       radial-gradient(ellipse 130% 55% at 50% -8%, rgba(109,40,217,.22) 0%, rgba(124,58,237,.06) 45%, transparent 65%),
-      radial-gradient(ellipse 40% 22% at 85% 95%, rgba(6,182,212,.07) 0%, transparent 50%);
+      radial-gradient(ellipse 40% 22% at 85% 95%, rgba(6,182,212,.07) 0%, transparent 50%) !important;
   }
   body::after {
     background-image: radial-gradient(circle, rgba(var(--c-gold-rgb,124,58,237),.22) 1.5px, transparent 1.5px);
@@ -1100,6 +1100,61 @@ body:not(.nav-open) .wrap { transform:none; }
 .buyin-ctrl-btn.minus:active { background:rgba(239,68,68,.1); transform:scale(.88); }
 .buyin-ctrl-btn.plus:active  { background:rgba(34,197,94,.1); transform:scale(.88); }
 .buyin-ctrl-btn:disabled { opacity:.22; cursor:not-allowed; transform:none; }
+/* ── HISTORY PAGE ── */
+.hist-filter-bar { margin-bottom:14px; }
+.hist-search-wrap { position:relative; margin-bottom:8px; }
+.hist-search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--c-muted); }
+.hist-search { width:100%; padding:10px 34px 10px 36px; background:var(--c-bg2); border:1px solid var(--c-bdr); border-radius:12px; color:var(--c-txt); font-family:var(--font-body); font-size:14px; outline:none; box-sizing:border-box; transition:border-color .15s, box-shadow .15s; }
+.hist-search:focus { border-color:rgba(var(--c-gold-rgb,139,92,246),.45); box-shadow:0 0 0 3px rgba(var(--c-gold-rgb,139,92,246),.08); }
+.hist-chips { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+.hist-chips::-webkit-scrollbar { display:none; }
+.hist-chip { padding:6px 14px; border-radius:20px; border:1px solid var(--c-bdr2); background:var(--c-surf); color:var(--c-muted); font-family:var(--font-body); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+.hist-chip.on { background:rgba(var(--c-gold-rgb,139,92,246),.15); border-color:rgba(var(--c-gold-rgb,139,92,246),.4); color:var(--c-gold); font-weight:700; }
+.hist-player-row { display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; padding-top:6px; align-items:center; }
+.hist-player-row::-webkit-scrollbar { display:none; }
+.hist-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+.hist-stat { background:var(--c-bg2); border:1px solid var(--c-bdr); border-radius:14px; padding:14px 8px; text-align:center; }
+.hist-stat-val { font-family:var(--font-heading); font-size:22px; font-weight:900; line-height:1.1; }
+.hist-stat-lbl { font-family:var(--font-body); font-size:10px; color:var(--c-muted); text-transform:uppercase; letter-spacing:.6px; margin-top:4px; }
+.hist-card { background:var(--c-bg2); border:1px solid var(--c-bdr); border-left-width:3px; border-radius:14px; margin-bottom:8px; overflow:hidden; }
+.hist-card.mine { border-color:rgba(var(--c-gold-rgb,167,139,250),.3); box-shadow:0 0 18px rgba(var(--c-gold-rgb,167,139,250),.07); }
+.hist-card-hdr { padding:12px 14px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.hist-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.hist-card-date { font-family:var(--font-body); font-size:15px; font-weight:700; color:var(--c-txt); }
+.hist-card-tags { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:4px; }
+.hist-card-tag { font-family:var(--font-body); font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--c-bdr2); color:var(--c-muted); background:var(--c-surf); white-space:nowrap; }
+.hist-card-tag.you-win { background:rgba(var(--c-gold-rgb,139,92,246),.12); border-color:rgba(var(--c-gold-rgb,139,92,246),.3); color:var(--c-gold); font-weight:700; }
+.hist-card-tag.you-lose { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.25); color:#EF4444; font-weight:600; }
+.hist-card-pot { text-align:right; flex-shrink:0; }
+.hist-card-pot-amt { font-family:var(--font-heading); font-size:20px; font-weight:900; line-height:1; }
+.hist-card-pot-lbl { font-family:var(--font-body); font-size:9px; color:var(--c-muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+.hist-card-winner { font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--c-gold); display:flex; align-items:center; gap:5px; margin-bottom:5px; }
+.hist-card-bottom { display:flex; align-items:center; justify-content:space-between; }
+.hist-card-players { font-family:var(--font-body); font-size:12px; color:var(--c-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; padding-right:8px; }
+.hist-card-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.hist-share-btn { background:#25D366; border:none; border-radius:8px; color:#fff; padding:5px 10px; font-family:var(--font-body); font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:3px; white-space:nowrap; }
+.hist-chev { color:var(--c-muted); transition:transform .22s; flex-shrink:0; }
+.hist-card-body { display:none; border-top:1px solid var(--c-bdr); }
+.hist-card-body.open { display:block; }
+.hist-bar-wrap { padding:12px 14px 4px; }
+.hist-results-hdr-lbl { font-family:var(--font-body); font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--c-muted); margin-bottom:8px; }
+.hist-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.hist-bar-avatar { width:24px; height:24px; border-radius:7px; background:var(--c-surf); border:1px solid var(--c-bdr); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+.hist-bar-name { font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--c-txt); width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex-shrink:0; }
+.hist-bar-track { flex:1; background:var(--c-bg3); border-radius:4px; height:6px; overflow:hidden; }
+.hist-bar-fill { height:100%; border-radius:4px; opacity:.85; }
+.hist-bar-net { font-family:var(--font-mono); font-size:11px; font-weight:700; flex-shrink:0; min-width:48px; text-align:right; }
+.hist-results { padding:4px 14px 10px; }
+.hist-results-hdr { display:grid; grid-template-columns:1fr auto auto auto; padding:0 2px 6px; font-family:var(--font-body); font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--c-muted); border-bottom:1px solid var(--c-bdr); }
+.hist-result-row { display:grid; grid-template-columns:1fr auto auto auto; padding:7px 2px; border-bottom:1px solid var(--c-bdr); align-items:center; }
+.hist-result-row:last-child { border-bottom:none; }
+.hist-result-name { font-family:var(--font-body); font-size:13px; font-weight:600; color:var(--c-txt); }
+.hist-result-name.me { font-weight:800; color:var(--c-gold); }
+.hist-hosted-by { padding:4px 14px 10px; font-family:var(--font-body); font-size:11px; color:var(--c-muted); }
+.hist-empty { text-align:center; padding:56px 20px; }
+.hist-empty-icon { font-size:44px; margin-bottom:12px; }
+.hist-empty-title { font-family:var(--font-heading); font-size:20px; font-weight:800; color:var(--c-txt); margin-bottom:8px; }
+.hist-empty-sub { font-family:var(--font-body); font-size:13px; color:var(--c-muted); }
 /* Early cashout trigger button */
 .eco-trigger { width:44px; height:44px; border-radius:10px; border:none;
   background:none; font-size:14px; cursor:pointer; flex-shrink:0; margin-right:4px;
@@ -6076,36 +6131,34 @@ function setPlayerTab(pid, tab) {
 let _histFilter = { q:'', range:'all', player:'' };
 
 function buildHistoryTab() {
-  if (!allSessions.length) return '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:16px">🃏</div><div style="font-weight:800;font-size:18px;color:var(--c-txt)">No games yet</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);margin-top:6px">Finish a game to see history</div></div>';
+  if (!allSessions.length) return '<div class="hist-empty"><div class="hist-empty-icon">🃏</div><div class="hist-empty-title">No games yet</div><div class="hist-empty-sub">Finish a game to see history here</div></div>';
 
   const allP = [...new Set(allSessions.flatMap(s=>s.players.map(p=>p.name)))].sort();
 
   /* ── Filter bar HTML ── */
   const rangeOpts = [['all','All Time'],['year','This Year'],['6mo','6 Months'],['3mo','3 Months']];
   const rangeBar = rangeOpts.map(function(r){
-    const on = _histFilter.range===r[0];
-    return '<button onclick="_histSetRange(\''+r[0]+'\')" style="padding:6px 14px;border-radius:20px;border:1px solid '+(on?'rgba(139,92,246,.5)':'var(--c-bdr2)')+';background:'+(on?'rgba(139,92,246,.15)':'var(--c-surf)')+';color:'+(on?'#A78BFA':'var(--c-muted)')+';font-family:var(--font-body);font-size:13px;font-weight:'+(on?'700':'500')+';cursor:pointer;white-space:nowrap;flex-shrink:0">'+r[1]+'</button>';
+    return '<button onclick="_histSetRange(\''+r[0]+'\')" class="hist-chip'+(_histFilter.range===r[0]?' on':'')+'">'+ r[1]+'</button>';
   }).join('');
 
   const playerChips = (myLinkedPlayer ? [myLinkedPlayer] : []).concat(allP.filter(function(n){return n!==myLinkedPlayer;})).slice(0,8).map(function(n){
-    const on = _histFilter.player===n;
-    return '<button onclick="_histSetPlayer(\''+escQ(n)+'\')" style="padding:5px 12px;border-radius:20px;border:1px solid '+(on?'rgba(167,139,250,.5)':'var(--c-bdr2)')+';background:'+(on?'rgba(167,139,250,.15)':'var(--c-surf)')+';color:'+(on?'#A78BFA':'var(--c-muted)')+';font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0">'+escH(n)+'</button>';
+    return '<button onclick="_histSetPlayer(\''+escQ(n)+'\')" class="hist-chip'+(_histFilter.player===n?' on':'')+'">'+ escH(n)+'</button>';
   }).join('');
 
-  let filterBar = '<div style="margin-bottom:12px">'+
-    '<div style="position:relative;margin-bottom:8px">'+
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
-      '<input id="hist-search" type="text" placeholder="Search player or date…" value="'+escH(_histFilter.q)+'" oninput="_histSetQ(this.value)" '+
-        'style="width:100%;padding:10px 32px 10px 36px;background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;color:var(--c-txt);font-family:var(--font-body);font-size:14px;outline:none">'+
-      (_histFilter.q ? '<button onclick="_histSetQ(\'\');document.getElementById(\'hist-search\').value=\'\'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--c-muted);cursor:pointer;font-size:14px;padding:2px">✕</button>' : '')+
-    '</div>'+
-    '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">'+rangeBar+'</div>'+
-    (playerChips ? '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-top:6px">'+
-      '<span style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--c-muted);flex-shrink:0;align-self:center;text-transform:uppercase;letter-spacing:.5px">Player:</span>'+
-      playerChips+
-      (_histFilter.player ? '<button onclick="_histSetPlayer(\'\');" style="padding:4px 9px;border-radius:20px;border:1px solid var(--c-bdr2);background:transparent;color:var(--c-muted);font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">✕ Clear</button>' : '')+
-    '</div>' : '')+
-  '</div>';
+  let filterBar =
+    '<div class="hist-filter-bar">'+
+      '<div class="hist-search-wrap">'+
+        '<svg class="hist-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
+        '<input id="hist-search" class="hist-search" type="text" placeholder="Search player or date…" value="'+escH(_histFilter.q)+'" oninput="_histSetQ(this.value)">'+
+        (_histFilter.q ? '<button onclick="_histSetQ(\'\');document.getElementById(\'hist-search\').value=\'\'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--c-muted);cursor:pointer;font-size:16px;line-height:1;padding:2px">✕</button>' : '')+
+      '</div>'+
+      '<div class="hist-chips">'+rangeBar+'</div>'+
+      '<div class="hist-player-row">'+
+        '<span style="font-family:var(--font-body);font-size:11px;font-weight:700;color:var(--c-muted);flex-shrink:0;text-transform:uppercase;letter-spacing:.6px">Player:</span>'+
+        playerChips+
+        (_histFilter.player ? '<button onclick="_histSetPlayer(\'\');" class="hist-chip">✕ Clear</button>' : '')+
+      '</div>'+
+    '</div>';
 
   /* ── Apply filters ── */
   const now = Date.now();
@@ -6143,29 +6196,34 @@ function buildHistoryTab() {
 
   let summaryHtml = '';
   if (filtered.length) {
-    summaryHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'+
-      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
-        '<div style="font-family:var(--font-mono);font-size:22px;font-weight:900;color:#38BDF8">'+filtered.length+'</div>'+
-        '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Games</div>'+
-      '</div>'+
-      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
-        '<div style="font-family:var(--font-mono);font-size:18px;font-weight:900;color:var(--c-txt)">'+fmt(avgPot)+'</div>'+
-        '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Avg Pot</div>'+
-      '</div>'+
-      '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:10px 8px;text-align:center">'+
-        (topWinner ? '<div style="font-size:14px;font-weight:800;color:var(--c-green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(topWinner[0])+'</div><div style="font-family:var(--font-body);font-size:11px;color:var(--c-green)">'+topWinner[1]+' win'+(topWinner[1]!==1?'s':'')+'</div>' : '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-muted)">—</div>')+
-        '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Top Winner</div>'+
-      '</div>'+
-    '</div>';
+    summaryHtml =
+      '<div class="hist-stats">'+
+        '<div class="hist-stat">'+
+          '<div class="hist-stat-val" style="color:#38BDF8">'+filtered.length+'</div>'+
+          '<div class="hist-stat-lbl">Games</div>'+
+        '</div>'+
+        '<div class="hist-stat">'+
+          '<div class="hist-stat-val" style="color:var(--c-txt)">'+fmt(avgPot)+'</div>'+
+          '<div class="hist-stat-lbl">Avg Pot</div>'+
+        '</div>'+
+        '<div class="hist-stat">'+
+          (topWinner ?
+            '<div class="hist-stat-val" style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--c-green)">'+escH(topWinner[0])+'</div>'+
+            '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-green);margin-bottom:2px">'+topWinner[1]+' win'+(topWinner[1]!==1?'s':'')+'</div>'
+          : '<div class="hist-stat-val" style="color:var(--c-muted)">—</div>')+
+          '<div class="hist-stat-lbl">Top Winner</div>'+
+        '</div>'+
+      '</div>';
   }
 
   /* ── No results ── */
   if (!filtered.length) {
-    return filterBar + '<div style="text-align:center;padding:40px 20px"><div style="font-size:32px;margin-bottom:12px">🔍</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">No games match your filter</div></div>';
+    return filterBar + '<div class="hist-empty"><div class="hist-empty-icon">🔍</div><div class="hist-empty-sub">No games match your filter</div></div>';
   }
 
   /* ── Build game cards ── */
   const maxPot = Math.max.apply(null, filtered.map(function(s){return s.players.reduce(function(a,p){return a+p.buyins*(s.buyin||BUYIN);},0);}));
+  const WA_SVG = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
 
   let cards = '';
   filtered.forEach(function(s, i) {
@@ -6181,85 +6239,80 @@ function buildHistoryTab() {
     var myEntry = myLinkedPlayer ? s.players.find(function(p){return p.name===myLinkedPlayer;}) : null;
     var myNet = myEntry ? rd((myEntry.cashOut||0)-myEntry.buyins*(s.buyin||BUYIN)) : null;
 
-    // Player names — clean text list instead of crowded letter circles
     var nameList = sorted.slice(0,4).map(function(p){ return escH(p.name.split(' ')[0]); }).join(', ');
     if (sorted.length > 4) nameList += ' +' + (sorted.length-4);
 
-    // Mini bar chart data (built inside the expandable)
     const maxAbsNet = Math.max.apply(null, sorted.map(function(p){return Math.abs(rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN)));})) || 1;
     const barRows = sorted.map(function(p){
       var net2=rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
       var pct=Math.round(Math.abs(net2)/maxAbsNet*100);
-      var col=net2>0?'#22C55E':net2<0?'#EF4444':'rgba(255,255,255,.2)';
+      var col=net2>0?'#22C55E':net2<0?'#EF4444':'var(--c-muted)';
       var isMe=p.name===myLinkedPlayer;
-      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
-        '<div style="width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.07);border:1px solid '+(isMe?'var(--c-gold,#A78BFA)':'rgba(255,255,255,.1)')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:'+(isMe?'var(--c-gold,#A78BFA)':col)+';flex-shrink:0">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
-        '<div style="font-size:12px;font-weight:'+(isMe?'800':'600')+';color:var(--c-txt);width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">'+escH(p.name)+'</div>'+
-        '<div style="flex:1;background:var(--c-bg3);border-radius:4px;height:6px;overflow:hidden">'+
-          '<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:4px;opacity:.85"></div>'+
-        '</div>'+
-        '<div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:'+col+';flex-shrink:0;min-width:44px;text-align:right">'+fmtS(net2)+'</div>'+
+      return '<div class="hist-bar-row">'+
+        '<div class="hist-bar-avatar" style="border-color:'+(isMe?'var(--c-gold)':'var(--c-bdr)')+';color:'+(isMe?'var(--c-gold)':col)+'">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
+        '<div class="hist-bar-name" style="font-weight:'+(isMe?'800':'600')+'">'+escH(p.name)+'</div>'+
+        '<div class="hist-bar-track"><div class="hist-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+        '<div class="hist-bar-net" style="color:'+col+'">'+fmtS(net2)+'</div>'+
       '</div>';
     }).join('');
 
-    cards += '<div style="background:var(--c-bg2);border:1px solid '+(isMyGame?'rgba(var(--c-gold-rgb,167,139,250),.3)':'var(--c-bdr)')+';border-left:3px solid '+potHeat+';border-radius:14px;margin-bottom:8px;overflow:hidden'+(isMyGame?';box-shadow:0 0 16px rgba(var(--c-gold-rgb,167,139,250),.08)':'')+'">'+
-      // Card header
-      '<div onclick="_histToggle(\''+bid+'\')" style="padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent" id="'+bid+'_hdr">'+
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">'+
-          '<div style="flex:1;min-width:0">'+
-            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'+
-              '<span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#38BDF8">'+escH(s.date||'—')+'</span>'+
-              (isMyGame && myNet!==null ? '<span style="font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.25)">you '+fmtS(myNet)+'</span>' : '')+
-              (dur ? '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);padding:2px 6px;border-radius:20px;border:1px solid var(--c-bdr2)">⏱ '+escH(dur)+'</span>' : '')+
+    const tableRows = sorted.map(function(p){
+      var net2=rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
+      var nc=net2>0?'var(--c-green)':net2<0?'var(--c-red)':'var(--c-muted)';
+      var isMe=p.name===myLinkedPlayer;
+      return '<div class="hist-result-row">'+
+        '<span class="hist-result-name'+(isMe?' me':'')+'">'+ escH(p.name)+(isMe?' ★':'')+'</span>'+
+        '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right">'+fmt(p.buyins*(s.buyin||BUYIN))+'</span>'+
+        '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right;padding-left:12px">'+fmt(p.cashOut||0)+'</span>'+
+        '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+';text-align:right;padding-left:12px">'+fmtS(net2)+'</span>'+
+      '</div>';
+    }).join('');
+
+    var youTag = '';
+    if (isMyGame && myNet!==null) {
+      youTag = '<span class="hist-card-tag '+(myNet>=0?'you-win':'you-lose')+'">you '+fmtS(myNet)+'</span>';
+    }
+
+    cards +=
+      '<div class="hist-card'+(isMyGame?' mine':'')+'" style="border-left-color:'+potHeat+'">'+
+        '<div class="hist-card-hdr" onclick="_histToggle(\''+bid+'\')" id="'+bid+'_hdr">'+
+          '<div class="hist-card-top">'+
+            '<div style="flex:1;min-width:0">'+
+              '<div class="hist-card-date">'+escH(s.date||'—')+'</div>'+
+              '<div class="hist-card-tags">'+
+                youTag+
+                (dur ? '<span class="hist-card-tag">⏱ '+escH(dur)+'</span>' : '')+
+              '</div>'+
+              (winner&&winNet>0 ? '<div class="hist-card-winner"><span>🏆</span><span style="font-weight:700">'+escH(winner.name)+'</span><span style="font-weight:500;opacity:.7">+'+fmt(winNet)+'</span></div>' : '')+
             '</div>'+
-            (winner && winNet>0 ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);display:flex;align-items:center;gap:3px">🏆 <span style="font-weight:700">'+escH(winner.name)+'</span> &nbsp;+'+fmt(winNet)+'</div>' : '')+
+            '<div class="hist-card-pot">'+
+              '<div class="hist-card-pot-amt" style="color:'+potHeat+'">'+fmt(pa)+'</div>'+
+              '<div class="hist-card-pot-lbl">pot</div>'+
+            '</div>'+
           '</div>'+
-          '<div style="text-align:right;flex-shrink:0">'+
-            '<div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:'+potHeat+'">'+fmt(pa)+'</div>'+
-            '<div style="font-family:var(--font-mono);font-size:8px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px">pot</div>'+
-          '</div>'+
-        '</div>'+
-        // Player list row
-        '<div style="display:flex;align-items:center;justify-content:space-between">'+
-          '<div style="font-size:11px;color:var(--c-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;padding-right:8px">'+
-            '<span style="display:inline-flex;align-items:center;gap:4px">'+
-              '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'+
-              '<span>'+nameList+'</span>'+
-            '</span>'+
-          '</div>'+
-          '<div style="display:flex;align-items:center;gap:8px">'+
-            '<button onclick="event.stopPropagation();shareHistoryByDate(\''+escH(s.date)+'\')" style="background:#25D366;border:none;border-radius:8px;color:#fff;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Share</button>'+
-            '<svg id="'+bid+'_chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .22s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>'+
+          '<div class="hist-card-bottom">'+
+            '<div class="hist-card-players">'+
+              '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.4;vertical-align:middle;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'+
+              nameList+
+            '</div>'+
+            '<div class="hist-card-actions">'+
+              '<button onclick="event.stopPropagation();shareHistoryByDate(\''+escH(s.date)+'\')" class="hist-share-btn">'+WA_SVG+'Share</button>'+
+              '<svg id="'+bid+'_chev" class="hist-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
+            '</div>'+
           '</div>'+
         '</div>'+
-      '</div>'+
-      // Expandable body
-      '<div id="'+bid+'" style="display:none;padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,.06)">'+
-        // Mini bar chart
-        '<div style="margin-bottom:8px">'+
-          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--c-muted);margin-bottom:8px">Results</div>'+
-          barRows+
-        '</div>'+
-        // Detail table
-        '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:8px;margin-top:4px">'+
-          '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;padding:0 2px 6px;font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3)">'+
-            '<span>Player</span><span style="text-align:right">Buyins</span><span style="text-align:right;padding-left:12px">Cash</span><span style="text-align:right;padding-left:12px">Net</span>'+
+        '<div id="'+bid+'" class="hist-card-body">'+
+          '<div class="hist-bar-wrap">'+
+            '<div class="hist-results-hdr-lbl">Results</div>'+
+            barRows+
           '</div>'+
-          sorted.map(function(p){
-            var net2=rd((p.cashOut||0)-p.buyins*(s.buyin||BUYIN));
-            var nc=net2>0?'var(--c-green)':net2<0?'var(--c-red)':'var(--c-muted)';
-            var isMe=p.name===myLinkedPlayer;
-            return '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;padding:6px 2px;border-top:1px solid rgba(255,255,255,.04);align-items:center">'+
-              '<span style="font-size:13px;font-weight:'+(isMe?'800':'600')+';color:'+(isMe?'#A78BFA':'var(--c-txt)')+'">'+escH(p.name)+(isMe?' ★':'')+'</span>'+
-              '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right">'+fmt(p.buyins*(s.buyin||BUYIN))+'</span>'+
-              '<span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-align:right;padding-left:12px">'+fmt(p.cashOut||0)+'</span>'+
-              '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+nc+';text-align:right;padding-left:12px">'+fmtS(net2)+'</span>'+
-            '</div>';
-          }).join('')+
+          '<div class="hist-results">'+
+            '<div class="hist-results-hdr"><span>Player</span><span style="text-align:right">Buyins</span><span style="text-align:right;padding-left:12px">Cash</span><span style="text-align:right;padding-left:12px">Net</span></div>'+
+            tableRows+
+          '</div>'+
+          (s.host ? '<div class="hist-hosted-by">Hosted by '+escH(s.host)+'</div>' : '')+
         '</div>'+
-        (s.host ? '<div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:var(--c-muted)">Hosted by '+escH(s.host)+'</div>' : '')+
-      '</div>'+
-    '</div>';
+      '</div>';
   });
 
   return filterBar + summaryHtml + cards;
@@ -6269,8 +6322,8 @@ function _histToggle(bid) {
   var body = document.getElementById(bid);
   var chev = document.getElementById(bid+'_chev');
   if (!body) return;
-  var open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
+  var open = body.classList.contains('open');
+  body.classList.toggle('open');
   if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
 }
 
