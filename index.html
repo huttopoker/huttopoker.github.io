@@ -4043,16 +4043,13 @@ function parseMoney(raw) {
 function fmt(v) {
   const n = Math.abs(rd(v));
   if (Number.isInteger(n)) return '$' + n;
-  // Show 1 decimal for .5 increments, 2 for others (e.g. $6.5 → "$6.50")
-  return '$' + n.toFixed(n % 0.1 < 0.001 ? 1 : 2);
+  return '$' + n.toFixed(2);
 }
 function fmtS(v) {
   const r = rd(v);
   if (Math.abs(r) < 0.05) return '$0';
   const n = Math.abs(r);
-  let s;
-  if (Number.isInteger(n)) s = String(n);
-  else s = n.toFixed(n % 0.1 < 0.001 ? 1 : 2);
+  const s = Number.isInteger(n) ? String(n) : n.toFixed(2);
   return (r > 0 ? '+' : '-') + '$' + s;
 }
 function mKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -4993,9 +4990,9 @@ async function buildLedgerTab() {
   // ── HERO SUMMARY CARD
   if (hasPending) {
     const totalFmt = '$' + (Number.isInteger(rd(totalOwed)) ? rd(totalOwed) : rd(totalOwed).toFixed(2));
-    html += '<div style="background:rgba(13,17,35,.92);border:1px solid rgba(var(--c-gold-rgb,139,92,246),.22);'+
+    html += '<div style="background:var(--c-surf);border:1px solid rgba(var(--c-gold-rgb,139,92,246),.22);'+
       'border-left:3px solid var(--c-gold,#8B5CF6);border-radius:14px;padding:14px 16px;margin-bottom:14px;'+
-      'display:flex;align-items:center;justify-content:space-between;gap:12px">'+
+      'box-shadow:var(--shd);display:flex;align-items:center;justify-content:space-between;gap:12px">'+
         '<div>'+
           '<div style="font-family:var(--font-body);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--c-muted);margin-bottom:4px">Outstanding</div>'+
           '<div style="font-family:var(--font-mono);font-size:26px;font-weight:800;color:var(--c-gold);line-height:1.1">'+totalFmt+'</div>'+
@@ -5842,6 +5839,7 @@ function buildStatsTab() {
             '<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'+rank+
               '<span style="font-size:13px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(n)+'</span>'+
               '<span style="font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:8px;background:'+(wr>=50?'rgba(34,197,94,.12)':'rgba(239,68,68,.1)')+';color:'+wrBarClr+';flex-shrink:0">'+wr+'%</span>'+
+              '<span style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted2);flex-shrink:0">'+d.sessions+'g</span>'+
             '</div>'+
             '<span style="font-family:var(--font-mono);font-size:12px;font-weight:800;color:'+(pos?'var(--c-green)':'var(--c-red)')+';flex-shrink:0;margin-left:8px">'+fmtS(d.net)+'</span>'+
           '</div>'+
@@ -6175,12 +6173,15 @@ function buildStatsTab() {
     ? '<button class="sstat-tab" onclick="setStatSection(\'players\');setTimeout(function(){ var idx='+atEntries.findIndex(function(e){return e[0]===myLinkedPlayer;})+'; var c=document.getElementById(\'pc_\'+idx+\'_card\'); if(c){ document.querySelectorAll(\'.pperf-card.pperf-open\').forEach(function(x){x.classList.remove(\'pperf-open\');}); c.classList.add(\'pperf-open\'); c.scrollIntoView({behavior:\'smooth\',block:\'start\'}); } },80)" style="white-space:nowrap;background:rgba(var(--c-gold-rgb,167,139,250),.18)!important;border-color:rgba(var(--c-gold-rgb,167,139,250),.4)!important;color:var(--c-gold,#A78BFA)!important">★ My Stats</button>'
     : '';
   const tabBar =
-    '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none;-ms-overflow-style:none">'+
+    '<div style="position:relative;margin-bottom:14px">'+
+    '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;-ms-overflow-style:none">'+
       (myStatsBtn)+
       '<button id="sstat-btn-overview" class="sstat-tab sstat-on" onclick="setStatSection(\'overview\')" style="white-space:nowrap">📊 Overview</button>'+
       '<button id="sstat-btn-leaders"  class="sstat-tab" onclick="setStatSection(\'leaders\')"  style="white-space:nowrap">🏆 Leaders</button>'+
       '<button id="sstat-btn-records"  class="sstat-tab" onclick="setStatSection(\'records\')"  style="white-space:nowrap">⚡ Records</button>'+
       '<button id="sstat-btn-players"  class="sstat-tab" onclick="setStatSection(\'players\')"  style="white-space:nowrap">👤 Players</button>'+
+    '</div>'+
+    '<div style="position:absolute;right:0;top:0;bottom:2px;width:32px;background:linear-gradient(to right,transparent,var(--c-bg3,#E8EBF4));pointer-events:none"></div>'+
     '</div>'+
     '<style>'+
       '.sstat-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid var(--c-bdr2);background:var(--c-surf);color:var(--c-muted);font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s}'+
