@@ -3920,6 +3920,8 @@ function setSyncPill(on) {
 ═══════════════════════════════════════ */
 function forceRefreshData() {
   try { localStorage.removeItem('pn-v3'); } catch(e){}
+  try { localStorage.removeItem('pn-active-v1'); } catch(e){}
+  try { localStorage.removeItem('pn-pay-status'); } catch(e){}
   notify('Refreshing data from server…','info');
   setTimeout(function(){ location.reload(); }, 600);
 }
