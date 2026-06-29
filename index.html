@@ -246,6 +246,10 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   /* Player select grid — light mode */
   .p-btn { background: #FFFFFF !important; border-color: rgba(0,0,0,.10) !important; color: rgba(26,16,53,.7) !important; box-shadow: 0 1px 4px rgba(0,0,0,.06) !important; }
   .p-btn.on { background: rgba(var(--c-gold-rgb,124,58,237),.10) !important; border-color: rgba(var(--c-gold-rgb,124,58,237),.5) !important; color: var(--c-gold,#6D28D9) !important; box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,124,58,237),.15), 0 2px 12px rgba(var(--c-gold-rgb,124,58,237),.12) !important; }
+  /* My Stats card — light mode */
+  .dash-my-stats-card { background: #FFFFFF !important; border-color: rgba(0,0,0,.09) !important; box-shadow: 0 2px 16px rgba(0,0,0,.07) !important; }
+  .dash-my-stats-btn { background: rgba(var(--c-gold-rgb,124,58,237),.08) !important; border-color: rgba(var(--c-gold-rgb,124,58,237),.22) !important; color: var(--c-gold,#5B21B6) !important; }
+  .dash-not-me-btn { background: rgba(0,0,0,.03) !important; border-color: rgba(0,0,0,.13) !important; color: rgba(26,16,53,.45) !important; }
   /* Input fields */
   .finp { background: #FFFFFF !important; border-color: rgba(0,0,0,.14) !important; color: #1A1035 !important; }
   .finp::placeholder { color: rgba(26,16,53,.35) !important; }
@@ -377,20 +381,20 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 }
 /* Icon badge — rounded gradient tile */
 .ah-badge {
-  width:34px; height:34px; border-radius:11px; flex-shrink:0;
+  width:42px; height:42px; border-radius:13px; flex-shrink:0;
   background:linear-gradient(145deg, var(--c-gold,#7C3AED) 0%, var(--c-comp,#06B6D4) 100%);
   display:inline-flex; align-items:center; justify-content:center;
-  font-size:17px; line-height:1; color:#fff;
-  box-shadow:0 2px 12px rgba(var(--c-gold-rgb,124,58,237),.35), inset 0 1px 0 rgba(255,255,255,.2);
+  font-size:21px; line-height:1; color:#fff;
+  box-shadow:0 3px 16px rgba(var(--c-gold-rgb,124,58,237),.45), inset 0 1px 0 rgba(255,255,255,.25);
   letter-spacing:0; font-family:serif;
 }
 /* Wordmark — Space Grotesk, relaxed, airy */
 .ah-city {
-  font-family:var(--font-logo); font-size:10px; font-weight:600; letter-spacing:3px;
-  color:rgba(var(--c-gold-rgb,255,215,0),.75); text-transform:uppercase; line-height:1;
+  font-family:var(--font-logo); font-size:10px; font-weight:700; letter-spacing:3.5px;
+  color:rgba(var(--c-gold-rgb,255,215,0),.8); text-transform:uppercase; line-height:1;
 }
 .ah-wordmark {
-  font-family:var(--font-logo); font-size:16px; font-weight:800; letter-spacing:2.5px;
+  font-family:var(--font-logo); font-size:19px; font-weight:800; letter-spacing:2.5px;
   background:linear-gradient(115deg, var(--c-gold,#FFD700) 0%, #FFFFFF 50%, var(--c-comp,#FF6B00) 100%);
   background-size:200% auto;
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
@@ -405,7 +409,7 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 .ah-tag {
   font-family:var(--font-body); font-size:10px; letter-spacing:2px;
   text-transform:uppercase; color:rgba(255,255,255,.3);
-  font-weight:400; white-space:nowrap; padding-left:43px;
+  font-weight:400; white-space:nowrap; padding-left:51px;
 }
 /* ah-page now inline in header */
 .ah-right { display:flex; flex-direction:row; align-items:center; gap:8px; flex-shrink:0; }
@@ -2354,148 +2358,357 @@ let isOnline = false;
 // ── 10 Modern App Theme Palettes (from curated set — dark modes only)
 /* ── 13-THEME DESIGN SYSTEM ── */
 const THEMES = [
-  { // 0 — TOXIC LIME  (00–00h)
-    name:'Toxic Lime',
-    bg:'#070C07', s1:'rgba(12,21,12,0.88)', s2:'rgba(18,32,18,0.92)',
-    border:'#1A4020', accent:'#4ADE80', accentL:'#86EFAC',
-    text:'#F0FFF4', textSub:'#BBF7D0',
-    table:'rgba(10,26,10,0.9)', tableText:'#4ADE80',
-    pattern:"radial-gradient(circle, #1a4020 1px, transparent 1px)",
-    patternSize:'28px 28px', overlay:'rgba(7,12,7,0.72)',
-    fontHead:"'Rajdhani',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#86EFAC', compRgb:'134,239,172', accentRgb:'74,222,128',
-  },
-  { // 1 — SOLAR FLARE  (01h)
-    name:'Solar Flare',
-    bg:'#0D0700', s1:'rgba(26,14,0,0.88)', s2:'rgba(46,24,0,0.92)',
-    border:'#6B2D00', accent:'#EA580C', accentL:'#FB923C',
-    text:'#FFF7ED', textSub:'#FED7AA',
-    table:'rgba(30,14,0,0.9)', tableText:'#FB923C',
-    pattern:"repeating-linear-gradient(45deg, #6b2d00 0px, #6b2d00 1px, transparent 1px, transparent 20px)",
-    patternSize:'auto', overlay:'rgba(13,7,0,0.78)',
-    fontHead:"'Bebas Neue',system-ui,sans-serif", fontBody:"'DM Sans',system-ui,sans-serif",
-    comp:'#FB923C', compRgb:'251,146,60', accentRgb:'234,88,12',
-  },
-  { // 2 — JADE PALACE  (02h)
-    name:'Jade Palace',
-    bg:'#060D0A', s1:'rgba(10,28,20,0.88)', s2:'rgba(16,46,32,0.92)',
-    border:'#1A5C36', accent:'#10B981', accentL:'#6EE7B7',
-    text:'#ECFDF5', textSub:'#A7F3D0',
-    table:'rgba(8,26,16,0.9)', tableText:'#6EE7B7',
-    pattern:"radial-gradient(circle at 0% 50%, #1a5c36 1px, transparent 1px), radial-gradient(circle at 100% 50%, #1a5c36 1px, transparent 1px)",
-    patternSize:'30px 52px', overlay:'rgba(6,13,10,0.76)',
-    fontHead:"'Cinzel',Georgia,serif", fontBody:"'Lato',system-ui,sans-serif",
-    comp:'#6EE7B7', compRgb:'110,231,183', accentRgb:'16,185,129',
-  },
-  { // 3 — LAVA CLUB  (03h)
-    name:'Lava Club',
-    bg:'#0C0604', s1:'rgba(26,10,6,0.88)', s2:'rgba(46,16,8,0.92)',
-    border:'#7C1A08', accent:'#DC2626', accentL:'#F87171',
-    text:'#FFF5F5', textSub:'#FECACA',
-    table:'rgba(30,8,6,0.9)', tableText:'#F87171',
-    pattern:"repeating-linear-gradient(0deg, #7c1a08 0px, #7c1a08 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, #7c1a08 0px, #7c1a08 1px, transparent 1px, transparent 40px)",
-    patternSize:'auto', overlay:'rgba(12,6,4,0.80)',
-    fontHead:"'Oswald',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#F87171', compRgb:'248,113,113', accentRgb:'220,38,38',
-  },
-  { // 4 — FROST BITE  (04h)
-    name:'Frost Bite',
-    bg:'#06080F', s1:'rgba(10,16,32,0.88)', s2:'rgba(15,26,48,0.92)',
-    border:'#1A3050', accent:'#06B6D4', accentL:'#67E8F9',
-    text:'#F0FDFF', textSub:'#A5F3FC',
-    table:'rgba(8,14,30,0.9)', tableText:'#67E8F9',
-    pattern:"repeating-linear-gradient(60deg, #1a3050 0px, #1a3050 1px, transparent 1px, transparent 30px), repeating-linear-gradient(-60deg, #1a3050 0px, #1a3050 1px, transparent 1px, transparent 30px)",
-    patternSize:'auto', overlay:'rgba(6,8,15,0.78)',
-    fontHead:"'Exo 2',system-ui,sans-serif", fontBody:"'Nunito',system-ui,sans-serif",
-    comp:'#67E8F9', compRgb:'103,232,249', accentRgb:'6,182,212',
-  },
-  { // 5 — BRONZE AGE  (05h)
-    name:'Bronze Age',
-    bg:'#0A0806', s1:'rgba(22,16,10,0.88)', s2:'rgba(36,26,16,0.92)',
-    border:'#5C3810', accent:'#C2410C', accentL:'#FB923C',
-    text:'#FFF7F0', textSub:'#FDBA74',
-    table:'rgba(24,14,8,0.9)', tableText:'#FB923C',
-    pattern:"radial-gradient(circle, #5c3810 1.5px, transparent 1.5px)",
-    patternSize:'22px 22px', overlay:'rgba(10,8,6,0.80)',
-    fontHead:"'Playfair Display',Georgia,serif", fontBody:"'Source Sans 3',system-ui,sans-serif",
-    comp:'#FB923C', compRgb:'251,146,60', accentRgb:'194,65,12',
-  },
-  { // 6 — DEEP INDIGO  (06h)
-    name:'Deep Indigo',
-    bg:'#08080F', s1:'rgba(16,16,30,0.88)', s2:'rgba(24,24,48,0.92)',
-    border:'#2E2E6A', accent:'#4F46E5', accentL:'#A5B4FC',
-    text:'#EEF2FF', textSub:'#C7D2FE',
-    table:'rgba(14,14,32,0.9)', tableText:'#A5B4FC',
-    pattern:"repeating-linear-gradient(0deg, #2e2e6a 0px, #2e2e6a 1px, transparent 1px, transparent 50px), repeating-linear-gradient(90deg, #2e2e6a 0px, #2e2e6a 1px, transparent 1px, transparent 50px)",
-    patternSize:'auto', overlay:'rgba(8,8,15,0.82)',
+  { // 0 — Dallas Cowboys  [Navy / Silver]
+    name:'Dallas Cowboys',
+    bg:'#030912', s1:'rgba(4,14,28,0.88)', s2:'rgba(6,22,46,0.92)',
+    border:'#1B3A6B', accent:'#5585D0', accentL:'#7AAEE8',
+    text:'#EDF3FF', textSub:'#8BAABB',
+    table:'rgba(3,9,22,0.92)', tableText:'#C0CDD8',
+    pattern:"radial-gradient(circle,#1b3a6b 1px,transparent 1px)", patternSize:'28px 28px',
+    overlay:'rgba(2,6,14,0.78)',
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#A5B4FC', compRgb:'165,180,252', accentRgb:'79,70,229',
+    comp:'#C0CDD8', compRgb:'192,205,216', accentRgb:'85,133,208',
   },
-  { // 7 — EMERALD FELT  (07h)
-    name:'Emerald Felt',
-    bg:'#0C1410', s1:'rgba(10,40,24,0.88)', s2:'rgba(6,78,59,0.92)',
-    border:'#065F46', accent:'#059669', accentL:'#34D399',
-    text:'#ECFDF5', textSub:'#6EE7B7',
-    table:'rgba(5,61,46,0.95)', tableText:'#34D399',
-    pattern:"repeating-linear-gradient(45deg, rgba(5,150,105,0.08) 0px, rgba(5,150,105,0.08) 2px, transparent 2px, transparent 8px), repeating-linear-gradient(-45deg, rgba(5,150,105,0.08) 0px, rgba(5,150,105,0.08) 2px, transparent 2px, transparent 8px)",
-    patternSize:'auto', overlay:'rgba(12,20,16,0.70)',
-    fontHead:"'Cinzel Decorative',Georgia,serif", fontBody:"'Lato',system-ui,sans-serif",
-    comp:'#34D399', compRgb:'52,211,153', accentRgb:'5,150,105',
+  { // 1 — Pittsburgh Steelers  [Black / Gold]
+    name:'Pittsburgh Steelers',
+    bg:'#050505', s1:'rgba(14,12,10,0.88)', s2:'rgba(22,20,16,0.92)',
+    border:'#2A2410', accent:'#FFB612', accentL:'#FFD040',
+    text:'#FFF9E8', textSub:'#CCC080',
+    table:'rgba(14,12,8,0.92)', tableText:'#FFD040',
+    pattern:"repeating-linear-gradient(90deg,#2a2410 0,#2a2410 1px,transparent 1px,transparent 18px)",
+    patternSize:'auto', overlay:'rgba(5,5,5,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'255,182,18',
   },
-  { // 8 — CARBON GOLD  (08h)
-    name:'Carbon Gold',
-    bg:'#0A0A0F', s1:'rgba(20,18,16,0.88)', s2:'rgba(28,26,18,0.92)',
-    border:'#292415', accent:'#D97706', accentL:'#F59E0B',
-    text:'#F8FAFC', textSub:'#FCD34D',
-    table:'rgba(24,20,8,0.9)', tableText:'#F59E0B',
-    pattern:"repeating-linear-gradient(45deg, #292415 0px, #292415 1px, transparent 1px, transparent 4px), repeating-linear-gradient(-45deg, #292415 0px, #292415 1px, transparent 1px, transparent 4px)",
-    patternSize:'auto', overlay:'rgba(10,10,15,0.82)',
-    fontHead:"'Cormorant Garamond',Georgia,serif", fontBody:"'DM Sans',system-ui,sans-serif",
-    comp:'#F59E0B', compRgb:'245,158,11', accentRgb:'217,119,6',
+  { // 2 — Las Vegas Raiders  [Black / Silver]
+    name:'Las Vegas Raiders',
+    bg:'#040404', s1:'rgba(12,12,12,0.88)', s2:'rgba(20,20,20,0.92)',
+    border:'#2A2A2A', accent:'#C8D0D4', accentL:'#E0E4E6',
+    text:'#F4F4F4', textSub:'#A0A4A8',
+    table:'rgba(12,12,12,0.92)', tableText:'#D8DCDE',
+    pattern:"repeating-linear-gradient(45deg,#2a2a2a 0,#2a2a2a 2px,transparent 2px,transparent 8px),repeating-linear-gradient(-45deg,#2a2a2a 0,#2a2a2a 2px,transparent 2px,transparent 8px)",
+    patternSize:'auto', overlay:'rgba(4,4,4,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#505558', compRgb:'80,85,88', accentRgb:'200,208,212',
   },
-  { // 9 — SMOKE & VELVET  (09h)
-    name:'Smoke & Velvet',
-    bg:'#0E0C14', s1:'rgba(23,20,34,0.88)', s2:'rgba(42,37,64,0.92)',
-    border:'#3730A3', accent:'#8B5CF6', accentL:'#A78BFA',
-    text:'#EDE9FE', textSub:'#C4B5FD',
-    table:'rgba(30,26,56,0.9)', tableText:'#A78BFA',
-    pattern:"radial-gradient(ellipse at center, #3730a3 1px, transparent 1px)",
-    patternSize:'32px 20px', overlay:'rgba(14,12,20,0.78)',
-    fontHead:"'Italiana',Georgia,serif", fontBody:"'Nunito',system-ui,sans-serif",
-    comp:'#A78BFA', compRgb:'167,139,250', accentRgb:'139,92,246',
+  { // 3 — Baltimore Ravens  [Purple / Gold]
+    name:'Baltimore Ravens',
+    bg:'#08041C', s1:'rgba(18,8,40,0.88)', s2:'rgba(30,14,68,0.92)',
+    border:'#3A1C88', accent:'#7040E8', accentL:'#9870F4',
+    text:'#F0EEFF', textSub:'#9878CC',
+    table:'rgba(18,8,42,0.92)', tableText:'#B09010',
+    pattern:"radial-gradient(circle,#3a1c88 1px,transparent 1px)", patternSize:'22px 22px',
+    overlay:'rgba(8,3,20,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#B09010', compRgb:'176,144,16', accentRgb:'112,64,232',
   },
-  { // 10 — BOURBON & SMOKE  (10h)
-    name:'Bourbon & Smoke',
-    bg:'#0E0A06', s1:'rgba(28,18,8,0.88)', s2:'rgba(46,30,15,0.92)',
-    border:'#44260A', accent:'#B45309', accentL:'#F59E0B',
-    text:'#FFFBEB', textSub:'#FDE68A',
-    table:'rgba(36,21,8,0.9)', tableText:'#F59E0B',
-    pattern:"repeating-linear-gradient(92deg, #44260a 0px, #44260a 1px, transparent 1px, transparent 18px), repeating-linear-gradient(88deg, #44260a 0px, #44260a 1px, transparent 1px, transparent 36px)",
-    patternSize:'auto', overlay:'rgba(14,10,6,0.80)',
-    fontHead:"'Playfair Display',Georgia,serif", fontBody:"'Source Sans 3',system-ui,sans-serif",
-    comp:'#F59E0B', compRgb:'245,158,11', accentRgb:'180,83,9',
+  { // 4 — New Orleans Saints  [Black / Gold]
+    name:'New Orleans Saints',
+    bg:'#080600', s1:'rgba(18,14,0,0.88)', s2:'rgba(30,24,0,0.92)',
+    border:'#4A3C00', accent:'#D3BC8D', accentL:'#F0D8A0',
+    text:'#FDFAF0', textSub:'#C8B878',
+    table:'rgba(18,14,2,0.92)', tableText:'#F0D8A0',
+    pattern:"repeating-linear-gradient(0deg,#4a3c00 0,#4a3c00 1px,transparent 1px,transparent 48px),repeating-linear-gradient(90deg,#4a3c00 0,#4a3c00 1px,transparent 1px,transparent 48px)",
+    patternSize:'auto', overlay:'rgba(8,6,0,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#101820', compRgb:'16,24,32', accentRgb:'211,188,141',
   },
-  { // 11 — OBSIDIAN ROYAL  (11h)
-    name:'Obsidian Royal',
-    bg:'#0F0F1A', s1:'rgba(26,21,48,0.88)', s2:'rgba(42,37,69,0.92)',
-    border:'#3A3060', accent:'#7C5CFC', accentL:'#C4B5FD',
-    text:'#E8E0FF', textSub:'#9B8BFF',
-    table:'rgba(30,24,64,0.9)', tableText:'#A89BFF',
-    pattern:"radial-gradient(circle at 50% 0%, #3a3060 1px, transparent 1px), radial-gradient(circle at 50% 100%, #3a3060 1px, transparent 1px), radial-gradient(circle at 0% 50%, #3a3060 1px, transparent 1px), radial-gradient(circle at 100% 50%, #3a3060 1px, transparent 1px)",
-    patternSize:'40px 40px', overlay:'rgba(15,15,26,0.78)',
-    fontHead:"'Cormorant Garamond',Georgia,serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#C4B5FD', compRgb:'196,181,253', accentRgb:'124,92,252',
+  { // 5 — Chicago Bears  [Navy / Orange]
+    name:'Chicago Bears',
+    bg:'#040306', s1:'rgba(8,5,12,0.88)', s2:'rgba(14,9,20,0.92)',
+    border:'#3C1C00', accent:'#E84804', accentL:'#FF7840',
+    text:'#FFF5EE', textSub:'#CC9070',
+    table:'rgba(10,5,0,0.92)', tableText:'#FF7840',
+    pattern:"repeating-linear-gradient(90deg,#3c1c00 0,#3c1c00 1px,transparent 1px,transparent 30px)",
+    patternSize:'auto', overlay:'rgba(6,3,0,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#0B162A', compRgb:'11,22,42', accentRgb:'232,72,4',
   },
-  { // 12 — VELVET NOIR  (12h)
-    name:'Velvet Noir',
-    bg:'#0D0810', s1:'rgba(24,13,28,0.88)', s2:'rgba(44,24,56,0.92)',
-    border:'#6D1A6D', accent:'#D946EF', accentL:'#E879F9',
-    text:'#FDF4FF', textSub:'#F0ABFC',
-    table:'rgba(28,12,36,0.9)', tableText:'#E879F9',
-    pattern:"radial-gradient(circle, #6d1a6d 1px, transparent 1px)",
-    patternSize:'20px 20px', overlay:'rgba(13,8,16,0.80)',
-    fontHead:"'Italiana',Georgia,serif", fontBody:"'DM Sans',system-ui,sans-serif",
-    comp:'#E879F9', compRgb:'232,121,249', accentRgb:'217,70,239',
+  { // 6 — San Francisco 49ers  [Scarlet / Gold]
+    name:'San Francisco 49ers',
+    bg:'#0E0302', s1:'rgba(28,6,4,0.88)', s2:'rgba(46,10,8,0.92)',
+    border:'#700000', accent:'#CC1010', accentL:'#E84040',
+    text:'#FFF2F0', textSub:'#CC8888',
+    table:'rgba(28,4,4,0.92)', tableText:'#C0A060',
+    pattern:"repeating-linear-gradient(45deg,#700000 0,#700000 1px,transparent 1px,transparent 22px)",
+    patternSize:'auto', overlay:'rgba(12,2,2,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#C0A060', compRgb:'192,160,96', accentRgb:'204,16,16',
+  },
+  { // 7 — Kansas City Chiefs  [Red / Gold]
+    name:'Kansas City Chiefs',
+    bg:'#0E0202', s1:'rgba(28,4,4,0.88)', s2:'rgba(48,6,8,0.92)',
+    border:'#8A0000', accent:'#E31837', accentL:'#FF5050',
+    text:'#FFF0F0', textSub:'#CC8888',
+    table:'rgba(28,3,4,0.92)', tableText:'#FFB81C',
+    pattern:"radial-gradient(circle,#8a0000 1px,transparent 1px)", patternSize:'24px 24px',
+    overlay:'rgba(12,2,2,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FFB81C', compRgb:'255,184,28', accentRgb:'227,24,55',
+  },
+  { // 8 — Green Bay Packers  [Green / Gold]
+    name:'Green Bay Packers',
+    bg:'#050E07', s1:'rgba(10,22,14,0.88)', s2:'rgba(18,38,24,0.92)',
+    border:'#1A4028', accent:'#FFB612', accentL:'#FFD040',
+    text:'#F0FFF4', textSub:'#88C899',
+    table:'rgba(8,20,12,0.92)', tableText:'#FFD040',
+    pattern:"radial-gradient(circle,#1a4028 1.5px,transparent 1.5px)", patternSize:'22px 22px',
+    overlay:'rgba(4,10,6,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#2A6840', compRgb:'42,104,64', accentRgb:'255,182,18',
+  },
+  { // 9 — Denver Broncos  [Orange / Navy]
+    name:'Denver Broncos',
+    bg:'#080400', s1:'rgba(18,10,0,0.88)', s2:'rgba(30,16,0,0.92)',
+    border:'#4A2500', accent:'#FB5014', accentL:'#FF7840',
+    text:'#FFF5EE', textSub:'#CC9070',
+    table:'rgba(18,8,0,0.92)', tableText:'#FF7840',
+    pattern:"repeating-linear-gradient(45deg,#4a2500 0,#4a2500 1px,transparent 1px,transparent 20px)",
+    patternSize:'auto', overlay:'rgba(8,4,0,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#002244', compRgb:'0,34,68', accentRgb:'251,80,20',
+  },
+  { // 10 — Seattle Seahawks  [Navy / Action Green]
+    name:'Seattle Seahawks',
+    bg:'#020A0F', s1:'rgba(4,18,26,0.88)', s2:'rgba(6,30,44,0.92)',
+    border:'#002244', accent:'#69BE28', accentL:'#90D848',
+    text:'#EEF8FF', textSub:'#80C080',
+    table:'rgba(2,14,22,0.92)', tableText:'#90D848',
+    pattern:"repeating-linear-gradient(60deg,#002244 0,#002244 1px,transparent 1px,transparent 28px),repeating-linear-gradient(-60deg,#002244 0,#002244 1px,transparent 1px,transparent 28px)",
+    patternSize:'auto', overlay:'rgba(2,6,12,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#002244', compRgb:'0,34,68', accentRgb:'105,190,40',
+  },
+  { // 11 — Philadelphia Eagles  [Midnight Green / Silver]
+    name:'Philadelphia Eagles',
+    bg:'#030E0B', s1:'rgba(4,22,16,0.88)', s2:'rgba(6,36,26,0.92)',
+    border:'#00472A', accent:'#00C880', accentL:'#30E8A0',
+    text:'#EDF9F5', textSub:'#6ABFA0',
+    table:'rgba(2,18,12,0.92)', tableText:'#30E8A0',
+    pattern:"repeating-linear-gradient(45deg,#00472a 0,#00472a 1px,transparent 1px,transparent 18px)",
+    patternSize:'auto', overlay:'rgba(2,8,6,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'0,200,128',
+  },
+  { // 12 — Miami Dolphins  [Aqua / Orange]
+    name:'Miami Dolphins',
+    bg:'#020E10', s1:'rgba(2,22,26,0.88)', s2:'rgba(4,36,44,0.92)',
+    border:'#006B77', accent:'#00C8D8', accentL:'#40E0F0',
+    text:'#EDF9FB', textSub:'#70C8D0',
+    table:'rgba(2,18,22,0.92)', tableText:'#FC4C02',
+    pattern:"radial-gradient(circle,#006b77 1px,transparent 1px)", patternSize:'24px 24px',
+    overlay:'rgba(2,8,10,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FC4C02', compRgb:'252,76,2', accentRgb:'0,200,216',
+  },
+  { // 13 — Los Angeles Chargers  [Powder Blue / Gold]
+    name:'Los Angeles Chargers',
+    bg:'#020814', s1:'rgba(2,14,32,0.88)', s2:'rgba(4,22,52,0.92)',
+    border:'#002A5E', accent:'#0090D8', accentL:'#30B8F8',
+    text:'#EEF6FF', textSub:'#70B8EE',
+    table:'rgba(2,10,28,0.92)', tableText:'#FFC20E',
+    pattern:"radial-gradient(circle,#002a5e 1px,transparent 1px)", patternSize:'28px 28px',
+    overlay:'rgba(2,4,14,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FFC20E', compRgb:'255,194,14', accentRgb:'0,144,216',
+  },
+  { // 14 — Buffalo Bills  [Royal Blue / Red]
+    name:'Buffalo Bills',
+    bg:'#02060E', s1:'rgba(4,10,24,0.88)', s2:'rgba(6,16,40,0.92)',
+    border:'#002A70', accent:'#3060C8', accentL:'#5888E8',
+    text:'#EEF2FF', textSub:'#8099CC',
+    table:'rgba(2,6,18,0.92)', tableText:'#C60C30',
+    pattern:"radial-gradient(circle,#002a70 1px,transparent 1px)", patternSize:'26px 26px',
+    overlay:'rgba(2,4,12,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#C60C30', compRgb:'198,12,48', accentRgb:'48,96,200',
+  },
+  { // 15 — Tennessee Titans  [Navy / Titan Blue]
+    name:'Tennessee Titans',
+    bg:'#030810', s1:'rgba(4,14,26,0.88)', s2:'rgba(6,22,44,0.92)',
+    border:'#0C2340', accent:'#4B92DB', accentL:'#70B0EE',
+    text:'#EEF4FF', textSub:'#7090CC',
+    table:'rgba(2,10,22,0.92)', tableText:'#70B0EE',
+    pattern:"radial-gradient(circle,#0c2340 1px,transparent 1px)", patternSize:'26px 26px',
+    overlay:'rgba(2,6,14,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#C8102E', compRgb:'200,16,46', accentRgb:'75,146,219',
+  },
+  { // 16 — Detroit Lions  [Honolulu Blue / Silver]
+    name:'Detroit Lions',
+    bg:'#030A10', s1:'rgba(4,16,28,0.88)', s2:'rgba(6,26,46,0.92)',
+    border:'#0056A2', accent:'#0090E0', accentL:'#40B8F8',
+    text:'#EFF6FF', textSub:'#80BBDD',
+    table:'rgba(2,12,24,0.92)', tableText:'#40B8F8',
+    pattern:"repeating-linear-gradient(0deg,#0056a2 0,#0056a2 1px,transparent 1px,transparent 36px),repeating-linear-gradient(90deg,#0056a2 0,#0056a2 1px,transparent 1px,transparent 36px)",
+    patternSize:'auto', overlay:'rgba(2,6,14,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#B8C0C8', compRgb:'184,192,200', accentRgb:'0,144,224',
+  },
+  { // 17 — Minnesota Vikings  [Purple / Gold]
+    name:'Minnesota Vikings',
+    bg:'#0A0514', s1:'rgba(20,10,36,0.88)', s2:'rgba(34,18,60,0.92)',
+    border:'#4A2280', accent:'#7040C0', accentL:'#9870E0',
+    text:'#F4EEFF', textSub:'#B090D8',
+    table:'rgba(18,8,36,0.92)', tableText:'#FFC62F',
+    pattern:"radial-gradient(ellipse at center,#4a2280 1px,transparent 1px)", patternSize:'30px 20px',
+    overlay:'rgba(8,4,16,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FFC62F', compRgb:'255,198,47', accentRgb:'112,64,192',
+  },
+  { // 18 — Tampa Bay Buccaneers  [Red / Orange]
+    name:'Tampa Bay Buccaneers',
+    bg:'#0C0202', s1:'rgba(24,4,4,0.88)', s2:'rgba(40,8,6,0.92)',
+    border:'#8B0000', accent:'#E81818', accentL:'#FF5050',
+    text:'#FFF0F0', textSub:'#CC8888',
+    table:'rgba(24,3,3,0.92)', tableText:'#FF7900',
+    pattern:"repeating-linear-gradient(45deg,#8b0000 0,#8b0000 1px,transparent 1px,transparent 16px),repeating-linear-gradient(-45deg,#8b0000 0,#8b0000 1px,transparent 1px,transparent 16px)",
+    patternSize:'auto', overlay:'rgba(10,2,2,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FF7900', compRgb:'255,121,0', accentRgb:'232,24,24',
+  },
+  { // 19 — Carolina Panthers  [Black / Blue]
+    name:'Carolina Panthers',
+    bg:'#030810', s1:'rgba(8,14,24,0.88)', s2:'rgba(14,22,40,0.92)',
+    border:'#005A8B', accent:'#0095E0', accentL:'#30B8F8',
+    text:'#EEF6FF', textSub:'#70B8E8',
+    table:'rgba(4,10,22,0.92)', tableText:'#40C8FF',
+    pattern:"repeating-linear-gradient(45deg,#005a8b 0,#005a8b 1px,transparent 1px,transparent 20px)",
+    patternSize:'auto', overlay:'rgba(2,6,14,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#BFC0BF', compRgb:'191,192,191', accentRgb:'0,149,224',
+  },
+  { // 20 — New York Giants  [Royal Blue / Red]
+    name:'New York Giants',
+    bg:'#03080F', s1:'rgba(4,12,26,0.88)', s2:'rgba(6,18,42,0.92)',
+    border:'#0B2265', accent:'#2A60CC', accentL:'#4A80E8',
+    text:'#EEF2FF', textSub:'#8099CC',
+    table:'rgba(3,8,22,0.92)', tableText:'#A71930',
+    pattern:"repeating-linear-gradient(0deg,#0b2265 0,#0b2265 1px,transparent 1px,transparent 42px),repeating-linear-gradient(90deg,#0b2265 0,#0b2265 1px,transparent 1px,transparent 42px)",
+    patternSize:'auto', overlay:'rgba(2,6,16,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A71930', compRgb:'167,25,48', accentRgb:'42,96,204',
+  },
+  { // 21 — Cincinnati Bengals  [Black / Tiger Orange]
+    name:'Cincinnati Bengals',
+    bg:'#060200', s1:'rgba(14,6,0,0.88)', s2:'rgba(26,10,0,0.92)',
+    border:'#4A2000', accent:'#FF5A18', accentL:'#FF8040',
+    text:'#FFF5F0', textSub:'#CC9070',
+    table:'rgba(16,5,0,0.92)', tableText:'#FF8040',
+    pattern:"repeating-linear-gradient(45deg,#4a2000 0,#4a2000 2px,transparent 2px,transparent 10px),repeating-linear-gradient(-45deg,#4a2000 0,#4a2000 2px,transparent 2px,transparent 10px)",
+    patternSize:'auto', overlay:'rgba(8,3,0,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#101820', compRgb:'16,24,32', accentRgb:'255,90,24',
+  },
+  { // 22 — Los Angeles Rams  [Navy / Gold]
+    name:'Los Angeles Rams',
+    bg:'#030812', s1:'rgba(4,14,28,0.88)', s2:'rgba(6,22,46,0.92)',
+    border:'#003594', accent:'#FFA300', accentL:'#FFC840',
+    text:'#EEF2FF', textSub:'#8099CC',
+    table:'rgba(2,10,24,0.92)', tableText:'#FFC840',
+    pattern:"radial-gradient(circle,#003594 1px,transparent 1px)", patternSize:'26px 26px',
+    overlay:'rgba(2,6,16,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#003594', compRgb:'0,53,148', accentRgb:'255,163,0',
+  },
+  { // 23 — Washington Commanders  [Burgundy / Gold]
+    name:'Washington Commanders',
+    bg:'#0E0304', s1:'rgba(28,6,8,0.88)', s2:'rgba(46,10,14,0.92)',
+    border:'#5A1414', accent:'#CC2020', accentL:'#E85050',
+    text:'#FFF0F0', textSub:'#CC8888',
+    table:'rgba(28,4,6,0.92)', tableText:'#FFB612',
+    pattern:"radial-gradient(circle,#5a1414 1px,transparent 1px)", patternSize:'24px 24px',
+    overlay:'rgba(12,2,3,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FFB612', compRgb:'255,182,18', accentRgb:'204,32,32',
+  },
+  { // 24 — Atlanta Falcons  [Black / Red]
+    name:'Atlanta Falcons',
+    bg:'#060304', s1:'rgba(14,4,6,0.88)', s2:'rgba(26,6,10,0.92)',
+    border:'#4A0000', accent:'#CC1830', accentL:'#E84060',
+    text:'#FFF0F2', textSub:'#CC7080',
+    table:'rgba(16,3,6,0.92)', tableText:'#C8B0B4',
+    pattern:"radial-gradient(circle,#4a0000 1px,transparent 1px)", patternSize:'24px 24px',
+    overlay:'rgba(8,2,4,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A8B0B8', compRgb:'168,176,184', accentRgb:'204,24,48',
+  },
+  { // 25 — New England Patriots  [Navy / Red]
+    name:'New England Patriots',
+    bg:'#030610', s1:'rgba(4,10,22,0.88)', s2:'rgba(6,16,36,0.92)',
+    border:'#002244', accent:'#C60C30', accentL:'#E84050',
+    text:'#EEF2FF', textSub:'#8099BB',
+    table:'rgba(2,8,18,0.92)', tableText:'#E84050',
+    pattern:"repeating-linear-gradient(0deg,#002244 0,#002244 1px,transparent 1px,transparent 50px),repeating-linear-gradient(90deg,#002244 0,#002244 1px,transparent 1px,transparent 50px)",
+    patternSize:'auto', overlay:'rgba(2,4,12,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#002244', compRgb:'0,34,68', accentRgb:'198,12,48',
+  },
+  { // 26 — New York Jets  [Green / White]
+    name:'New York Jets',
+    bg:'#030F08', s1:'rgba(6,22,14,0.88)', s2:'rgba(10,36,22,0.92)',
+    border:'#003326', accent:'#1CA870', accentL:'#30D890',
+    text:'#EDF9F4', textSub:'#70BBA0',
+    table:'rgba(4,18,12,0.92)', tableText:'#30D890',
+    pattern:"repeating-linear-gradient(90deg,#003326 0,#003326 1px,transparent 1px,transparent 32px)",
+    patternSize:'auto', overlay:'rgba(2,8,5,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#F0F0F4', compRgb:'240,240,244', accentRgb:'28,168,112',
+  },
+  { // 27 — Houston Texans  [Navy / Red]
+    name:'Houston Texans',
+    bg:'#020810', s1:'rgba(4,14,22,0.88)', s2:'rgba(6,22,36,0.92)',
+    border:'#03202F', accent:'#B81C30', accentL:'#E04050',
+    text:'#EEF4FF', textSub:'#7099BB',
+    table:'rgba(2,12,20,0.92)', tableText:'#E04050',
+    pattern:"repeating-linear-gradient(0deg,#03202f 0,#03202f 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#03202f 0,#03202f 1px,transparent 1px,transparent 40px)",
+    patternSize:'auto', overlay:'rgba(2,6,12,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#005080', compRgb:'0,80,128', accentRgb:'184,28,48',
+  },
+  { // 28 — Indianapolis Colts  [Royal Blue / Silver]
+    name:'Indianapolis Colts',
+    bg:'#020810', s1:'rgba(4,14,26,0.88)', s2:'rgba(6,22,44,0.92)',
+    border:'#002C5F', accent:'#3078CC', accentL:'#5098E8',
+    text:'#EEF4FF', textSub:'#7099CC',
+    table:'rgba(2,10,22,0.92)', tableText:'#A8B4BC',
+    pattern:"radial-gradient(circle,#002c5f 1px,transparent 1px)", patternSize:'28px 28px',
+    overlay:'rgba(2,6,14,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#A8B4BC', compRgb:'168,180,188', accentRgb:'48,120,204',
+  },
+  { // 29 — Jacksonville Jaguars  [Teal / Gold]
+    name:'Jacksonville Jaguars',
+    bg:'#020C10', s1:'rgba(4,18,22,0.88)', s2:'rgba(6,30,36,0.92)',
+    border:'#006778', accent:'#00A8C0', accentL:'#30C8E0',
+    text:'#EDF8FA', textSub:'#60B0C0',
+    table:'rgba(2,14,18,0.92)', tableText:'#30C8E0',
+    pattern:"repeating-linear-gradient(45deg,#006778 0,#006778 1px,transparent 1px,transparent 24px),repeating-linear-gradient(-45deg,#006778 0,#006778 1px,transparent 1px,transparent 24px)",
+    patternSize:'auto', overlay:'rgba(2,8,12,0.78)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#C09030', compRgb:'192,144,48', accentRgb:'0,168,192',
+  },
+  { // 30 — Cleveland Browns  [Brown / Orange]
+    name:'Cleveland Browns',
+    bg:'#0C0600', s1:'rgba(24,14,0,0.88)', s2:'rgba(40,24,0,0.92)',
+    border:'#3B1506', accent:'#FF4010', accentL:'#FF7040',
+    text:'#FFF5E8', textSub:'#CC9060',
+    table:'rgba(24,12,0,0.92)', tableText:'#FF7040',
+    pattern:"radial-gradient(circle,#3b1506 1.5px,transparent 1.5px)", patternSize:'22px 22px',
+    overlay:'rgba(10,5,0,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#604020', compRgb:'96,64,32', accentRgb:'255,64,16',
+  },
+  { // 31 — Arizona Cardinals  [Cardinal Red / Gold]
+    name:'Arizona Cardinals',
+    bg:'#0C0204', s1:'rgba(26,4,8,0.88)', s2:'rgba(44,8,14,0.92)',
+    border:'#660014', accent:'#CC2040', accentL:'#E85060',
+    text:'#FFF0F2', textSub:'#CC7080',
+    table:'rgba(24,3,6,0.92)', tableText:'#E85060',
+    pattern:"radial-gradient(circle,#660014 1px,transparent 1px)", patternSize:'22px 22px',
+    overlay:'rgba(10,2,4,0.80)',
+    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    comp:'#FFB612', compRgb:'255,182,18', accentRgb:'204,32,64',
   },
 ];
 let currentTheme = THEMES[0];
@@ -2610,8 +2823,10 @@ function applyTheme(theme) {
 
 let _themeCheckHour = -1;
 function checkTheme() {
+  const locked = localStorage.getItem('pn-theme-lock');
+  if (locked !== null) { applyTheme(THEMES[parseInt(locked,10) % THEMES.length]); return; }
   const h   = new Date().getHours();
-  const idx = h % THEMES.length;   // THEMES.length === 13
+  const idx = h % THEMES.length;   // 32 NFL teams; hours 0-23 auto-select teams 0-23
   if (h !== _themeCheckHour) { _themeCheckHour = h; applyTheme(THEMES[idx]); }
 }
 
@@ -5576,7 +5791,7 @@ function buildDashboardTab() {
     var winRateLine = myGames > 0 ? myWr+'% win rate · '+myGames+' game'+(myGames!==1?'s':'') : 'No games yet';
     var streakBadge = curStrk >= 3 ? ' &nbsp;<span style="color:var(--c-gold);font-size:10px">⚡'+curStrk+' streak</span>' : '';
     html += '<div class="dash-section">'+
-      '<div style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px">'+
+      '<div class="dash-my-stats-card" style="background:var(--c-bg2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px">'+
         '<div style="display:flex;align-items:center;gap:12px">'+
           '<div style="width:46px;height:46px;border-radius:50%;background:'+myAb+';border:2px solid '+myNc+'55;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:'+myNc+';flex-shrink:0">'+escH(myLinkedPlayer.charAt(0).toUpperCase())+'</div>'+
           '<div style="flex:1;min-width:0">'+
@@ -5589,8 +5804,8 @@ function buildDashboardTab() {
           '</div>'+
         '</div>'+
         '<div style="display:flex;gap:6px;margin-top:14px">'+
-          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'players\');},80)" style="flex:1;padding:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--c-txt);font-size:12px;font-weight:600;cursor:pointer">My Stats</button>'+
-          '<button onclick="unlinkMyDevice()" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,.07);border-radius:10px;color:var(--c-muted);font-size:12px;cursor:pointer">Not me</button>'+
+          '<button onclick="setHTab(\'stats\');setTimeout(function(){setStatSection(\'players\');},80)" class="dash-my-stats-btn" style="flex:1;padding:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--c-txt);font-size:12px;font-weight:600;cursor:pointer">My Stats</button>'+
+          '<button onclick="unlinkMyDevice()" class="dash-not-me-btn" style="padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--c-muted);font-size:12px;cursor:pointer">Not me</button>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -6793,12 +7008,39 @@ function buildSettingsTab() {
 
     '</div>'+
 
+    '<div class="section-lbl">Theme</div>'+
+    '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:16px;padding:14px 16px;margin-bottom:16px">'+
+      '<div style="font-family:var(--font-body);font-size:11px;color:var(--c-muted);margin-bottom:10px;letter-spacing:.4px">Auto-rotates by hour · 32 NFL teams · tap to lock</div>'+
+      '<div id="nfl-theme-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+
+        THEMES.map((t,i)=>{
+          const dot='rgba('+t.accentRgb+',1)';
+          const isActive = currentTheme===t;
+          return '<button onclick="applyTheme(THEMES['+i+']);localStorage.setItem(\'pn-theme-lock\',\''+i+'\');_renderNflGrid()" style="padding:7px 4px;border-radius:10px;border:1.5px solid '+(isActive?dot:'rgba(255,255,255,.08)')+';background:'+(isActive?'rgba('+t.accentRgb+',.15)':'rgba(255,255,255,.03)')+';cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s">'+
+            '<div style="width:10px;height:10px;border-radius:50%;background:'+dot+'"></div>'+
+            '<div style="font-family:var(--font-body);font-size:8px;font-weight:600;color:'+(isActive?dot:'var(--c-muted)')+';line-height:1.2;text-align:center;letter-spacing:-.1px">'+t.name.replace(/^(Los Angeles|New York|New England|San Francisco|Las Vegas|Kansas City|Tampa Bay|Green Bay)/,'').trim().split(' ').slice(-1)[0]+'</div>'+
+          '</button>';
+        }).join('')+
+      '</div>'+
+      '<button onclick="localStorage.removeItem(\'pn-theme-lock\');_renderNflGrid();notify(\'Theme will auto-rotate by hour\',\'info\')" style="margin-top:10px;width:100%;padding:8px;border-radius:10px;border:1px dashed rgba(255,255,255,.15);background:transparent;font-family:var(--font-body);font-size:11px;color:var(--c-muted);cursor:pointer">↺ Reset to auto-rotate</button>'+
+    '</div>'+
     '<div class="section-lbl">About</div>'+
     '<div style="background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:16px;padding:16px;margin-bottom:20px;text-align:center">'+
       '<div style="font-family:var(--font-logo);font-size:18px;font-weight:800;letter-spacing:2px;background:linear-gradient(115deg,var(--c-gold,#A78BFA),var(--c-comp,#06B6D4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px">HUTTO SHOWDOWN</div>'+
       '<div style="font-family:var(--font-body);font-size:12px;color:var(--c-muted);margin-bottom:12px">Poker Night Tracker · v'+appVer+'</div>'+
       '<div style="font-family:var(--font-body);font-size:12px;color:var(--c-muted2);line-height:1.6">Tracks buy-ins, cashouts &amp; settlements for private social poker games. No funds are held or transferred by this app.</div>'+
     '</div>';
+}
+function _renderNflGrid() {
+  const grid = document.getElementById('nfl-theme-grid');
+  if (!grid) return;
+  grid.innerHTML = THEMES.map((t,i)=>{
+    const dot='rgba('+t.accentRgb+',1)';
+    const isActive = currentTheme===t;
+    return '<button onclick="applyTheme(THEMES['+i+']);localStorage.setItem(\'pn-theme-lock\',\''+i+'\');_renderNflGrid()" style="padding:7px 4px;border-radius:10px;border:1.5px solid '+(isActive?dot:'rgba(255,255,255,.08)')+';background:'+(isActive?'rgba('+t.accentRgb+',.15)':'rgba(255,255,255,.03)')+';cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s">'+
+      '<div style="width:10px;height:10px;border-radius:50%;background:'+dot+'"></div>'+
+      '<div style="font-family:var(--font-body);font-size:8px;font-weight:600;color:'+(isActive?dot:'var(--c-muted)')+';line-height:1.2;text-align:center;letter-spacing:-.1px">'+t.name.replace(/^(Los Angeles|New York|New England|San Francisco|Las Vegas|Kansas City|Tampa Bay|Green Bay)/,'').trim().split(' ').slice(-1)[0]+'</div>'+
+    '</button>';
+  }).join('');
 }
 
 function _buildSettingsBuyinPills() {
