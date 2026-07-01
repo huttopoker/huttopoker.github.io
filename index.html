@@ -213,8 +213,13 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   .app-title, .ah-title { color: #0F1117 !important; }
   .ah-logo-name { color: #0F1117 !important; }
   .ah-logo-sub { color: rgba(var(--c-gold-rgb,255,215,0),1) !important; }
-  .ah-page-label { color: rgba(15,17,23,.55) !important; }
+  .ah-page-label, #ah-page { color: rgba(15,17,23,.55) !important; }
   .ah-icon-btn { color: rgba(15,17,23,.6) !important; border-color: rgba(0,0,0,.12) !important; }
+  /* Bottom nav — inactive tab icons need to stay legible on the light nav bar */
+  .hnav-icon { color: rgba(15,17,23,.35) !important; }
+  /* Note: .ldg-tab and .gh-th intentionally NOT overridden here — both always render
+     on a hardcoded dark pill/table background regardless of light/dark mode, so the
+     white-based text already has correct contrast. */
   /* Bottom nav */
   #home-nav, #sticky-nav:not(.game-nav) {
     background: rgba(235,238,248,.97) !important;
@@ -310,6 +315,14 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   /* Stats tab pills */
   .stat-tabs { background: rgba(0,0,0,.06) !important; }
   .stat-tab { color: var(--c-muted) !important; }
+  /* Smart Adjustment modal — keep dark since it's part of the always-dark settle/review game flow */
+  .sadj-modal { background: #0D1117 !important; border-color: rgba(var(--c-gold-rgb,245,158,11),.3) !important; }
+  .sadj-why { color: rgba(255,255,255,.45) !important; background: rgba(255,255,255,.04) !important; }
+  .sadj-player-row { background: rgba(255,255,255,.04) !important; border-color: rgba(255,255,255,.08) !important; }
+  .sadj-player-name { color: #F1F5F9 !important; }
+  .sadj-player-pct { color: rgba(255,255,255,.35) !important; }
+  .sadj-arrow { color: rgba(255,255,255,.3) !important; }
+  .sadj-old { color: rgba(255,255,255,.4) !important; }
 }
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 /* ── ACCESSIBILITY — keyboard focus rings ── */
@@ -325,7 +338,7 @@ body { background-color:var(--bg,#07080C);
   background-image:var(--pattern);
   background-size:var(--pattern-size,28px 28px);
   background-repeat:repeat;
-  color:var(--text,var(--c-txt,#F0F2FF)); font-family:var(--font-body);
+  color:var(--c-txt,var(--text,#F0F2FF)); font-family:var(--font-body);
   min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale; line-height:1.65; font-size:16px;
   font-feature-settings:'kern' 1,'liga' 1,'calt' 1; letter-spacing:0.01em; }
@@ -670,49 +683,51 @@ button, a, span { -webkit-font-smoothing:antialiased; }
 h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-height:1.25; }
 /* ── BUTTONS ── */
 .btn { width:100%; padding:17px; border:none; border-radius:16px;
-  font-family:var(--font-body); font-size:16px; font-weight:600; cursor:pointer; user-select:none;
-  letter-spacing:.3px; transition:all .25s cubic-bezier(.4,0,.2,1); display:block; text-align:center;
+  font-family:var(--font-body); font-size:16px; font-weight:700; cursor:pointer; user-select:none;
+  letter-spacing:.3px; transition:all .2s cubic-bezier(.4,0,.2,1); display:block; text-align:center;
   box-shadow:var(--shd); }
-/* Primary CTA — theme-reactive accent + shimmer sweep */
+/* Primary CTA — theme-reactive accent, solid & opaque so pale team accents still read as confident */
 .btn-gold {
-  background: linear-gradient(135deg, rgba(var(--c-gold-rgb,255,215,0),.75) 0%, rgba(var(--c-gold-rgb,255,215,0),1) 55%, rgba(var(--c-gold-rgb,255,215,0),.82) 100%);
-  color: var(--c-bg,#07080C); border:1.5px solid rgba(var(--c-gold-rgb,255,215,0),.35);
-  box-shadow: 0 0 0 2px rgba(var(--c-gold-rgb,255,215,0),.22), 0 4px 32px rgba(var(--c-gold-rgb,255,215,0),.45), 0 1px 0 rgba(255,255,255,.15) inset;
-  text-shadow: none; font-weight: 700;
+  background: linear-gradient(135deg, rgb(var(--c-gold-rgb,255,215,0)) 0%, rgb(var(--c-gold-rgb,255,215,0)) 60%, rgb(var(--c-gold-rgb-dark,199,168,0)) 100%);
+  color: var(--c-bg,#07080C); border:1.5px solid rgba(var(--c-gold-rgb,255,215,0),.9);
+  box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.35), 0 6px 24px rgba(var(--c-gold-rgb,255,215,0),.38), 0 1px 0 rgba(255,255,255,.35) inset, 0 -2px 0 rgba(0,0,0,.12) inset;
+  text-shadow: none; font-weight: 800;
   position:relative; overflow:hidden;
   animation:btn-glow-pulse 3s ease-in-out infinite; }
 .btn-gold::before { content:''; position:absolute; top:-50%; left:-90%;
   width:50%; height:200%; pointer-events:none; z-index:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
   transform:skewX(-18deg);
   animation:btn-shimmer 4s ease-in-out infinite; }
 .btn-gold:hover {
-  background: linear-gradient(135deg, rgba(var(--c-gold-rgb,255,215,0),.9) 0%, rgba(var(--c-gold-rgb,255,215,0),1) 50%, rgba(var(--c-gold-rgb,255,215,0),.9) 100%);
-  box-shadow: 0 0 0 3px rgba(var(--c-gold-rgb,255,215,0),.4), 0 8px 48px rgba(var(--c-gold-rgb,255,215,0),.7), 0 0 80px rgba(var(--c-gold-rgb,255,215,0),.15);
+  box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.5), 0 10px 36px rgba(var(--c-gold-rgb,255,215,0),.55), 0 1px 0 rgba(255,255,255,.4) inset;
   transform:translateY(-3px) scale(1.01); animation:none; filter:brightness(1.08); }
-.btn-gold:active { transform:scale(.97) translateY(0); box-shadow:0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.2), 0 2px 14px rgba(var(--c-gold-rgb,255,215,0),.3); animation:none; filter:none; }
-.btn-green { background:linear-gradient(135deg,#22C55E,#16A34A); color:#fff;
-  box-shadow:0 0 0 1px rgba(34,197,94,.2), 0 4px 20px rgba(34,197,94,.18); }
-.btn-green:hover { transform:translateY(-1px); box-shadow:0 0 0 1px rgba(34,197,94,.3), 0 4px 24px rgba(34,197,94,.28); }
+.btn-gold:active { transform:scale(.97) translateY(0); box-shadow:0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.3), 0 2px 14px rgba(var(--c-gold-rgb,255,215,0),.35); animation:none; filter:none; }
+.btn-green { background:linear-gradient(135deg,#2ED66E,#16A34A); color:#fff;
+  border:1.5px solid rgba(34,197,94,.55);
+  box-shadow:0 0 0 1px rgba(34,197,94,.25), 0 6px 22px rgba(34,197,94,.32), 0 1px 0 rgba(255,255,255,.22) inset; }
+.btn-green:hover { transform:translateY(-2px); box-shadow:0 0 0 1px rgba(34,197,94,.4), 0 8px 30px rgba(34,197,94,.4), 0 1px 0 rgba(255,255,255,.22) inset; }
 .btn-green:active { transform:scale(.98); }
-.btn-red { background:linear-gradient(135deg,#EF4444,#DC2626); color:#fff;
-  box-shadow:0 0 0 1px rgba(239,68,68,.2), 0 4px 20px rgba(239,68,68,.18); }
+.btn-red { background:linear-gradient(135deg,#F86464,#DC2626); color:#fff;
+  border:1.5px solid rgba(239,68,68,.55);
+  box-shadow:0 0 0 1px rgba(239,68,68,.25), 0 6px 22px rgba(239,68,68,.32), 0 1px 0 rgba(255,255,255,.22) inset; }
+.btn-red:hover { transform:translateY(-2px); box-shadow:0 0 0 1px rgba(239,68,68,.4), 0 8px 30px rgba(239,68,68,.4), 0 1px 0 rgba(255,255,255,.22) inset; }
 .btn-red:active { transform:scale(.98); }
-.btn-ghost { background:rgba(255,255,255,.09); color:var(--c-txt,#F0F2FF);
-  border:1.5px solid rgba(255,255,255,.2); box-shadow:none; backdrop-filter:blur(8px); }
-.btn-ghost:hover { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); }
+.btn-ghost { background:rgba(255,255,255,.08); color:var(--c-txt,#F0F2FF);
+  border:1.5px solid rgba(255,255,255,.22); box-shadow:none; backdrop-filter:blur(8px); font-weight:600; }
+.btn-ghost:hover { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.34); }
 .btn-ghost:active { background:rgba(255,255,255,.18); }
-.btn-danger-ghost { background:rgba(239,68,68,.06); color:var(--c-red);
-  border:1px solid rgba(239,68,68,.25); box-shadow:none; }
-.btn-danger-ghost:active { background:rgba(239,68,68,.12); }
+.btn-danger-ghost { background:rgba(239,68,68,.08); color:#FF6B6B;
+  border:1.5px solid rgba(239,68,68,.35); box-shadow:none; font-weight:600; }
+.btn-danger-ghost:active { background:rgba(239,68,68,.16); }
 .btn:disabled { background:rgba(255,255,255,.06); color:rgba(255,255,255,.28); cursor:not-allowed;
   box-shadow:none; transform:none!important; border-color:transparent; }
 .btn-sm { padding:8px 15px; font-size:11px; border-radius:10px;
   border:1px solid var(--c-bdr2); cursor:pointer;
-  font-family:var(--font-body); text-transform:uppercase; letter-spacing:1px; font-weight:600;
-  transition:all .2s; white-space:nowrap; background:rgba(255,255,255,.04); color:var(--c-txt2); }
-.btn-sm.on { background:linear-gradient(135deg,var(--c-gold,#7C3AED),var(--c-comp,#06B6D4)); color:#fff; font-weight:700; border-color:transparent;
-  box-shadow:0 0 12px rgba(var(--c-gold-rgb,124,58,237),.25); }
+  font-family:var(--font-body); text-transform:uppercase; letter-spacing:1px; font-weight:700;
+  transition:all .2s; white-space:nowrap; background:rgba(255,255,255,.05); color:var(--c-txt2); }
+.btn-sm.on { background:rgb(var(--c-gold-rgb,124,58,237)); color:var(--c-bg,#07080C); font-weight:800; border-color:rgba(var(--c-gold-rgb,124,58,237),.9);
+  box-shadow:0 0 0 1px rgba(var(--c-gold-rgb,124,58,237),.3), 0 3px 14px rgba(var(--c-gold-rgb,124,58,237),.35); }
 .btn-sm.off { border-color:rgba(255,255,255,.10); color:var(--c-muted); }
 /* ── RESULTS TABS (scrollable pill row) ── */
 .ldg-person-body { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
@@ -2210,7 +2225,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 0% 50%,rgba(var(--c-gold-rgb,124,58,237),.12) 0%,transparent 70%);pointer-events:none"></div>
     <div style="font-family:var(--font-logo);font-size:9.5px;font-weight:700;letter-spacing:4px;color:rgba(var(--c-gold-rgb,167,139,250),.9);text-transform:uppercase;line-height:1;margin-bottom:3px;position:relative">HUTTO</div>
     <div style="font-family:var(--font-logo);font-size:20px;font-weight:900;letter-spacing:2.5px;background:linear-gradient(115deg,#DDD6FE 0%,#ffffff 45%,#BAE6FD 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;position:relative">SHOWDOWN</div>
-    <div style="font-family:var(--font-body);font-size:12px;font-weight:500;letter-spacing:.5px;color:rgba(255,255,255,.35);margin-top:6px;position:relative">Poker Night Tracker</div>
+    <div style="font-family:var(--font-body);font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--c-muted);margin-top:6px;position:relative">Poker Night Tracker</div>
   </div>
 
   <!-- SECTION: Navigate -->
@@ -2391,16 +2406,16 @@ const THEMES = [
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'255,182,18',
   },
-  { // 2 — Las Vegas Raiders — Black / Silver #A5ACAF
+  { // 2 — Las Vegas Raiders — Black / Chrome Silver #E3E7EA
     name:'Las Vegas Raiders', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/lv.png',
     bg:'#060606', s1:'rgba(14,14,14,0.88)', s2:'rgba(22,22,22,0.92)',
-    border:'#A5ACAF', accent:'#A5ACAF', accentL:'#E0E4E6',
+    border:'#A5ACAF', accent:'#E3E7EA', accentL:'#FFFFFF',
     text:'#F4F4F4', textSub:'#A0A4A8',
-    table:'rgba(14,14,14,0.92)', tableText:'#D8DCDE',
+    table:'rgba(14,14,14,0.92)', tableText:'#E3E7EA',
     pattern:"repeating-linear-gradient(45deg,#2a2a2a 0,#2a2a2a 2px,transparent 2px,transparent 8px),repeating-linear-gradient(-45deg,#2a2a2a 0,#2a2a2a 2px,transparent 2px,transparent 8px)",
     patternSize:'auto', overlay:'rgba(6,6,6,0.82)',
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#707070', compRgb:'112,112,112', accentRgb:'165,172,175',
+    comp:'#707070', compRgb:'112,112,112', accentRgb:'227,231,234',
   },
   { // 3 — Baltimore Ravens — Purple #241773 / Black / Gold #9E7C0C
     name:'Baltimore Ravens', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/bal.png',
@@ -2413,16 +2428,16 @@ const THEMES = [
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#6040A8', compRgb:'96,64,168', accentRgb:'200,168,24',
   },
-  { // 4 — New Orleans Saints — Black #101820 / Old Gold #D3BC8D
+  { // 4 — New Orleans Saints — Black #101820 / Old Gold #C9A227
     name:'New Orleans Saints', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/no.png',
     bg:'#0C0A00', s1:'rgba(22,18,0,0.88)', s2:'rgba(34,28,0,0.92)',
-    border:'#4A3C00', accent:'#D3BC8D', accentL:'#F0D8A0',
+    border:'#4A3C00', accent:'#C9A227', accentL:'#F0D8A0',
     text:'#FDFAF0', textSub:'#C8B878',
     table:'rgba(20,16,2,0.92)', tableText:'#F0D8A0',
     pattern:"repeating-linear-gradient(0deg,#4a3c00 0,#4a3c00 1px,transparent 1px,transparent 48px),repeating-linear-gradient(90deg,#4a3c00 0,#4a3c00 1px,transparent 1px,transparent 48px)",
     patternSize:'auto', overlay:'rgba(10,8,0,0.82)',
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#101820', compRgb:'16,24,32', accentRgb:'211,188,141',
+    comp:'#101820', compRgb:'16,24,32', accentRgb:'201,162,39',
   },
   { // 5 — Chicago Bears — Navy #0B162A / Orange #C83803
     name:'Chicago Bears', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/chi.png',
@@ -2490,16 +2505,16 @@ const THEMES = [
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'105,190,40',
   },
-  { // 11 — Philadelphia Eagles — Midnight Green #004C54 / Silver #A5ACAF
+  { // 11 — Philadelphia Eagles — Midnight Green #004C54 / Eagles Green #00B37E
     name:'Philadelphia Eagles', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
     bg:'#001C10', s1:'rgba(0,36,22,0.88)', s2:'rgba(0,54,32,0.92)',
-    border:'#004C54', accent:'#A5ACAF', accentL:'#D0D8D8',
+    border:'#004C54', accent:'#00B37E', accentL:'#5CE0BE',
     text:'#EDF9F5', textSub:'#70BBAA',
-    table:'rgba(0,28,16,0.92)', tableText:'#C0D4CC',
+    table:'rgba(0,28,16,0.92)', tableText:'#5CE0BE',
     pattern:"repeating-linear-gradient(45deg,#004c54 0,#004c54 1px,transparent 1px,transparent 18px)",
     patternSize:'auto', overlay:'rgba(0,12,7,0.80)',
     fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
-    comp:'#004C54', compRgb:'0,76,84', accentRgb:'165,172,175',
+    comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'0,179,126',
   },
   { // 12 — Miami Dolphins — Aqua #008E97 / Orange #FC4C02
     name:'Miami Dolphins', logo:'https://a.espncdn.com/i/teamlogos/nfl/500/mia.png',
@@ -2772,6 +2787,9 @@ function applyTheme(theme) {
   r.setProperty('--c-gold-rgb', aRgb);
   r.setProperty('--c-gold-lt',  'rgba('+aRgb+',.15)');
   r.setProperty('--c-gold-md',  'rgba('+aRgb+',.28)');
+  // Precomputed 72%-brightness variant for solid gradient depth (avoids color-mix() for Safari<16.2)
+  const _aParts = aRgb.split(',').map(function(n){ return Math.round(parseInt(n,10)*0.72); });
+  r.setProperty('--c-gold-rgb-dark', _aParts.join(','));
   r.setProperty('--c-accent',   theme.accent);
   r.setProperty('--c-comp',     theme.comp || theme.accentL);
   r.setProperty('--c-comp-rgb', cRgb);
@@ -4364,6 +4382,22 @@ function fmtS(v) {
 }
 function mKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function yKey(d) { d=d||new Date(); return String(d.getFullYear()); }
+
+/* ── SHARED IDENTITY-COLOR PALETTE — consistent avatar colors app-wide ── */
+const AVATAR_PAL = [
+  {rgb:'231,76,60',  hex:'#E74C3C'},
+  {rgb:'230,126,34', hex:'#E67E22'},
+  {rgb:'46,204,113', hex:'#2ECC71'},
+  {rgb:'52,152,219', hex:'#3498DB'},
+  {rgb:'155,89,182', hex:'#9B59B6'},
+  {rgb:'26,188,156', hex:'#1ABC9C'},
+  {rgb:'233,30,99',  hex:'#E91E63'},
+  {rgb:'243,156,18', hex:'#F39C12'},
+];
+function nameColor(name) {
+  const ci = [...String(name)].reduce((a,c)=>a+c.charCodeAt(0),0) % AVATAR_PAL.length;
+  return AVATAR_PAL[ci];
+}
 
 /* ═══════════════════════════════════════
    UI HELPERS
@@ -5972,13 +6006,18 @@ function buildDashboardTab() {
       (recentWinners.length ? '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:14px;overflow:hidden;box-shadow:var(--shd)">'+
         '<div style="padding:10px 14px 6px;font-size:11px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px">Recent Games</div>'+
         recentWinners.map(function(r,i){
+          const pal = nameColor(r.name);
+          const posClr = r.net>0 ? 'var(--c-green)' : (r.net<0 ? 'var(--c-red)' : 'var(--c-muted)');
           return '<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--c-bdr)">'+
-            '<div style="width:28px;height:28px;border-radius:50%;background:'+(r.net>0?'rgba(34,197,94,.12)':'rgba(239,68,68,.1)')+';border:1px solid '+(r.net>0?'rgba(34,197,94,.25)':'rgba(239,68,68,.2)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:'+(r.net>0?'var(--c-green)':'var(--c-red)')+'">'+(r.net>0?'W':'L')+'</div>'+
+            '<div style="position:relative;flex-shrink:0">'+
+              '<div style="width:30px;height:30px;border-radius:50%;background:rgba('+pal.rgb+',.20);border:1.5px solid rgba('+pal.rgb+',.5);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:'+pal.hex+'">'+escH(r.name.charAt(0).toUpperCase())+'</div>'+
+              (r.net>0 ? '<div style="position:absolute;bottom:-2px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--c-gold);display:flex;align-items:center;justify-content:center;font-size:8px;box-shadow:0 1px 4px rgba(0,0,0,.4)">🏆</div>' : '')+
+            '</div>'+
             '<div style="flex:1;min-width:0">'+
-              '<div style="font-size:12px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(r.name)+' won</div>'+
+              '<div style="font-size:12px;font-weight:700;color:var(--c-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(r.name)+'</div>'+
               '<div style="font-size:10px;color:var(--c-muted)">'+escH(r.date)+' · '+r.players+' players</div>'+
             '</div>'+
-            '<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--c-green);flex-shrink:0">+'+fmt(r.net)+'</div>'+
+            '<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:'+posClr+';flex-shrink:0">'+fmtS(r.net)+'</div>'+
           '</div>';
         }).join('')+
       '</div>':'') +
@@ -7521,24 +7560,12 @@ function buildPGrid() {
   const active   = all.filter(n => !archivedPlayers.has(n));
   const archived = all.filter(n =>  archivedPlayers.has(n));
 
-  const AVATAR_PAL = [
-    {rgb:'231,76,60',  hex:'#E74C3C'},
-    {rgb:'230,126,34', hex:'#E67E22'},
-    {rgb:'46,204,113', hex:'#2ECC71'},
-    {rgb:'52,152,219', hex:'#3498DB'},
-    {rgb:'155,89,182', hex:'#9B59B6'},
-    {rgb:'26,188,156', hex:'#1ABC9C'},
-    {rgb:'233,30,99',  hex:'#E91E63'},
-    {rgb:'243,156,18', hex:'#F39C12'},
-  ];
-
   function makeChip(name, isArchived) {
     const sel = selectedPlayers.includes(name);
     const isG = guestPlayers.includes(name) && !roster.includes(name);
     const b = document.createElement('button');
     const initial = escH(name.charAt(0).toUpperCase());
-    const ci = [...name].reduce((a,c)=>a+c.charCodeAt(0),0) % 8;
-    const pal = AVATAR_PAL[ci];
+    const pal = nameColor(name);
 
     if (isArchived) {
       b.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 8px;border-radius:14px;cursor:pointer;border:none;background:transparent;color:var(--c-muted);opacity:.42;font-family:var(--font-body);font-size:11px;font-weight:600;-webkit-tap-highlight-color:transparent;transition:opacity .15s';
@@ -8596,44 +8623,70 @@ function onRvEdit(n,v) {
    Both SHORT and OVER target top 3 WINNERS (highest net):
    SHORT (potOut < potIn): winners' cashouts RISE  to fill the gap
    OVER  (potOut > potIn): winners' cashouts FALL  to drain the excess
+
+   Single source of truth for targeting/split math — smartBalance(),
+   buildAdjTable(), showSmartAdjModal() and the button label all read
+   from computeSmartAdj() so the preview, modal and applied result can
+   never drift out of sync with each other.
 ═══════════════════════════════════════ */
-function smartBalance() {
+function computeSmartAdj() {
   const potIn=potTotal();
   const potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
   const diff=rd(potOut-potIn); // positive = OVER (too much out), negative = SHORT (too little out)
-  if (Math.abs(diff)<0.05) return;
+  const abs=Math.abs(diff);
+  if (abs<0.05) return null;
 
   const isOver=diff>0;
-  const amountD=dimes(Math.abs(diff));
+  const amountD=dimes(abs);
   const buyin_=session.buyin||BUYIN;
   const byNet=session.players.slice().sort((a,b)=>
     rd(b.cashOut-b.buyins*buyin_)-rd(a.cashOut-a.buyins*buyin_)
   );
 
   // Always target top winners — SHORT: they absorb extra (cashout+), OVER: they give back (cashout-)
-  let targets;
-  targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
+  let targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
   // Fallback: players with any cashout (covers edge case where nobody is net positive)
   if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
   if(!targets.length) targets=byNet.slice(0,3);
 
   const n=targets.length;
-  if(!n) return;
+  if(!n) return null;
   const pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
+  const pctLabel=n===1?'100%':n===2?'60/40':'50/30/20';
+  const whoLabel=n===1?'top winner':'top '+n+' winners';
+
+  // Per-player share in dimes (tenths of a dollar) — last share absorbs the rounding remainder
+  // so the shares always sum exactly to amountD, no matter how the percentages round individually.
+  let rem=amountD;
+  const shares=targets.map((p,i)=>{
+    const shareD=i<n-1?Math.round(amountD*pcts[i]):rem;
+    rem-=shareD;
+    return { player:p, name:p.name, shareD, shareAmt:fromD(shareD), pct:Math.round(pcts[i]*100) };
+  });
+
+  return { isOver, diff, abs, amountD, potIn, potOut, buyin_, targets, n, pcts, pctLabel, whoLabel, shares };
+}
+
+// Button/label helper — always reflects the live split (100% / 60-40 / 50-30-20), never hardcoded.
+function smartAdjSplitLabel() {
+  const adj = computeSmartAdj();
+  return adj ? adj.pctLabel : '50/30/20';
+}
+
+function smartBalance() {
+  const adj = computeSmartAdj();
+  if (!adj) return;
+  const { isOver, amountD, potIn, shares } = adj;
 
   // Record adjustment log on session for display in results/history
   session.adjLog = { isOver, total: fromD(amountD), entries: [] };
 
-  let rem=amountD;
-  targets.forEach((p,i)=>{
-    const share=i<n-1?Math.round(amountD*pcts[i]):rem;
-    rem-=share;
-    const shareAmt=fromD(share);
+  shares.forEach(({ player:p, shareAmt, pct }) => {
     // OVER: cashout goes DOWN (winners give back excess)  →  potOut decreases to match potIn
     // SHORT: cashout goes UP (winners absorb missing chips) → potOut increases to match potIn
     p.cashOut=rd(isOver ? Math.max(0, p.cashOut-shareAmt) : p.cashOut+shareAmt);
     session.cashOuts[p.name]=p.cashOut;
-    session.adjLog.entries.push({ name:p.name, amt:shareAmt, pct:Math.round(pcts[i]*100) });
+    session.adjLog.entries.push({ name:p.name, amt:shareAmt, pct });
   });
 
   // Post-loop residual check: if floor-clipping (cashout hit $0) left the pot still unbalanced,
@@ -8652,30 +8705,15 @@ function smartBalance() {
 }
 
 function buildAdjTable() {
-  const potIn=potTotal(), potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
-  const diff=rd(potOut-potIn);
-  if(Math.abs(diff)<0.05) return '';
-  const isOver=diff>0;
-  const buyin__=session.buyin||BUYIN;
-  const sorted=session.players.slice().sort((a,b)=>rd(b.cashOut-b.buyins*buyin__)-rd(a.cashOut-a.buyins*buyin__));
-  // Always target top winners (highest net) — same pool for both SHORT and OVER
-  let targets;
-  targets=sorted.filter(p=>rd(p.cashOut-p.buyins*buyin__)>0).slice(0,3);
-  if(!targets.length) targets=sorted.filter(p=>p.cashOut>0).slice(0,3);
-  if(!targets.length) targets=sorted.slice(0,3);
-  const n=targets.length, pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
-  const amtD=dimes(Math.abs(diff)); let rows='';
-  targets.forEach((p,i)=>{
-    const shareD=i<n-1?Math.round(amtD*pcts[i]):(amtD-targets.slice(0,i).reduce((s,_,j)=>s+Math.round(amtD*pcts[j]),0));
-    const share=fromD(shareD);
-    // OVER: winners give back (-), SHORT: winners receive (+)
-    rows+='<div class="adj-row"><span>'+escH(p.name)+'<span style="color:var(--c-muted);font-size:9px"> '+Math.round(pcts[i]*100)+'%</span></span>'+
-      '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(share)?share:share.toFixed(2))+'</span></div>';
-  });
-  const pctLabel = n===1?'100%':n===2?'60/40':'50/30/20';
-  const whoLabel = n===1?'top winner':'top '+n+' winners';
+  const adj = computeSmartAdj();
+  if (!adj) return '';
+  const { isOver, abs, whoLabel, pctLabel, shares } = adj;
+  const rows = shares.map(({ name, shareAmt, pct }) =>
+    '<div class="adj-row"><span>'+escH(name)+'<span style="color:var(--c-muted);font-size:9px"> '+pct+'%</span></span>'+
+    '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(shareAmt)?shareAmt:shareAmt.toFixed(2))+'</span></div>'
+  ).join('');
   return '<div class="adj-banner">'+
-    '<b style="color:var(--c-gold)">'+(isOver?'Over':'Short')+' by '+fmt(Math.abs(diff))+'</b> &mdash; '+
+    '<b style="color:var(--c-gold)">'+(isOver?'Over':'Short')+' by '+fmt(abs)+'</b> &mdash; '+
     (isOver?'Deducted from '+whoLabel:'Absorbed by '+whoLabel)+' ('+pctLabel+'):<br>'+
     '<div style="margin-top:8px">'+rows+'</div></div>';
 }
@@ -8733,7 +8771,7 @@ function updateReviewBal() {
     ?'<button class="btn btn-green" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
       '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
     :small
-      ?'<button class="btn btn-gold" onclick="showSmartAdjModal()">\u2728 Smart Adjustment (50/30/20)</button>'+
+      ?'<button class="btn btn-gold" onclick="showSmartAdjModal()">\u2728 Smart Adjustment ('+smartAdjSplitLabel()+')</button>'+
         '<button class="btn btn-green mt" onclick="confirmEnd(false)">\u2705 Confirm &amp; Settle Up</button>'+
         '<button class="btn btn-ghost mt" onclick="goCashout()">\u2190 Back to Cashouts</button>'
       :'<button class="btn btn-ghost" onclick="goCashout()">\u2190 Fix Cashouts</button>'+
@@ -8741,36 +8779,19 @@ function updateReviewBal() {
 }
 
 function showSmartAdjModal() {
-  const potIn=potTotal();
-  const potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
-  const diff=rd(potOut-potIn);
-  if(Math.abs(diff)<0.05) return;
-  const isOver=diff>0;
-  const abs=Math.abs(diff);
-  const buyin_=session.buyin||BUYIN;
-
-  // Compute targets (mirrors smartBalance logic)
-  const byNet=session.players.slice().sort((a,b)=>rd(b.cashOut-b.buyins*buyin_)-rd(a.cashOut-a.buyins*buyin_));
-  let targets=byNet.filter(p=>rd(p.cashOut-p.buyins*buyin_)>0).slice(0,3);
-  if(!targets.length) targets=byNet.filter(p=>p.cashOut>0).slice(0,3);
-  if(!targets.length) targets=byNet.slice(0,3);
-  const n=targets.length;
-  const pcts=n===1?[1.0]:n===2?[0.6,0.4]:[0.5,0.3,0.2];
-  const amtD=dimes(abs);
+  const adj = computeSmartAdj();
+  if (!adj) return;
+  const isOver=adj.isOver, abs=adj.abs, potIn=adj.potIn, n=adj.n, shares=adj.shares;
 
   // Build per-player rows with before\u2192after
   let playerRows='';
-  let rem=amtD;
-  targets.forEach((p,i)=>{
-    const shareD=i<n-1?Math.round(amtD*pcts[i]):rem;
-    rem-=shareD;
-    const shareAmt=fromD(shareD);
+  shares.forEach(function(sh){
+    const p=sh.player, shareAmt=sh.shareAmt, pctLbl=sh.pct+'%';
     const oldCO=p.cashOut||0;
     const newCO=rd(isOver?Math.max(0,oldCO-shareAmt):oldCO+shareAmt);
     const delta=rd(newCO-oldCO);
     const deltaStr=(delta>=0?'+':'−')+fmt(delta);
     const deltaClr=delta>=0?'var(--c-green)':'var(--c-red)';
-    const pctLbl=Math.round(pcts[i]*100)+'%';
     playerRows+=
       '<div class="sadj-player-row">'+
         '<div class="sadj-player-name">'+escH(p.name)+'</div>'+
@@ -8782,7 +8803,7 @@ function showSmartAdjModal() {
       '</div>';
   });
 
-  const pctLabel=n===1?'100%':n===2?'60/40':'50/30/20';
+  const pctLabel=adj.pctLabel;
   const badgeBg=isOver?'rgba(239,68,68,.18)':'rgba(245,158,11,.18)';
   const badgeClr=isOver?'var(--c-red)':'var(--c-gold)';
   const badgeTxt=(isOver?'\u25b2 OVER ':'\u25bc SHORT ')+fmt(abs);
@@ -9248,7 +9269,7 @@ function renderResults() {
         '</div>'
       ).join('')+
       '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:6px">'+
-        'Cashouts adjusted proportionally (50/30/20) to balance the pot'+
+        'Cashouts adjusted proportionally ('+(al.entries.length===1?'100%':al.entries.length===2?'60/40':'50/30/20')+') to balance the pot'+
       '</div>'+
     '</div>';
   }
