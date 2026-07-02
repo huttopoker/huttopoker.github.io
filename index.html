@@ -468,20 +468,20 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 /* Compact live info bar — replaces big pot hero */
 .g-live-bar {
   display:flex; align-items:center; justify-content:space-between;
-  padding:16px 18px; margin-bottom:12px;
+  padding:12px 16px; margin-bottom:10px;
   background: linear-gradient(135deg, rgba(var(--c-bg-rgb,7,8,12),.97) 0%, rgba(var(--c-gold-rgb,255,215,0),.07) 100%);
   border:1px solid rgba(var(--c-gold-rgb,255,215,0),.22);
-  border-radius:18px;
-  box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.06), 0 6px 32px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  border-radius:14px;
+  box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.06), 0 4px 20px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
 }
 .g-live-pot {
-  font-family:var(--font-mono); font-size:40px; font-weight:800; letter-spacing:-2px;
+  font-family:var(--font-mono); font-size:26px; font-weight:800; letter-spacing:-1px;
   color:var(--c-gold,#FFD700); line-height:1;
-  text-shadow: 0 0 32px rgba(var(--c-gold-rgb,255,215,0),.55), 0 0 72px rgba(var(--c-gold-rgb,255,215,0),.2);
+  text-shadow: 0 0 20px rgba(var(--c-gold-rgb,255,215,0),.4);
 }
 .g-live-pot-lbl {
-  font-family:var(--font-body); font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:1.5px; color:rgba(var(--c-gold-rgb,255,215,0),.5); margin-bottom:4px;
+  font-family:var(--font-body); font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:1.3px; color:rgba(var(--c-gold-rgb,255,215,0),.5); margin-bottom:2px;
 }
 .g-live-meta {
   font-family:var(--font-body); font-size:11px; color:var(--c-muted2);
@@ -630,8 +630,8 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .live-hdr-left { display:flex; align-items:center; gap:8px; }
 .live-dot-pulse { width:7px; height:7px; border-radius:50%; background:var(--c-green);
   box-shadow:0 0 6px var(--c-green); animation:pulse 2s infinite; flex-shrink:0; }
-.live-title { font-family:var(--font-heading); font-size:17px; font-weight:700;
-  color:#FFFFFF; letter-spacing:0.2px; line-height:1; }
+.live-players-lbl { font-family:var(--font-body); font-size:13px; font-weight:700;
+  color:#FFFFFF; letter-spacing:0.1px; line-height:1; }
 /* sync pill replaced by .sync-dot-inline */
 .live-timer-wrap { text-align:right; }
 /* ── Stats: player performance view ── */
@@ -1077,19 +1077,27 @@ body:not(.nav-open) .wrap { transform:none; }
 .pcv3 { display:flex; align-items:center; gap:10px; padding:0 12px; min-height:50px; }
 .pcv3-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
   font-family:var(--font-heading); font-size:13px; font-weight:800; flex-shrink:0; border:1.5px solid; }
-.pcv3-name-wrap { flex:1; min-width:0; display:flex; align-items:center; gap:5px; }
-.pcv3-name { font-size:14.5px; font-weight:700; color:var(--c-txt,#F0F2FF); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.1px; }
-.pcv3-total { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-.pcv3-amt { font-family:var(--font-body); font-size:11px; font-weight:600; color:var(--c-muted); white-space:nowrap; }
-/* Pool-ball buy-in indicators — one numbered ball per buy-in, capped with a +N
-   overflow badge so a big rebuy count can't break the single-row card layout. */
+.pcv3-name-wrap { flex:1; min-width:0; display:flex; align-items:center; gap:6px; }
+.pcv3-name { font-size:14.5px; font-weight:700; color:var(--c-txt,#F0F2FF); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.1px; flex-shrink:1; min-width:0; }
+.pcv3-total { flex-shrink:0; }
+.pcv3-amt { font-family:var(--font-body); font-size:12px; font-weight:700; color:var(--c-muted); white-space:nowrap; }
+/* Pool-ball buy-in indicators — one numbered ball per buy-in, sits right next to
+   the player name. Solid sphere + glossy highlight so it actually reads as a ball,
+   capped with a +N overflow badge so a big rebuy count can't break the row. */
 .pcv3-balls { display:flex; align-items:center; gap:3px; flex-shrink:0; }
-.p-ball { width:15px; height:15px; border-radius:50%; flex-shrink:0;
+.p-ball { width:16px; height:16px; border-radius:50%; flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-size:8.5px; font-weight:900; line-height:1; border:1.5px solid; }
-.p-ball.b-green { background:rgba(255,215,0,.15); border-color:#FFD700; color:#FFD700; box-shadow:0 0 6px rgba(255,215,0,.4); }
-.p-ball.b-red   { background:rgba(239,68,68,.15); border-color:#FF1744; color:#FF6B6B; box-shadow:0 0 6px rgba(255,23,68,.4); }
-.p-ball-more { font-family:var(--font-mono); font-size:8.5px; color:rgba(239,68,68,.7); font-weight:700; flex-shrink:0; }
+  font-family:var(--font-mono); font-size:8.5px; font-weight:900; line-height:1;
+  color:#1A1200; position:relative; overflow:hidden;
+  background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 42%);
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.5); }
+.p-ball.b-green { background-color:#FFD700; background-image:
+  radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 42%),
+  linear-gradient(#FFD700,#FFD700); box-shadow: inset 0 -2px 2px rgba(150,100,0,.4), 0 1px 3px rgba(0,0,0,.5), 0 0 5px rgba(255,215,0,.5); }
+.p-ball.b-red { background-color:#FF1744; color:#FFFFFF; background-image:
+  radial-gradient(circle at 32% 28%, rgba(255,255,255,.75) 0%, rgba(255,255,255,0) 42%),
+  linear-gradient(#FF1744,#FF1744); box-shadow: inset 0 -2px 2px rgba(120,0,10,.5), 0 1px 3px rgba(0,0,0,.5), 0 0 5px rgba(255,23,68,.4); }
+.p-ball-more { font-family:var(--font-mono); font-size:8.5px; color:rgba(239,68,68,.75); font-weight:700; flex-shrink:0; }
 /* Buyin dot circles — minimal filled pips, no numbers */
 .buyin-dots-row { display:flex; align-items:center; gap:5px; margin-top:6px; }
 .buyin-dots { display:flex; gap:4px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
@@ -1171,7 +1179,7 @@ body:not(.nav-open) .wrap { transform:none; }
 .hist-empty-sub { font-family:var(--font-body); font-size:13px; color:var(--c-muted); }
 /* Sticky-nav action buttons — single source of styling so ghost/gold variants
    look identical everywhere the nav renders (game, cashout, review, results). */
-.snav-btn { height:42px; border-radius:var(--r-pill); font-family:var(--font-mono); font-size:11px; font-weight:700;
+.snav-btn { height:42px; border-radius:var(--r-md); font-family:var(--font-mono); font-size:11px; font-weight:700;
   cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:0 10px;
   flex:1; white-space:nowrap; overflow:hidden; transition:transform .15s var(--ease-out); border-width:1.5px; border-style:solid; }
 .snav-btn:active { transform:scale(.94); }
@@ -1955,8 +1963,8 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     <!-- Compact live header -->
     <div class="live-hdr">
       <div class="live-hdr-left">
-        <span id="sync-dot-inline" class="sync-dot-inline live-dot-pulse" title="Sync status"></span>
-        <span class="live-title">Live</span>
+        <span id="sync-dot-inline" class="sync-dot-inline live-dot-pulse" title="Live — syncing"></span>
+        <span id="g-players-lbl" class="live-players-lbl"></span>
       </div>
       <div class="live-timer-wrap">
         <div id="game-timer" style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--c-gold);letter-spacing:.5px">00m 00s</div>
@@ -7800,6 +7808,8 @@ function renderGame() {
   const plLabel  = activePl === totalPl
     ? totalPl + ' player' + (totalPl !== 1 ? 's' : '')
     : activePl + ' of ' + totalPl + ' active';
+  const plLblEl = document.getElementById('g-players-lbl');
+  if (plLblEl) plLblEl.textContent = plLabel;
   // ── Compact live info bar (pot + host merged)
   const _hostOpts = '<option value="">No host</option>'+
     session.players.map(p=>'<option value="'+escH(p.name)+'"'+(session.host===p.name?' selected':'')+'>'+escH(p.name)+'</option>').join('');
@@ -7808,7 +7818,7 @@ function renderGame() {
       '<div>'+
         '<div class="g-live-pot-lbl">Total Pot</div>'+
         '<div class="g-live-pot">'+fmt(pot)+'</div>'+
-        '<div class="g-live-meta">'+plLabel+' &nbsp;·&nbsp; '+fmt(session.buyin||BUYIN)+' buy-in</div>'+
+        '<div class="g-live-meta">'+fmt(session.buyin||BUYIN)+' buy-in</div>'+
       '</div>'+
       '<div class="g-live-host">'+
         '<div class="g-live-host-lbl">&#9733; Host</div>'+
@@ -7898,9 +7908,9 @@ function renderGame() {
           '<div class="pcv3-name-wrap">'+
             '<span class="pcv3-name">'+escH(p.name)+'</span>'+
             hostStar+
+            '<div class="pcv3-balls">'+ballHtml+'</div>'+
           '</div>'+
           '<div class="pcv3-total">'+
-            '<div class="pcv3-balls">'+ballHtml+'</div>'+
             '<span class="pcv3-amt">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
           '</div>'+
           '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'+
