@@ -3358,13 +3358,14 @@ function _buildGameSummaryCanvas(s) {
   var MONO = 'JetBrains Mono, monospace';
   var aRgb = currentTheme ? currentTheme.accentRgb : '124,58,237';
   var aHex = currentTheme ? currentTheme.accent     : '#7C3AED';
+  var cRgb = currentTheme ? currentTheme.compRgb   : '6,182,212';
 
   var rowCount = srt.length + transfers.length;
   var rowScale = rowCount > 18 ? Math.max(0.72, 18 / rowCount) : 1;
   var ROW_H = px(38 * rowScale);
   var XFR_H = px(34 * rowScale);
 
-  var HDR_H       = px(64);
+  var HDR_H       = px(76);
   var SEC_GAP     = px(16);
   var HEAD_ROW_H  = px(22);
   var RULE_GAP    = px(10);
@@ -3399,11 +3400,11 @@ function _buildGameSummaryCanvas(s) {
   var adjNoteLines = [];
   if (adjEntries.length) {
     var al = s.adjLog;
-    var names = adjEntries.map(function(e){ return e.name; });
-    var namesStr = names.length <= 1 ? names[0] : names.length === 2 ? names.join(' and ') : names.slice(0,-1).join(', ')+' and '+names[names.length-1];
     var verb = al.isOver ? 'gave back' : 'absorbed';
+    var amtParts = adjEntries.map(function(e){ return e.name+' '+verb+' '+fmt(e.amt); });
+    var amtStr = amtParts.length <= 1 ? amtParts[0] : amtParts.length === 2 ? amtParts.join(' and ') : amtParts.slice(0,-1).join(', ')+' and '+amtParts[amtParts.length-1];
     var line1 = '⚖ Smart Adjustment — pot was '+(al.isOver?'over':'short')+' by '+fmt(al.total)+'.';
-    var line2 = namesStr+' '+verb+' the difference to balance the chip count.';
+    var line2 = amtStr+' to balance the chip count.';
     mctx.font = '500 '+px(12)+'px '+FONT;
     var noteMaxW = W - PAD*2 - px(4);
     var wrapLine = function(text) {
@@ -3506,13 +3507,39 @@ function _buildGameSummaryCanvas(s) {
   function drawHeader(ctx) {
     ctx.fillStyle = (currentTheme && currentTheme.bg) ? currentTheme.bg : '#0A0C14';
     ctx.fillRect(0, 0, W, ctx.canvas.height);
+
+    // Soft corner glow behind the header only — a touch of polish without
+    // reintroducing the old "phone screenshot" hero-band look.
+    var glow = ctx.createRadialGradient(0, 0, 0, 0, 0, W*0.65);
+    glow.addColorStop(0, 'rgba('+aRgb+',.12)');
+    glow.addColorStop(1, 'rgba('+aRgb+',0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, HDR_H + px(20));
+
     ctx.fillStyle = aHex;
     ctx.fillRect(0, 0, W, px(3));
 
+    // Logo badge — same gradient tile + star mark used in the app header.
+    var badgeSize = px(38), badgeX = PAD, badgeY = px(16), badgeR = px(11);
+    var grad = ctx.createLinearGradient(badgeX, badgeY, badgeX+badgeSize, badgeY+badgeSize);
+    grad.addColorStop(0, 'rgba('+aRgb+',1)');
+    grad.addColorStop(1, 'rgba('+cRgb+',1)');
+    ctx.fillStyle = grad;
+    _roundRect(ctx, badgeX, badgeY, badgeSize, badgeSize, badgeR);
+    ctx.fill();
+
+    var starSize = px(20), starPad = (badgeSize-starSize)/2;
+    ctx.save();
+    ctx.translate(badgeX+starPad, badgeY+starPad);
+    ctx.scale(starSize/24, starSize/24);
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '800 '+px(21)+'px '+FONT;
+    ctx.fill(new Path2D('M12 2L9 9H2l5.5 4L5 20l7-5 7 5-2.5-7L22 9h-7z'));
+    ctx.restore();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '800 '+px(22)+'px '+FONT;
     ctx.textAlign = 'left';
-    ctx.fillText('Hutto Showdown', PAD, px(30));
+    ctx.fillText('Hutto Showdown', badgeX+badgeSize+px(10), badgeY+px(25));
 
     var totalPot = srt.reduce(function(acc,p){return acc+p.buyins*buyin_;},0);
     var potFmt = '$'+(Number.isInteger(totalPot)?totalPot:totalPot.toFixed(2));
@@ -3529,7 +3556,7 @@ function _buildGameSummaryCanvas(s) {
     while (ctx.measureText(metaLine).width > W - PAD*2 && metaSz > px(9)) {
       metaSz -= 1; ctx.font = '500 '+metaSz+'px '+MONO;
     }
-    ctx.fillText(metaLine, PAD, px(48));
+    ctx.fillText(metaLine, PAD, badgeY+badgeSize+px(16));
   }
 
   function drawRule(ctx, y, alpha) {
@@ -3553,6 +3580,11 @@ function _buildGameSummaryCanvas(s) {
     var net = rd(p.cashOut - p.buyins*buyin_);
     var netColor = net > 0 ? '#22C55E' : net < 0 ? '#F87171' : '#9CA3AF';
     var mid = y + ROW_H*0.5;
+
+    if (i % 2 === 1) {
+      ctx.fillStyle = 'rgba(255,255,255,.025)';
+      ctx.fillRect(PAD-px(4), y, W-PAD*2+px(8), ROW_H);
+    }
 
     ctx.fillStyle = 'rgba(255,255,255,.4)';
     ctx.font = '700 '+px(12)+'px '+MONO;
