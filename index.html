@@ -3382,6 +3382,43 @@ function _buildGameSummaryCanvas(s) {
     return t+'…';
   };
 
+  // If a Smart Adjustment was applied to this game, recover each affected player's
+  // pre-adjustment cashout so it can be shown struck-through next to the final number —
+  // same before→after idea as the in-app Smart Adjustment modal.
+  var adjEntries = (s.adjLog && s.adjLog.entries) || [];
+  function adjFor(p) { return adjEntries.find(function(e){ return e.name === p.name; }); }
+  function cashOutParts(p) {
+    var newStr = fmt(p.cashOut||0);
+    var e = adjFor(p);
+    if (!e) return { newStr: newStr, oldStr: null };
+    var oldVal = s.adjLog.isOver ? rd((p.cashOut||0) + e.amt) : rd((p.cashOut||0) - e.amt);
+    return { newStr: newStr, oldStr: fmt(oldVal) };
+  }
+
+  // Two-line plain-language explanation shown at the bottom of the image when adjusted.
+  var adjNoteLines = [];
+  if (adjEntries.length) {
+    var al = s.adjLog;
+    var names = adjEntries.map(function(e){ return e.name; });
+    var namesStr = names.length <= 1 ? names[0] : names.length === 2 ? names.join(' and ') : names.slice(0,-1).join(', ')+' and '+names[names.length-1];
+    var verb = al.isOver ? 'gave back' : 'absorbed';
+    var line1 = '⚖ Smart Adjustment — pot was '+(al.isOver?'over':'short')+' by '+fmt(al.total)+'.';
+    var line2 = namesStr+' '+verb+' the difference to balance the chip count.';
+    mctx.font = '500 '+px(12)+'px '+FONT;
+    var noteMaxW = W - PAD*2 - px(4);
+    var wrapLine = function(text) {
+      var words = text.split(' '), lines = [], cur = '';
+      words.forEach(function(w){
+        var test = cur ? cur+' '+w : w;
+        if (mctx.measureText(test).width > noteMaxW && cur) { lines.push(cur); cur = w; }
+        else cur = test;
+      });
+      if (cur) lines.push(cur);
+      return lines;
+    };
+    adjNoteLines = wrapLine(line1).concat(wrapLine(line2));
+  }
+
   // Column geometry — right-aligned numeric columns sized to their actual content
   // (not a guessed fixed budget), so short dollar amounts never crowd out the name column.
   var colGap = px(14);
@@ -3389,7 +3426,16 @@ function _buildGameSummaryCanvas(s) {
   var buyHeadW = mctx.measureText('BUY-IN').width, cashHeadW = mctx.measureText('CASH OUT').width, netHeadW = mctx.measureText('NET').width;
   mctx.font = '500 '+px(13)+'px '+MONO;
   var buyMaxW  = srt.reduce(function(m,p){ return Math.max(m, mctx.measureText(fmt(p.buyins*buyin_)).width); }, buyHeadW);
-  var cashMaxW = srt.reduce(function(m,p){ return Math.max(m, mctx.measureText(fmt(p.cashOut||0)).width); }, cashHeadW);
+  var cashMaxW = srt.reduce(function(m,p){
+    var parts = cashOutParts(p);
+    var w = mctx.measureText(parts.newStr).width;
+    if (parts.oldStr) {
+      mctx.font = '500 '+px(11)+'px '+MONO;
+      w += mctx.measureText(parts.oldStr).width + px(6);
+      mctx.font = '500 '+px(13)+'px '+MONO;
+    }
+    return Math.max(m, w);
+  }, cashHeadW);
   mctx.font = '800 '+px(14)+'px '+MONO;
   var netMaxW = srt.reduce(function(m,p){
     var net = rd(p.cashOut - p.buyins*buyin_);
@@ -3433,6 +3479,14 @@ function _buildGameSummaryCanvas(s) {
         y += XFR_H;
         if (draw && i < transfers.length - 1) drawRule(ctx, y, .06);
       });
+    }
+
+    if (adjNoteLines.length) {
+      y += TITLE_GAP;
+      var noteLineH = px(17), noteBoxPadY = px(10);
+      var noteBoxH = noteBoxPadY*2 + adjNoteLines.length*noteLineH;
+      if (draw) drawAdjNote(ctx, y, noteBoxH);
+      y += noteBoxH;
     }
 
     y += FOOTER_GAP;
@@ -3513,7 +3567,20 @@ function _buildGameSummaryCanvas(s) {
     ctx.font = '500 '+px(13)+'px '+MONO;
     ctx.textAlign = 'right';
     ctx.fillText(fmt(p.buyins*buyin_), buyR, mid+px(5));
-    ctx.fillText(fmt(p.cashOut||0), cashR, mid+px(5));
+
+    var coParts = cashOutParts(p);
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.font = '500 '+px(13)+'px '+MONO;
+    ctx.fillText(coParts.newStr, cashR, mid+px(5));
+    if (coParts.oldStr) {
+      var newW = ctx.measureText(coParts.newStr).width;
+      var oldRightX = cashR - newW - px(6);
+      ctx.fillStyle = 'rgba(255,255,255,.32)';
+      ctx.font = '500 '+px(11)+'px '+MONO;
+      ctx.fillText(coParts.oldStr, oldRightX, mid+px(5));
+      var oldW = ctx.measureText(coParts.oldStr).width;
+      ctx.fillRect(oldRightX-oldW, mid+px(1), oldW, px(1));
+    }
 
     ctx.fillStyle = netColor;
     ctx.font = '800 '+px(14)+'px '+MONO;
@@ -3544,6 +3611,25 @@ function _buildGameSummaryCanvas(s) {
     ctx.textAlign = 'right';
     ctx.fillText(amtStr, netR, mid+px(5));
     ctx.textAlign = 'left';
+  }
+
+  function drawAdjNote(ctx, y, boxH) {
+    ctx.fillStyle = 'rgba(245,158,11,.08)';
+    _roundRect(ctx, PAD-px(4), y, W-PAD*2+px(8), boxH, px(8));
+    ctx.fill();
+    ctx.fillStyle = 'rgba(245,158,11,.35)';
+    _roundRect(ctx, PAD-px(4), y, px(3), boxH, px(2));
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,.72)';
+    ctx.font = '500 '+px(12)+'px '+FONT;
+    ctx.textAlign = 'left';
+    var lineY = y + px(10) + px(11);
+    var noteLineH = px(17);
+    adjNoteLines.forEach(function(line){
+      ctx.fillText(line, PAD, lineY);
+      lineY += noteLineH;
+    });
   }
 
   var H = layout(mctx, false);
