@@ -155,8 +155,17 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   /* ── Text ── */
   --c-txt:#F0F2FF; --c-txt2:#9CA3AF; --c-muted:rgba(240,242,255,.42); --c-muted2:rgba(240,242,255,.22);
 
-  /* ── Geometry ── */
-  --r-card:20px; --r-btn:14px; --r-input:12px;
+  /* ── Geometry — one radius scale, referenced everywhere so a future resize is a one-line change.
+     xs=chips/pills content, sm=inputs/small controls, md=buttons, lg=cards, pill=fully round. ── */
+  --r-xs:8px; --r-sm:12px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  --r-card:var(--r-lg); --r-btn:var(--r-md); --r-input:var(--r-sm);
+
+  /* ── Spacing scale — 4px base rhythm ── */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+
+  /* ── Motion — the two curves used for every entrance/press animation in the app ── */
+  --ease-spring:cubic-bezier(.32,.72,0,1);   /* sheets, screen transitions — settles with a soft overshoot-free spring */
+  --ease-out:cubic-bezier(.4,0,.2,1);        /* button presses, hovers — snappy standard deceleration */
 
   /* ── Shadows — soft glows, no harsh drops ── */
   --shd:0 1px 12px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04);
@@ -309,6 +318,14 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 .screen.active { display:block; animation:fadeIn .18s ease; }
 /* No transform in animation — transform creates stacking context that breaks position:fixed children on iOS Safari */
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+/* ── Directional navigation transitions — push forward / pop back, like a native nav stack.
+   Transform is scoped to a ~280ms one-shot animation (not `forwards`) so it fully reverts to
+   `transform:none` afterward — avoids the iOS Safari position:fixed-descendant issue above,
+   since no screen carries a transform once settled. ── */
+.screen.active.push-in { animation:screenPushIn .32s var(--ease-spring); }
+.screen.active.pop-in  { animation:screenPopIn  .32s var(--ease-spring); }
+@keyframes screenPushIn { from { opacity:0; transform:translateX(18px); } to { opacity:1; transform:translateX(0); } }
+@keyframes screenPopIn  { from { opacity:0; transform:translateX(-18px); } to { opacity:1; transform:translateX(0); } }
 /* ── CONFETTI ── */
 .confetti-piece { position:fixed; top:-10px; border-radius:2px; z-index:9998; pointer-events:none;
   animation:confettiFall var(--dur,3s) ease-in var(--delay,0s) forwards; }
@@ -377,7 +394,7 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
   padding:8px 20px calc(env(safe-area-inset-bottom,0px) + 28px);
   width:100%; max-width:490px; max-height:92vh; overflow-y:auto;
   box-shadow:var(--shd-lg);
-  animation:sheetEnter .32s cubic-bezier(.32,.72,0,1); }
+  animation:sheetEnter .32s var(--ease-spring); }
 .modal-handle { width:44px; height:5px; background:var(--c-bdr2); border-radius:3px; margin:12px auto 20px; }
 .modal-title { font-size:18px; font-weight:700; color:var(--c-gold); margin-bottom:5px; letter-spacing:.3px; }
 .modal-sub { font-family:var(--font-mono); font-size:12px; color:var(--c-muted); margin-bottom:18px; line-height:1.6; }
@@ -1454,7 +1471,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 .adj-row:last-child { border-bottom:none; }
 /* ── Smart Adjustment Preview Modal ── */
 .sadj-modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:flex-end;justify-content:center;padding:0 10px 0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
-.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:26px 22px calc(env(safe-area-inset-bottom,0px)+26px);animation:sheetEnter .28s cubic-bezier(.32,.72,0,1); }
+.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:26px 22px calc(env(safe-area-inset-bottom,0px)+26px);animation:sheetEnter .28s var(--ease-spring); }
 .sadj-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
 .sadj-title { font-family:var(--font-mono);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--c-gold); }
 .sadj-badge { font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px; }
@@ -4297,9 +4314,17 @@ function startGameNotifLoop() {
 }
 
 const _PAGE_CTX = { home:'', game:'Live', setup:'Tonight', cashout:'Wrap Up', review:'Review', results:'🏆 Results' };
+// Hierarchy for directional transitions — deeper number = further into the game flow.
+const SCREEN_ORDER = { home:0, setup:1, game:2, cashout:3, review:4, results:5 };
+let _lastScreenId = 'home';
 function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
+  const prevEl = document.querySelector('.screen.active');
+  const prevId = prevEl ? prevEl.id.replace('screen-','') : _lastScreenId;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','push-in','pop-in'));
+  const nextEl = document.getElementById('screen-'+id);
+  const goingForward = (SCREEN_ORDER[id] ?? 0) >= (SCREEN_ORDER[prevId] ?? 0);
+  nextEl.classList.add('active', goingForward ? 'push-in' : 'pop-in');
+  _lastScreenId = id;
   window.scrollTo({top:0,behavior:'instant'});
   updateStickyNav(id);
   // Update global header page context
