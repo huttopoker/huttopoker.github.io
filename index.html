@@ -164,9 +164,14 @@ CREATE POLICY "lgsd" ON live_game_sessions FOR DELETE USING (true);
   --glow-violet:0 0 20px rgba(124,58,237,.25), 0 0 60px rgba(124,58,237,.08);
   --glow-cyan:0 0 20px rgba(6,182,212,.22), 0 0 50px rgba(6,182,212,.07);
 
-  /* ── Fonts ── */
+  /* ── Fonts ──
+     One family (Inter) drives both body and headings — weight/size/letter-spacing
+     carry the hierarchy instead of a second display font. This was a deliberate
+     simplification: a separate heading webfont created a visible font swap/mismatch
+     risk on the most prominent text (page titles) while it loaded. Space Grotesk is
+     kept only for the small brand wordmark, where that risk is negligible. */
   --font-body:'Inter',system-ui,sans-serif;
-  --font-heading:'Space Grotesk',system-ui,sans-serif;
+  --font-heading:'Inter',system-ui,sans-serif;
   --font-mono:'JetBrains Mono','Fira Mono',monospace;
   --font-logo:'Space Grotesk',system-ui,sans-serif;
 
@@ -312,18 +317,28 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
   80%  { opacity:1; }
   100% { transform:translateY(105vh) translateX(var(--dx,20px)) rotate(var(--rot,540deg)); opacity:0; }
 }
-/* ── NOTIFICATION ── */
-#notif { position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:50%;
-  transform:translateX(-50%) translateY(-120px);
-  border-radius:20px; padding:10px 20px; font-family:var(--font-body); font-size:13px; font-weight:500;
-  z-index:9999; transition:transform .3s cubic-bezier(.4,0,.2,1);
-  white-space:normal; word-break:break-word; text-align:center;
-  max-width:min(88vw,320px); box-shadow:0 4px 24px rgba(0,0,0,.35); pointer-events:none; line-height:1.4; }
-#notif.show { transform:translateX(-50%) translateY(0); }
-#notif.ok { background:linear-gradient(135deg,#22C55E,#16A34A); color:#fff; }
-#notif.err { background:linear-gradient(135deg,#EF4444,#DC2626); color:#fff; }
-#notif.warn { background:linear-gradient(135deg,#F59E0B,#D97706); color:#fff; }
-#notif.info { background:rgba(17,24,39,.95); color:var(--c-txt); border:1px solid rgba(255,255,255,.12);
+/* ── NOTIFICATION — iOS-style banner: near-full-width, icon badge + text, glass blur ── */
+#notif { position:fixed; top:calc(env(safe-area-inset-top,0px) + 70px); left:12px; right:12px;
+  transform:translateY(-140%) scale(.96); opacity:0;
+  border-radius:18px; padding:13px 15px; font-family:var(--font-body); font-size:13.5px; font-weight:600;
+  z-index:9999; transition:transform .38s cubic-bezier(.34,1.56,.64,1), opacity .25s ease;
+  white-space:normal; word-break:break-word; text-align:left;
+  display:flex; align-items:center; gap:11px;
+  max-width:420px; margin:0 auto;
+  backdrop-filter:blur(24px) saturate(1.6); -webkit-backdrop-filter:blur(24px) saturate(1.6);
+  box-shadow:0 8px 32px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  pointer-events:none; line-height:1.35; }
+#notif.show { transform:translateY(0) scale(1); opacity:1; }
+#notif .notif-icon { width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; }
+#notif .notif-text { flex:1; min-width:0; }
+#notif.ok { background:rgba(16,26,18,.92); border:1px solid rgba(34,197,94,.3); color:#EFFCF3; }
+#notif.ok .notif-icon { background:rgba(34,197,94,.22); color:#4ADE80; }
+#notif.err { background:rgba(30,14,14,.92); border:1px solid rgba(239,68,68,.32); color:#FEF2F2; }
+#notif.err .notif-icon { background:rgba(239,68,68,.22); color:#F87171; }
+#notif.warn { background:rgba(30,22,8,.92); border:1px solid rgba(245,158,11,.32); color:#FFF9EC; }
+#notif.warn .notif-icon { background:rgba(245,158,11,.22); color:#FBBF24; }
+#notif.info { background:rgba(17,24,39,.92); color:var(--c-txt); border:1px solid rgba(255,255,255,.14);
   backdrop-filter:blur(16px); }
 /* ── LOADING ── */
 #loading { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--c-bg); z-index:9000;
@@ -350,16 +365,19 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 }
 #load-msg { font-family:var(--font-body); font-size:11px; color:var(--c-muted);
   letter-spacing:3px; text-transform:uppercase; font-weight:500; }
-/* ── MODALS (bottom sheet) ── */
+/* ── MODALS (bottom sheet) — slide up + backdrop fade, like a native sheet ── */
+@keyframes modalBackdropIn { from { opacity:0; } to { opacity:1; } }
 .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; z-index:6000;
   display:flex; align-items:flex-end; justify-content:center;
-  background:rgba(0,0,0,.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+  background:rgba(0,0,0,.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  animation:modalBackdropIn .22s ease; }
 .modal-box { background:rgba(13,17,23,.95); border:1px solid rgba(255,255,255,.09);
   backdrop-filter:blur(32px); -webkit-backdrop-filter:blur(32px);
   border-radius:28px 28px 0 0;
   padding:8px 20px calc(env(safe-area-inset-bottom,0px) + 28px);
   width:100%; max-width:490px; max-height:92vh; overflow-y:auto;
-  box-shadow:var(--shd-lg); }
+  box-shadow:var(--shd-lg);
+  animation:sheetEnter .32s cubic-bezier(.32,.72,0,1); }
 .modal-handle { width:44px; height:5px; background:var(--c-bdr2); border-radius:3px; margin:12px auto 20px; }
 .modal-title { font-size:18px; font-weight:700; color:var(--c-gold); margin-bottom:5px; letter-spacing:.3px; }
 .modal-sub { font-family:var(--font-mono); font-size:12px; color:var(--c-muted); margin-bottom:18px; line-height:1.6; }
@@ -658,14 +676,24 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
   pointer-events:none; opacity:0; transform:scale(0.78) translateX(6px); transform-origin:right center;
   text-shadow:0 1px 6px rgba(0,0,0,.5);
 }
-/* Quick buy-in tap button — alternative to swipe */
-.add-buyin-quick {
-  width:30px; height:30px; border-radius:8px; border:1.5px solid rgba(var(--c-gold-rgb,255,215,0),.4);
-  background:rgba(var(--c-gold-rgb,255,215,0),.10); color:var(--c-gold,#FFD700); display:flex; align-items:center;
-  justify-content:center; cursor:pointer; flex-shrink:0; transition:all .15s;
+/* Quick buy-in tap buttons — always-visible add/remove, no hidden swipe required */
+.add-buyin-quick, .undo-buyin-quick {
+  width:32px; height:32px; border-radius:50%; border:none;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  transition:transform .12s cubic-bezier(.4,0,.2,1), filter .12s;
   -webkit-tap-highlight-color:transparent;
+  box-shadow:0 2px 8px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15);
 }
-.add-buyin-quick:active { background:rgba(var(--c-gold-rgb,255,215,0),.22); transform:scale(.87); }
+.add-buyin-quick {
+  background:linear-gradient(150deg, rgba(var(--c-gold-rgb,255,215,0),.9), rgba(var(--c-gold-rgb,255,215,0),.55));
+  color:var(--c-bg,#07080C);
+}
+.undo-buyin-quick {
+  background:rgba(255,255,255,.07); color:var(--c-muted); border:1.5px solid rgba(255,255,255,.12);
+  box-shadow:none;
+}
+.add-buyin-quick:active, .undo-buyin-quick:active { transform:scale(.86); filter:brightness(.92); }
+.undo-buyin-quick:disabled { opacity:.3; cursor:not-allowed; }
 /* Swipe affordance hint — shows briefly on load, hides during swipe */
 .swipe-hint-bar {
   display:flex; justify-content:space-between; padding:0 14px 6px;
@@ -738,6 +766,8 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 @keyframes fadeSlideIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
 @keyframes slideDownBanner { from { transform:translateY(-100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
 @keyframes slideUpBanner   { from { transform:translateY(0); opacity:1; } to { transform:translateY(-100%); opacity:0; } }
+/* Bottom-sheet entrance — slides up INTO view from off-screen, native app style */
+@keyframes sheetEnter { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
 .bi-track {
   height:46px; border-radius:100px; position:relative;
   background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.1);
@@ -1140,11 +1170,12 @@ body:not(.nav-open) .wrap { transform:none; }
 .hist-empty-title { font-family:var(--font-heading); font-size:20px; font-weight:800; color:var(--c-txt); margin-bottom:8px; }
 .hist-empty-sub { font-family:var(--font-body); font-size:13px; color:var(--c-muted); }
 /* Early cashout trigger button */
-.eco-trigger { width:44px; height:44px; border-radius:10px; border:none;
-  background:none; font-size:14px; cursor:pointer; flex-shrink:0; margin-right:4px;
-  display:flex; align-items:center; justify-content:center; transition:all .12s; color:rgba(255,255,255,.3); }
-.eco-trigger:active { background:rgba(249,115,22,.12); border-color:var(--c-orange); transform:scale(.9); }
-.eco-trigger.open { background:rgba(249,115,22,.1); border-color:var(--c-orange); color:var(--c-orange); }
+.eco-trigger { width:32px; height:32px; border-radius:50%; border:1.5px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05); font-size:14px; cursor:pointer; flex-shrink:0; margin-left:6px;
+  display:flex; align-items:center; justify-content:center; transition:all .12s; color:rgba(255,255,255,.4);
+  -webkit-tap-highlight-color:transparent; }
+.eco-trigger:active { background:rgba(249,115,22,.15); border-color:var(--c-orange); transform:scale(.86); }
+.eco-trigger.open { background:rgba(249,115,22,.15); border-color:var(--c-orange); color:var(--c-orange); }
 /* Early cashout expand panel */
 .eco-panel { padding:10px 14px 12px; border-top:1px solid var(--c-bdr);
   background:rgba(249,115,22,.04); display:none; }
@@ -1445,7 +1476,7 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
 .adj-row:last-child { border-bottom:none; }
 /* ── Smart Adjustment Preview Modal ── */
 .sadj-modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:flex-end;justify-content:center;padding:0 10px 0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
-.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:26px 22px calc(env(safe-area-inset-bottom,0px)+26px);animation:slideUpBanner .22s ease; }
+.sadj-modal { background:var(--c-bg2,#0D1117);border:1px solid rgba(var(--c-gold-rgb,245,158,11),.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:26px 22px calc(env(safe-area-inset-bottom,0px)+26px);animation:sheetEnter .28s cubic-bezier(.32,.72,0,1); }
 .sadj-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
 .sadj-title { font-family:var(--font-mono);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--c-gold); }
 .sadj-badge { font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px; }
@@ -2227,7 +2258,7 @@ const THEMES = [
     table:'rgba(2,12,36,0.92)', tableText:'#C4D3DE',
     pattern:"radial-gradient(circle,#C4D3DE 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(1,8,20,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#003594', compRgb:'0,53,148', accentRgb:'196,211,222',
   },
   { // 1 — Pittsburgh Steelers — Black / Gold #FFB612 / Silver #A5ACAF
@@ -2238,7 +2269,7 @@ const THEMES = [
     table:'rgba(16,14,8,0.92)', tableText:'#FFD040',
     pattern:"radial-gradient(circle,#FFB612 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(6,6,4,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'255,182,18',
   },
   { // 2 — Las Vegas Raiders — Black / Chrome Silver #E3E7EA
@@ -2249,7 +2280,7 @@ const THEMES = [
     table:'rgba(14,14,14,0.92)', tableText:'#E3E7EA',
     pattern:"radial-gradient(circle,#E3E7EA 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(6,6,6,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#707070', compRgb:'112,112,112', accentRgb:'227,231,234',
   },
   { // 3 — Baltimore Ravens — Purple #241773 / Black / Gold #9E7C0C
@@ -2260,7 +2291,7 @@ const THEMES = [
     table:'rgba(12,4,32,0.92)', tableText:'#C8A818',
     pattern:"radial-gradient(circle,#C8A818 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(8,2,22,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#6040A8', compRgb:'96,64,168', accentRgb:'200,168,24',
   },
   { // 4 — New Orleans Saints — Black #101820 / Old Gold #C9A227
@@ -2271,7 +2302,7 @@ const THEMES = [
     table:'rgba(20,16,2,0.92)', tableText:'#F0D8A0',
     pattern:"radial-gradient(circle,#C9A227 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(10,8,0,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#101820', compRgb:'16,24,32', accentRgb:'201,162,39',
   },
   { // 5 — Chicago Bears — Navy #0B162A / Orange #C83803
@@ -2282,7 +2313,7 @@ const THEMES = [
     table:'rgba(10,8,22,0.92)', tableText:'#E86828',
     pattern:"radial-gradient(circle,#C83803 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(4,3,14,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#0B162A', compRgb:'11,22,42', accentRgb:'200,56,3',
   },
   { // 6 — San Francisco 49ers — Gold #D4A017 / Scarlet #AA0000
@@ -2293,7 +2324,7 @@ const THEMES = [
     table:'rgba(34,6,6,0.92)', tableText:'#D4A017',
     pattern:"radial-gradient(circle,#D4A017 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(16,3,3,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#AA0000', compRgb:'170,0,0', accentRgb:'212,160,23',
   },
   { // 7 — Kansas City Chiefs — Red #E31837 / Gold #FFB81C
@@ -2304,7 +2335,7 @@ const THEMES = [
     table:'rgba(36,6,6,0.92)', tableText:'#FFB81C',
     pattern:"radial-gradient(circle,#E31837 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(18,3,4,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FFB81C', compRgb:'255,184,28', accentRgb:'227,24,55',
   },
   { // 8 — Green Bay Packers — Dark Green #203731 / Gold #E8C547
@@ -2315,7 +2346,7 @@ const THEMES = [
     table:'rgba(10,28,14,0.92)', tableText:'#F5DD80',
     pattern:"radial-gradient(circle,#E8C547 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(4,14,6,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#203731', compRgb:'32,55,49', accentRgb:'232,197,71',
   },
   { // 9 — Denver Broncos — Orange #FB4F14 / Navy #002244
@@ -2326,7 +2357,7 @@ const THEMES = [
     table:'rgba(6,16,32,0.92)', tableText:'#FF7840',
     pattern:"radial-gradient(circle,#FB4F14 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(3,8,16,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#002244', compRgb:'0,34,68', accentRgb:'251,79,20',
   },
   { // 10 — Seattle Seahawks — Navy #002244 / Action Green #69BE28 / Wolf Grey #A5ACAF
@@ -2337,7 +2368,7 @@ const THEMES = [
     table:'rgba(2,18,32,0.92)', tableText:'#90D848',
     pattern:"radial-gradient(circle,#69BE28 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(2,8,16,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'105,190,40',
   },
   { // 11 — Philadelphia Eagles — Midnight Green #004C54 / Eagles Green #00B37E
@@ -2348,7 +2379,7 @@ const THEMES = [
     table:'rgba(0,28,16,0.92)', tableText:'#5CE0BE',
     pattern:"radial-gradient(circle,#00B37E 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(0,12,7,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'0,179,126',
   },
   { // 12 — Miami Dolphins — Aqua #008E97 / Orange #FC4C02
@@ -2359,7 +2390,7 @@ const THEMES = [
     table:'rgba(2,30,26,0.92)', tableText:'#FC4C02',
     pattern:"radial-gradient(circle,#008E97 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(2,14,12,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FC4C02', compRgb:'252,76,2', accentRgb:'0,142,151',
   },
   { // 13 — Los Angeles Chargers — Powder Blue #0080C6 / Gold #FFC20E / Navy #002A5E
@@ -2370,7 +2401,7 @@ const THEMES = [
     table:'rgba(2,14,40,0.92)', tableText:'#FFC20E',
     pattern:"radial-gradient(circle,#0080C6 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(2,6,20,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FFC20E', compRgb:'255,194,14', accentRgb:'0,128,198',
   },
   { // 14 — Buffalo Bills — Royal Blue #1D5FD6 / Red #C60C30
@@ -2381,7 +2412,7 @@ const THEMES = [
     table:'rgba(2,10,38,0.92)', tableText:'#5C90F0',
     pattern:"radial-gradient(circle,#1D5FD6 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(2,6,20,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#C60C30', compRgb:'198,12,48', accentRgb:'29,95,214',
   },
   { // 15 — Tennessee Titans — Navy #0C2340 / Titan Blue #4B92DB / Red #C8102E
@@ -2392,7 +2423,7 @@ const THEMES = [
     table:'rgba(4,14,36,0.92)', tableText:'#70B0EE',
     pattern:"radial-gradient(circle,#4B92DB 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(2,8,18,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#C8102E', compRgb:'200,16,46', accentRgb:'75,146,219',
   },
   { // 16 — Detroit Lions — Honolulu Blue #0076B6 / Silver #B0B7BC
@@ -2403,7 +2434,7 @@ const THEMES = [
     table:'rgba(2,18,38,0.92)', tableText:'#40B8F8',
     pattern:"radial-gradient(circle,#0076B6 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(2,8,18,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#B0B7BC', compRgb:'176,183,188', accentRgb:'0,118,182',
   },
   { // 17 — Minnesota Vikings — Purple #4F2683 / Gold #FFC62F
@@ -2414,7 +2445,7 @@ const THEMES = [
     table:'rgba(20,8,42,0.92)', tableText:'#FFC62F',
     pattern:"radial-gradient(circle,#7048C0 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(10,4,20,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FFC62F', compRgb:'255,198,47', accentRgb:'112,72,192',
   },
   { // 18 — Tampa Bay Buccaneers — Orange #FF7900 / Red #D50A0A
@@ -2425,7 +2456,7 @@ const THEMES = [
     table:'rgba(32,4,4,0.92)', tableText:'#FF7900',
     pattern:"radial-gradient(circle,#FF7900 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(16,2,3,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#D50A0A', compRgb:'213,10,10', accentRgb:'255,121,0',
   },
   { // 19 — Carolina Panthers — Black #101820 / Blue #0085CA / Silver #BFC0BF
@@ -2436,7 +2467,7 @@ const THEMES = [
     table:'rgba(8,14,28,0.92)', tableText:'#40C8FF',
     pattern:"radial-gradient(circle,#0085CA 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(4,7,14,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#BFC0BF', compRgb:'191,192,191', accentRgb:'0,133,202',
   },
   { // 20 — New York Giants — Royal Blue #0B2265 / Red #A71930
@@ -2447,7 +2478,7 @@ const THEMES = [
     table:'rgba(4,12,36,0.92)', tableText:'#A71930',
     pattern:"radial-gradient(circle,#3A6ACC 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(2,7,18,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A71930', compRgb:'167,25,48', accentRgb:'58,106,204',
   },
   { // 21 — Cincinnati Bengals — Black / Tiger Orange #E8590C
@@ -2458,7 +2489,7 @@ const THEMES = [
     table:'rgba(18,6,0,0.92)', tableText:'#FF8040',
     pattern:"radial-gradient(circle,#E8590C 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(8,4,0,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#101820', compRgb:'16,24,32', accentRgb:'232,89,12',
   },
   { // 22 — Los Angeles Rams — Royal Blue #003594 / Gold #FFA300
@@ -2469,7 +2500,7 @@ const THEMES = [
     table:'rgba(2,16,46,0.92)', tableText:'#FFC840',
     pattern:"radial-gradient(circle,#FFA300 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(1,8,24,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#003594', compRgb:'0,53,148', accentRgb:'255,163,0',
   },
   { // 23 — Washington Commanders — Burgundy #5A1414 / Gold #FFB612
@@ -2480,7 +2511,7 @@ const THEMES = [
     table:'rgba(30,6,8,0.92)', tableText:'#FFB612',
     pattern:"radial-gradient(circle,#CC2020 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(14,3,4,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FFB612', compRgb:'255,182,18', accentRgb:'204,32,32',
   },
   { // 24 — Atlanta Falcons — Black / Red #A71930 / Silver #A5ACAF
@@ -2491,7 +2522,7 @@ const THEMES = [
     table:'rgba(18,4,8,0.92)', tableText:'#C8B0B4',
     pattern:"radial-gradient(circle,#A71930 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(8,2,4,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A5ACAF', compRgb:'165,172,175', accentRgb:'167,25,48',
   },
   { // 25 — New England Patriots — Navy #002244 / Red #C60C30 / Silver #4F596B
@@ -2502,7 +2533,7 @@ const THEMES = [
     table:'rgba(2,10,26,0.92)', tableText:'#E84050',
     pattern:"radial-gradient(circle,#C60C30 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(2,5,14,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#4F596B', compRgb:'79,89,107', accentRgb:'198,12,48',
   },
   { // 26 — New York Jets — Gotham Green #2E9E4F / White
@@ -2513,7 +2544,7 @@ const THEMES = [
     table:'rgba(6,24,12,0.92)', tableText:'#4FD070',
     pattern:"radial-gradient(circle,#2E9E4F 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(3,12,6,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#F0F0F4', compRgb:'240,240,244', accentRgb:'46,158,79',
   },
   { // 27 — Houston Texans — Deep Steel Blue #1C6E9C / Battle Red #A71930
@@ -2524,7 +2555,7 @@ const THEMES = [
     table:'rgba(4,14,28,0.92)', tableText:'#4FA0D0',
     pattern:"radial-gradient(circle,#1C6E9C 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(2,8,14,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A71930', compRgb:'167,25,48', accentRgb:'28,110,156',
   },
   { // 28 — Indianapolis Colts — Royal Blue #002C5F / Silver #A2AAAD
@@ -2535,7 +2566,7 @@ const THEMES = [
     table:'rgba(2,14,34,0.92)', tableText:'#A8B4BC',
     pattern:"radial-gradient(circle,#3378CC 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(2,8,18,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#A2AAAD', compRgb:'162,170,173', accentRgb:'51,120,204',
   },
   { // 29 — Jacksonville Jaguars — Black #101820 / Teal #006778 / Gold #9F792C
@@ -2546,7 +2577,7 @@ const THEMES = [
     table:'rgba(6,18,18,0.92)', tableText:'#30C8E0',
     pattern:"radial-gradient(circle,#006778 1px,transparent 1px)",
     patternSize:'26px 26px', overlay:'rgba(3,8,8,0.80)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#9F792C', compRgb:'159,121,44', accentRgb:'0,103,120',
   },
   { // 30 — Cleveland Browns — Seal Brown #311D00 / Orange #FF3C00
@@ -2557,7 +2588,7 @@ const THEMES = [
     table:'rgba(28,16,0,0.92)', tableText:'#FF7040',
     pattern:"radial-gradient(circle,#FF3C00 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(12,8,0,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#311D00', compRgb:'49,29,0', accentRgb:'255,60,0',
   },
   { // 31 — Arizona Cardinals — Cardinal #97233F / Gold #FFB612
@@ -2568,7 +2599,7 @@ const THEMES = [
     table:'rgba(30,4,8,0.92)', tableText:'#E85070',
     pattern:"radial-gradient(circle,#CC2040 1px,transparent 1px)", patternSize:'26px 26px',
     overlay:'rgba(14,2,4,0.82)',
-    fontHead:"'Space Grotesk',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
+    fontHead:"'Inter',system-ui,sans-serif", fontBody:"'Inter',system-ui,sans-serif",
     comp:'#FFB612', compRgb:'255,182,18', accentRgb:'204,32,64',
   },
 ];
@@ -2819,7 +2850,10 @@ function stopGameTimer() {
 }
 
 /* ═══ LIVE GAME SESSION (host transfer) ═══ */
+// Guarded at the write functions themselves (not just at call sites) so no caller
+// can ever accidentally leak a test/preview game into the shared live_game_sessions table.
 async function dbCreateLiveSession(sessionId, gameState) {
+  if (isTestMode) { liveSessionId = sessionId; isHostDevice = true; return false; }
   try {
     await sbPost('live_game_sessions?on_conflict=session_id',
       { session_id: sessionId, host_device_id: DEVICE_ID,
@@ -2844,7 +2878,7 @@ async function dbCreateLiveSession(sessionId, gameState) {
 }
 
 async function dbUpdateLiveSession(gameState) {
-  if (!liveSessionId) return;
+  if (!liveSessionId || isTestMode) return;
   try {
     await sbPatch('live_game_sessions?session_id=eq.'+encodeURIComponent(liveSessionId),
       { host_device_id: DEVICE_ID, game_state: gameState, updated_at: new Date().toISOString() });
@@ -2858,6 +2892,7 @@ async function dbUpdateLiveSession(gameState) {
 }
 
 async function dbTransferHost(sessionId, newDeviceId) {
+  if (isTestMode) return false;
   try {
     await sbPatch('live_game_sessions?session_id=eq.'+encodeURIComponent(sessionId),
       { host_device_id: newDeviceId, updated_at: new Date().toISOString() });
@@ -3303,14 +3338,19 @@ function _buildGameSummaryCanvas(s) {
   var px = function(n) { return Math.round(n * SC); }; // 1 logical px → SC canvas px
 
   var PAD   = px(24);
-  var ROW_H = px(52);
-  var XFR_H = px(44);
   var HDR_H = px(110);
   var FONT  = 'Inter, system-ui, sans-serif';
   var MONO  = 'JetBrains Mono, monospace';
   var aRgb  = currentTheme ? currentTheme.accentRgb : '124,58,237';
   var cRgb  = currentTheme ? currentTheme.compRgb   : '6,182,212';
   var aHex  = currentTheme ? currentTheme.accent     : '#7C3AED';
+
+  // Big games (many players/transfers) shrink row height so the card never grows
+  // past ~2.5x a phone screen — keeps it looking like one screenshot, not an endless strip.
+  var rowCount = srt.length + transfers.length;
+  var rowScale = rowCount > 16 ? Math.max(0.62, 16 / rowCount) : 1;
+  var ROW_H = px(52 * rowScale);
+  var XFR_H = px(44 * rowScale);
 
   // Calculate content height, then clamp canvas to at least phone height
   var contentH = HDR_H + px(16) + px(18) + srt.length * ROW_H +
@@ -4219,10 +4259,17 @@ function nameColor(name) {
    UI HELPERS
 ═══════════════════════════════════════ */
 let nT;
+const NOTIF_ICONS = {
+  ok:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  err:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  warn: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  info: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+};
 function notify(msg, type) {
   type = type||'ok';
   const el = document.getElementById('notif');
-  el.textContent = msg; el.className = 'show '+type;
+  el.innerHTML = '<span class="notif-icon">'+(NOTIF_ICONS[type]||NOTIF_ICONS.ok)+'</span><span class="notif-text">'+escH(msg)+'</span>';
+  el.className = 'show '+type;
   clearTimeout(nT); nT = setTimeout(()=> el.className='', 3400);
 }
 
@@ -7572,6 +7619,7 @@ function startGame() {
   startGameTimer();
   startGameNotifLoop();
   // Publish to DB immediately — await so we know it worked
+  // (dbCreateLiveSession itself no-ops under isTestMode — see its definition)
   const _snap = JSON.parse(JSON.stringify(session));
   delete _snap.cashOuts;
   _snap.lastPushed = Date.now();
@@ -7830,7 +7878,8 @@ function renderGame() {
             '<span class="p-card-count" style="color:'+bColor+';font-size:20px;line-height:1">'+p.buyins+'</span>'+
             '<span class="p-card-total">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
           '</div>'+
-          (isHostDevice ? '<button class="add-buyin-quick" onclick="event.stopPropagation();addBuyin(\''+escQ(p.name)+'\')" title="Add buy-in" style="margin-left:2px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
+          (isHostDevice ? '<button class="undo-buyin-quick" onclick="event.stopPropagation();undoBuyin(\''+escQ(p.name)+'\')" title="Remove buy-in"'+(p.buyins<=1?' disabled':'')+'><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
+          (isHostDevice ? '<button class="add-buyin-quick" onclick="event.stopPropagation();addBuyin(\''+escQ(p.name)+'\')" title="Add buy-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
           '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'+
         '</div>'+
         '<div class="eco-panel" id="'+safeId+'">'+
@@ -9207,304 +9256,6 @@ async function captureResultsScreenshot() {
   _showScreenshotModal(canvas);
 }
 
-function _drawResultsCanvas() {
-  const transfers = settle(session.players).sort((a,b)=>b.amt-a.amt);
-  const srt = session.players.slice().sort((a,b)=>(b.cashOut-b.buyins*(session.buyin||BUYIN))-(a.cashOut-a.buyins*(session.buyin||BUYIN)));
-  const W = Math.min(window.innerWidth * 2, 900);
-  const SCALE = 2;
-  const PAD = 40;
-  const FONT = 'Inter, system-ui, sans-serif';
-  const MONO = 'JetBrains Mono, monospace';
-
-  // Measure height
-  const rows = srt.length + transfers.length;
-  const H = 200 + rows * 56 + (transfers.length ? 80 : 0) + 80;
-
-  const canvas = document.createElement('canvas');
-  canvas.width  = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // Background
-  ctx.fillStyle = '#0F0F1A';
-  ctx.fillRect(0, 0, W, H);
-
-  // Header gradient strip
-  const grad = ctx.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0, 'rgba(245,158,11,.2)');
-  grad.addColorStop(1, 'rgba(245,158,11,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, 80);
-
-  // Title
-  ctx.fillStyle = '#F59E0B';
-  ctx.font = `800 ${28 / SCALE * (W / 400)}px ${FONT}`;
-  ctx.textAlign = 'left';
-  ctx.fillText('\u2660 Showdown', PAD, 48);
-
-  // Date + pot
-  ctx.fillStyle = '#9ca3af';
-  ctx.font = `500 ${13 / SCALE * (W / 400)}px ${MONO}`;
-  ctx.fillText(session.date + '  \u00b7  Pot: ' + fmt(potTotal()) + '  \u00b7  ' + session.players.length + ' players', PAD, 72);
-
-  let y = 110;
-
-  // \u2500\u2500 Players section \u2500\u2500
-  ctx.fillStyle = '#6b7280';
-  ctx.font = `700 ${10 / SCALE * (W / 400)}px ${MONO}`;
-  ctx.fillText('PLAYERS', PAD, y);
-  y += 22;
-
-  srt.forEach((p, i) => {
-    const net = rd(p.cashOut - p.buyins * BUYIN);
-    const netColor = net > 0 ? '#10B981' : net < 0 ? '#EF4444' : '#9ca3af';
-    const medals = ['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'];
-
-    // Row bg
-    ctx.fillStyle = 'rgba(255,255,255,0.03)';
-    _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 42, 8);
-    ctx.fill();
-
-    // Medal / rank
-    const emojiSize = 14 / SCALE * (W / 400);
-    ctx.font = `600 ${emojiSize}px ${FONT}`;
-    ctx.fillStyle = '#9ca3af';
-    ctx.fillText(medals[i] || (i + 1) + '.', PAD, y + 4);
-
-    // Name
-    ctx.fillStyle = '#f3f4f6';
-    ctx.font = `700 ${15 / SCALE * (W / 400)}px ${FONT}`;
-    ctx.fillText(p.name + (session.host === p.name ? ' \u2726' : ''), PAD + 36, y + 4);
-
-    // Buyins sub
-    ctx.fillStyle = '#6b7280';
-    ctx.font = `500 ${10 / SCALE * (W / 400)}px ${MONO}`;
-    ctx.fillText(p.buyins + ' buy-in' + (p.buyins !== 1 ? 's' : '') + '  out ' + fmt(p.cashOut), PAD + 36, y + 20);
-
-    // Net
-    ctx.fillStyle = netColor;
-    ctx.font = `800 ${16 / SCALE * (W / 400)}px ${MONO}`;
-    ctx.textAlign = 'right';
-    ctx.fillText((net >= 0 ? '+' : '') + fmt(Math.abs(net)), W - PAD, y + 4);
-    ctx.textAlign = 'left';
-
-    y += 50;
-  });
-
-  if (transfers.length) {
-    y += 16;
-    // \u2500\u2500 Payouts section \u2500\u2500
-    ctx.fillStyle = '#6b7280';
-    ctx.font = `700 ${10 / SCALE * (W / 400)}px ${MONO}`;
-    ctx.fillText('PAYOUTS', PAD, y);
-    y += 22;
-
-    transfers.forEach(t => {
-      ctx.fillStyle = 'rgba(255,255,255,0.03)';
-      _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 42, 8);
-      ctx.fill();
-
-      // From (red)
-      ctx.fillStyle = '#EF4444';
-      ctx.font = `700 ${14 / SCALE * (W / 400)}px ${FONT}`;
-      ctx.fillText(t.from, PAD, y + 4);
-
-      // Arrow
-      const fromW = ctx.measureText(t.from).width;
-      ctx.fillStyle = '#6b7280';
-      ctx.font = `500 ${12 / SCALE * (W / 400)}px ${FONT}`;
-      ctx.fillText(' \u2192 ', PAD + fromW, y + 4);
-      const arrowW = ctx.measureText(' \u2192 ').width;
-
-      // To (green)
-      ctx.fillStyle = '#10B981';
-      ctx.font = `700 ${14 / SCALE * (W / 400)}px ${FONT}`;
-      ctx.fillText(t.to, PAD + fromW + arrowW, y + 4);
-
-      // Amount (gold, right-aligned)
-      ctx.fillStyle = '#F59E0B';
-      ctx.font = `900 ${18 / SCALE * (W / 400)}px ${MONO}`;
-      ctx.textAlign = 'right';
-      ctx.fillText(fmt(t.amt), W - PAD, y + 6);
-      ctx.textAlign = 'left';
-
-      y += 50;
-    });
-  }
-
-  // Footer
-  y += 12;
-  ctx.fillStyle = 'rgba(245,158,11,0.3)';
-  ctx.fillRect(PAD, y, W - PAD * 2, 1);
-  y += 18;
-  ctx.fillStyle = '#4b5563';
-  ctx.font = `400 ${10 / SCALE * (W / 400)}px ${MONO}`;
-  ctx.textAlign = 'center';
-  ctx.fillText('\u2660 Showdown', W / 2, y);
-  ctx.textAlign = 'left';
-
-  _showScreenshotModal(canvas);
-}
-
-// Share a historical game by date string (used from Games + Settle tabs)
-function shareHistoryByDate(dateStr) {
-  const s = allSessions.find(ss => ss.date === dateStr);
-  if (!s) { notify('Game not found', 'err'); return; }
-  const canvas = _buildGameSummaryCanvas(s);
-  _showScreenshotModal(canvas);
-}
-
-// Draw a shareable canvas for ANY session object (historical or current)
-function _drawSessionCanvas(s) {
-  const BUYIN_AMT = s.buyin || BUYIN;
-  const transfers = settleWithBuyin(s.players, BUYIN_AMT).sort((a,b) => b.amt - a.amt);
-  const srt = s.players.slice().sort((a,b) =>
-    (b.cashOut - b.buyins * BUYIN_AMT) - (a.cashOut - a.buyins * BUYIN_AMT));
-
-  const FONT = 'Inter, system-ui, sans-serif';
-  const MONO = 'JetBrains Mono, monospace';
-  const totalPot = s.players.reduce((t,p) => t + p.buyins * BUYIN_AMT, 0);
-  const dur = s.durationSecs ? (()=>{const h=Math.floor(s.durationSecs/3600),m=Math.floor((s.durationSecs%3600)/60);return (h>0?h+'h ':'')+m+'m';})() : null;
-
-  // Draw in a fixed 780-wide reference space, then scale to fill the phone's physical pixels
-  // ── Theme colors for canvas ──
-  const T = currentTheme || {};
-  const C_BG      = T.bg       || '#07080C';
-  const C_ACCENT  = T.accent   || '#FFD700';
-  const C_COMP    = T.comp     || T.accentL || '#FF6B00';
-  const C_TEXT    = T.text     || '#F0F2FF';
-  const C_SUBTEXT = T.textSub  || 'rgba(240,242,255,.55)';
-  const C_BORDER  = T.border   || 'rgba(255,255,255,.1)';
-  // Derive lighter bg for cards
-  const aRgbC = T.accentRgb || '255,215,0';
-
-  const SCALE = 2; // reference scale factor (font sizes calibrated at this)
-  const REF_W = 780; // reference canvas width
-  const DPR = window.devicePixelRatio || 2;
-  const SC = Math.round(window.innerWidth) * DPR / REF_W; // scale: ref→physical
-  const PAD = 40; // reference space padding
-  const W = REF_W; // draw in reference space; canvas.width is scaled below
-
-  const rows = srt.length + transfers.length;
-  const H = 220 + rows * 56 + (transfers.length ? 90 : 0) + 80; // reference height
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(REF_W * SC); canvas.height = Math.round(H * SC);
-  const ctx = canvas.getContext('2d');
-  ctx.scale(SC, SC); // everything drawn in reference space fills the physical canvas
-
-  // Background — theme bg
-  ctx.fillStyle = C_BG; ctx.fillRect(0, 0, W, H);
-  // Accent header gradient
-  const grad = ctx.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0, 'rgba('+aRgbC+',.28)'); grad.addColorStop(1, 'rgba('+aRgbC+',0)');
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, REF_W, 90);
-  // Accent left bar
-  ctx.fillStyle = C_ACCENT; ctx.fillRect(0, 0, 4, 90);
-
-  // Title
-  ctx.fillStyle = C_ACCENT;
-  ctx.font = '800 ' + (28/SCALE*(W/400)) + 'px ' + FONT;
-  ctx.textAlign = 'left';
-  ctx.fillText('♠ HUTTO SHOWDOWN', PAD, 50);
-
-  // Subtitle: date · pot · players · duration
-  ctx.fillStyle = C_SUBTEXT;
-  ctx.font = '500 ' + (12/SCALE*(W/400)) + 'px ' + MONO;
-  let sub = escH(s.date) + '  ·  Pot: ' + fmt(totalPot) + '  ·  ' + s.players.length + ' players';
-  if (dur) sub += '  ·  ' + dur;
-  ctx.fillText(sub, PAD, 74);
-
-  let y = 120;
-
-  // ── RESULTS section ──
-  ctx.fillStyle = 'rgba('+aRgbC+',.5)';
-  ctx.font = '700 ' + (10/SCALE*(W/400)) + 'px ' + MONO;
-  ctx.fillText('RESULTS', PAD, y); y += 22;
-
-  const medals = ['🥇','🥈','🥉'];
-  srt.forEach((p, i) => {
-    const net = rd(p.cashOut - p.buyins * BUYIN_AMT);
-    const netColor = net > 0 ? '#22C55E' : net < 0 ? '#EF4444' : C_SUBTEXT;
-    ctx.fillStyle = 'rgba('+aRgbC+',.06)';
-    _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 44, 8); ctx.fill();
-    ctx.strokeStyle = 'rgba('+aRgbC+',.12)'; ctx.lineWidth = 1;
-    _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 44, 8); ctx.stroke();
-
-    ctx.font = '600 ' + (13/SCALE*(W/400)) + 'px ' + FONT;
-    ctx.fillStyle = C_SUBTEXT; ctx.fillText(medals[i] || (i+1)+'.', PAD, y + 5);
-    ctx.fillStyle = C_TEXT;
-    ctx.font = '700 ' + (15/SCALE*(W/400)) + 'px ' + FONT;
-    ctx.fillText(p.name + (s.host === p.name ? ' ✦' : ''), PAD + 36, y + 5);
-    ctx.fillStyle = C_SUBTEXT;
-    ctx.font = '500 ' + (10/SCALE*(W/400)) + 'px ' + MONO;
-    ctx.fillText(p.buyins + ' buy-in' + (p.buyins!==1?'s':'') + '  out ' + fmt(p.cashOut), PAD + 36, y + 22);
-    ctx.fillStyle = netColor;
-    ctx.font = '800 ' + (16/SCALE*(W/400)) + 'px ' + MONO;
-    ctx.textAlign = 'right';
-    ctx.fillText((net >= 0 ? '+' : '') + fmt(Math.abs(net)), W - PAD, y + 5);
-    ctx.textAlign = 'left';
-    y += 52;
-  });
-
-  if (transfers.length) {
-    y += 18;
-    ctx.fillStyle = 'rgba('+aRgbC+',.5)';
-    ctx.font = '700 ' + (10/SCALE*(W/400)) + 'px ' + MONO;
-    ctx.fillText('SETTLEMENTS', PAD, y); y += 22;
-    const _cw = W - PAD * 2;
-    const _arrowX = PAD + Math.floor(_cw * 0.40);
-    const _toX    = PAD + Math.floor(_cw * 0.47);
-    const _amtX   = W - PAD;
-    const _fs14 = '700 ' + (14/SCALE*(W/400)) + 'px ' + FONT;
-    const _fs12 = '500 ' + (12/SCALE*(W/400)) + 'px ' + FONT;
-    const _fs18m = '900 ' + (18/SCALE*(W/400)) + 'px ' + MONO;
-    function _canvasTrunc(ctx, text, maxW) {
-      if (ctx.measureText(text).width <= maxW) return text;
-      let s = text;
-      while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
-      return s + '…';
-    }
-    transfers.forEach(t => {
-      ctx.fillStyle = 'rgba('+aRgbC+',.05)';
-      _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 44, 8); ctx.fill();
-      ctx.strokeStyle = 'rgba('+aRgbC+',.1)'; ctx.lineWidth = 1;
-      _roundRect(ctx, PAD - 8, y - 18, W - PAD * 2 + 16, 44, 8); ctx.stroke();
-      // FROM name — left column, max width up to arrow
-      ctx.fillStyle = '#EF4444';
-      ctx.font = _fs14;
-      ctx.textAlign = 'left';
-      ctx.fillText(_canvasTrunc(ctx, t.from, _arrowX - PAD - 8), PAD, y + 5);
-      // Arrow — fixed position
-      ctx.fillStyle = C_SUBTEXT;
-      ctx.font = _fs12;
-      ctx.textAlign = 'center';
-      ctx.fillText('→', _arrowX, y + 5);
-      // TO name — right of arrow, max width up to amt column
-      ctx.fillStyle = '#22C55E';
-      ctx.font = _fs14;
-      ctx.textAlign = 'left';
-      ctx.fillText(_canvasTrunc(ctx, t.to, _amtX - _toX - 48), _toX, y + 5);
-      // AMT — right aligned
-      ctx.fillStyle = C_ACCENT;
-      ctx.font = _fs18m;
-      ctx.textAlign = 'right';
-      ctx.fillText(fmt(t.amt), _amtX, y + 7);
-      ctx.textAlign = 'left';
-      y += 52;
-    });
-  }
-
-  // Footer
-  y += 12;
-  ctx.fillStyle = 'rgba('+aRgbC+',.25)'; ctx.fillRect(PAD, y, W - PAD * 2, 1); y += 18;
-  ctx.fillStyle = C_SUBTEXT;
-  ctx.font = '400 ' + (10/SCALE*(W/400)) + 'px ' + MONO;
-  ctx.textAlign = 'center';
-  ctx.fillText('♠ huttopoker.github.io', W / 2, y);
-  ctx.textAlign = 'left';
-  _showScreenshotModal(canvas);
-}
-
 function _roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -9536,8 +9287,8 @@ function _showScreenshotModal(canvas) {
 
   const img = document.createElement('img');
   img.src = dataUrl;
-  img.style.cssText = 'max-width:100%;max-height:65vh;border-radius:12px;'+
-    'box-shadow:0 0 40px rgba(245,158,11,.3)';
+  img.style.cssText = 'width:100%;max-width:360px;height:auto;border-radius:18px;'+
+    'box-shadow:0 0 40px rgba(245,158,11,.3);flex-shrink:0';
   img.alt = 'Showdown results';
 
   const hint = document.createElement('div');
