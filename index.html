@@ -723,7 +723,6 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 /* LIVE badge pulse ring */
 @keyframes livePulse { 0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)} 70%{box-shadow:0 0 0 8px rgba(34,197,94,0)} 100%{box-shadow:0 0 0 0 rgba(34,197,94,0)} }
 /* Harvey ball buyin indicators — pool ball style */
-.p-balls { flex-shrink:0; display:flex; align-items:center; gap:4px; padding:0 8px 0 10px; max-width:36%; overflow:hidden; }
 .p-ball { width:16px; height:16px; border-radius:50%; flex-shrink:0;
   display:inline-flex; align-items:center; justify-content:center;
   font-family:var(--font-mono); font-size:9px; font-weight:900; line-height:1; border:1.5px solid; }
@@ -1083,13 +1082,19 @@ body:not(.nav-open) .wrap { transform:none; }
 .p-card:hover { border-color:rgba(var(--c-gold-rgb,255,215,0),.4); background:rgba(255,255,255,.10); }
 .p-card.early-out { opacity:.45; }
 .p-card-main { display:flex; align-items:center; min-height:52px; padding:0 12px; gap:10px; }
-.p-card-name { flex:1; min-width:0; font-family:var(--font-body); font-size:15px; font-weight:700; color:var(--c-txt,#F0F2FF);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.1px; }
-/* Count + total as horizontal siblings — spread across card */
-.p-card-count { font-family:var(--font-mono); font-size:22px; font-weight:700; line-height:1; letter-spacing:-0.5px; flex-shrink:0; transition:color .2s, text-shadow .2s; }
-.p-card-total { font-family:var(--font-body); font-size:12px; font-weight:700; color:var(--c-muted); letter-spacing:0.1px; white-space:nowrap; flex-shrink:0; min-width:38px; text-align:right; }
-.p-card-sub { font-family:var(--font-body); font-size:12px; color:var(--c-txt2,rgba(255,255,255,.55)); margin-top:3px; }
-.p-card-controls { display:flex; align-items:center; gap:6px; padding-right:12px; flex-shrink:0; }
+/* ── Player row v2 — two-line layout, never clips regardless of name length or buyin count ── */
+.pcv2 { padding:12px 12px 11px; display:flex; flex-direction:column; gap:9px; }
+.pcv2-top { display:flex; align-items:center; gap:11px; }
+.pcv2-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-heading); font-size:16px; font-weight:800; flex-shrink:0; border:1.5px solid; }
+.pcv2-name-wrap { flex:1; min-width:0; display:flex; align-items:center; gap:5px; }
+.pcv2-name { font-size:15px; font-weight:700; color:var(--c-txt,#F0F2FF); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.1px; }
+.pcv2-total { text-align:right; flex-shrink:0; }
+.pcv2-count { font-family:var(--font-mono); font-size:20px; font-weight:700; line-height:1; letter-spacing:-0.5px; }
+.pcv2-amt { font-family:var(--font-body); font-size:11px; font-weight:600; color:var(--c-muted); margin-top:1px; }
+.pcv2-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.pcv2-balls { flex:1; min-width:0; display:flex; align-items:center; gap:4px; overflow:hidden; }
+.pcv2-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 /* Buyin dot circles — minimal filled pips, no numbers */
 .buyin-dots-row { display:flex; align-items:center; gap:5px; margin-top:6px; }
 .buyin-dots { display:flex; gap:4px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
@@ -7806,6 +7811,7 @@ function renderGame() {
   sortedPlayers.forEach(p => {
     const card = document.createElement('div');
     card.className = 'p-card' + (p.earlyOut ? ' early-out' : '');
+    card.dataset.player = p.name;
     const safeId = 'eco_' + p.name.replace(/[^a-zA-Z0-9]/g,'_');
     const ecoVal = session.cashOuts[p.name] !== undefined ? session.cashOuts[p.name] : '';
     const isHost = session.host === p.name;
@@ -7865,22 +7871,26 @@ function renderGame() {
           '<span>Undo · '+escH(p.name)+'</span>'+
           '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.17 6.5"/></svg>'+
         '</div>'+
-        '<div class="p-card-main" style="padding:0 10px 0 12px;gap:11px;min-height:58px">'+
-          '<div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:16px;font-weight:800;background:'+_avatarBg+';color:'+_pal.hex+';flex-shrink:0;border:1.5px solid rgba('+_pal.rgb+',.4)">'+_nameInit+'</div>'+
-          '<div style="flex:1;min-width:0">'+
-            '<div style="display:flex;align-items:center;gap:5px">'+
-              '<span class="p-card-name" style="font-size:15px;font-weight:700">'+escH(p.name)+'</span>'+
+        '<div class="p-card-main pcv2">'+
+          '<div class="pcv2-top">'+
+            '<div class="pcv2-avatar" style="background:'+_avatarBg+';color:'+_pal.hex+';border-color:rgba('+_pal.rgb+',.4)">'+_nameInit+'</div>'+
+            '<div class="pcv2-name-wrap">'+
+              '<span class="pcv2-name">'+escH(p.name)+'</span>'+
               hostStar+
             '</div>'+
-            '<div class="p-balls" style="margin-top:4px">'+ballHtml+'</div>'+
+            '<div class="pcv2-total">'+
+              '<div class="pcv2-count" style="color:'+bColor+'">'+p.buyins+'</div>'+
+              '<div class="pcv2-amt">'+fmt(p.buyins*(session.buyin||BUYIN))+'</div>'+
+            '</div>'+
           '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">'+
-            '<span class="p-card-count" style="color:'+bColor+';font-size:20px;line-height:1">'+p.buyins+'</span>'+
-            '<span class="p-card-total">'+fmt(p.buyins*(session.buyin||BUYIN))+'</span>'+
+          '<div class="pcv2-bottom">'+
+            '<div class="pcv2-balls">'+ballHtml+'</div>'+
+            '<div class="pcv2-actions">'+
+              (isHostDevice ? '<button class="undo-buyin-quick" onclick="event.stopPropagation();undoBuyin(\''+escQ(p.name)+'\')" title="Remove buy-in"'+(p.buyins<=1?' disabled':'')+'><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
+              (isHostDevice ? '<button class="add-buyin-quick" onclick="event.stopPropagation();addBuyin(\''+escQ(p.name)+'\')" title="Add buy-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
+              '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'+
+            '</div>'+
           '</div>'+
-          (isHostDevice ? '<button class="undo-buyin-quick" onclick="event.stopPropagation();undoBuyin(\''+escQ(p.name)+'\')" title="Remove buy-in"'+(p.buyins<=1?' disabled':'')+'><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
-          (isHostDevice ? '<button class="add-buyin-quick" onclick="event.stopPropagation();addBuyin(\''+escQ(p.name)+'\')" title="Add buy-in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' : '')+
-          '<button class="eco-trigger" id="ecobtn_'+safeId+'" onclick="event.stopPropagation();toggleEcoPanel(\''+safeId+'\')" title="Early cash out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>'+
         '</div>'+
         '<div class="eco-panel" id="'+safeId+'">'+
           '<div class="eco-panel-row">'+
@@ -8130,7 +8140,7 @@ function addBuyin(n, silent) {
   session.recentActivity.push({name:n, action:'rebought', t:Date.now()});
   if(session.recentActivity.length>8) session.recentActivity.shift();
   renderGame(); saveActiveSession(); publishGameState();
-  setTimeout(function(){ var el = document.querySelector('.p-card-count'); if(el){el.classList.remove('num-pop');void el.offsetWidth;el.classList.add('num-pop');} }, 20);
+  setTimeout(function(){ var el = document.querySelector('.p-card[data-player="'+CSS.escape(n)+'"] .pcv2-count'); if(el){el.classList.remove('num-pop');void el.offsetWidth;el.classList.add('num-pop');} }, 20);
   checkMilestones();
   // silent=true when called from swipe touchend — sound+haptic already fired there (within gesture)
   if (!silent) { playBuyinSound(idx); haptic('medium'); }
