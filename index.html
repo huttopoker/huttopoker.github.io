@@ -4,9 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="theme-color" media="(prefers-color-scheme:dark)"  content="#060816"/>
-<meta name="theme-color" media="(prefers-color-scheme:light)" content="#F8F4ED"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Showdown"/>
+<meta name="application-name" content="Showdown"/>
+<meta name="theme-color" content="#07080C"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
 <title>Hutto Showdown</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -4153,6 +4158,17 @@ window.onunhandledrejection = function(e) {
 // iOS Safari: ensure touches on buttons always fire their onclick
 // Some iOS versions suppress click when a parent has touch handlers
 document.addEventListener('touchstart', function(){}, {passive:true});
+
+// ── PWA install support — register the app-shell service worker.
+// Production only (same guard pattern as PROD_HOSTNAMES) so local/preview testing
+// never runs against a cached shell.
+if ('serviceWorker' in navigator && PROD_HOSTNAMES.includes(window.location.hostname)) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+      console.warn('[PWA] service worker registration failed:', e.message);
+    });
+  });
+}
 
 window.addEventListener('DOMContentLoaded', function() {
   // Safety timeout — iOS with slow/offline network can hang indefinitely in bootApp()
