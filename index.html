@@ -246,9 +246,9 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
   position:fixed; top:0; left:0; right:0; z-index:4000;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 10px;
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  background:rgba(3,3,6,.92);
+  background:var(--hdr-band, none), rgba(3,3,6,.92);
   backdrop-filter:blur(40px) saturate(2); -webkit-backdrop-filter:blur(40px) saturate(2);
-  border-bottom:1px solid rgba(var(--c-gold-rgb,255,215,0),.18);
+  border-bottom:1px solid rgba(var(--c-gold-rgb,255,215,0),.30);
   box-shadow:0 1px 0 rgba(var(--c-gold-rgb,255,215,0),.15), 0 2px 0 rgba(var(--c-comp-rgb,0,229,255),.05), 0 8px 48px rgba(0,0,0,.6);
   max-width:100%;
 }
@@ -346,14 +346,16 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 #notif .notif-icon { width:26px; height:26px; border-radius:50%; flex-shrink:0;
   display:flex; align-items:center; justify-content:center; }
 #notif .notif-text { flex:1; min-width:0; }
-#notif.ok { background:rgba(16,26,18,.92); border:1px solid rgba(34,197,94,.3); color:#EFFCF3; }
+/* Status left-bar + near-opaque surface: reads like a system notification, and text
+   stays legible no matter how busy the content behind it is. */
+#notif.ok { background:rgba(14,24,16,.97); border:1px solid rgba(34,197,94,.3); border-left:4px solid #22C55E; color:#EFFCF3; }
 #notif.ok .notif-icon { background:rgba(34,197,94,.22); color:#4ADE80; }
-#notif.err { background:rgba(30,14,14,.92); border:1px solid rgba(239,68,68,.32); color:#FEF2F2; }
+#notif.err { background:rgba(28,12,12,.97); border:1px solid rgba(239,68,68,.32); border-left:4px solid #EF4444; color:#FEF2F2; }
 #notif.err .notif-icon { background:rgba(239,68,68,.22); color:#F87171; }
-#notif.warn { background:rgba(30,22,8,.92); border:1px solid rgba(245,158,11,.32); color:#FFF9EC; }
+#notif.warn { background:rgba(28,20,7,.97); border:1px solid rgba(245,158,11,.32); border-left:4px solid #F59E0B; color:#FFF9EC; }
 #notif.warn .notif-icon { background:rgba(245,158,11,.22); color:#FBBF24; }
-#notif.info { background:rgba(17,24,39,.92); color:var(--c-txt); border:1px solid rgba(255,255,255,.14);
-  backdrop-filter:blur(16px); }
+#notif.info { background:rgba(15,22,36,.97); color:var(--c-txt); border:1px solid rgba(255,255,255,.14);
+  border-left:4px solid #60A5FA; backdrop-filter:blur(16px); }
 /* ── LOADING ── */
 #loading { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--c-bg); z-index:9000;
   display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; }
@@ -2736,13 +2738,18 @@ function applyTheme(theme) {
   r.setProperty('--c-txt2', gTextSub);
   r.setProperty('--c-muted', gTextSub);
   r.setProperty('--c-muted2','rgba(255,255,255,0.52)');
-  r.setProperty('--c-surf',  'rgba('+aRgb+',.07)');
-  r.setProperty('--c-surf2', 'rgba('+aRgb+',.12)');
-  r.setProperty('--c-surf3', 'rgba('+aRgb+',.18)');
-  r.setProperty('--c-bdr',   'rgba('+aRgb+',.15)');
-  r.setProperty('--c-bdr2',  'rgba('+aRgb+',.25)');
-  r.setProperty('--theme-amb1','rgba('+aRgb+',.28)');
-  r.setProperty('--theme-amb2','rgba('+cRgb+',.12)');
+  // Bolder team-color presence — official-site energy, not a faint tint.
+  // Surfaces/borders carry enough accent that each team is recognizable at a glance.
+  r.setProperty('--c-surf',  'rgba('+aRgb+',.10)');
+  r.setProperty('--c-surf2', 'rgba('+aRgb+',.16)');
+  r.setProperty('--c-surf3', 'rgba('+aRgb+',.24)');
+  r.setProperty('--c-bdr',   'rgba('+aRgb+',.24)');
+  r.setProperty('--c-bdr2',  'rgba('+aRgb+',.38)');
+  r.setProperty('--theme-amb1','rgba('+aRgb+',.34)');
+  r.setProperty('--theme-amb2','rgba('+cRgb+',.16)');
+  // Team-color band behind the app header — the strongest single "this is my team"
+  // signal on every screen, like the hero band on official team sites.
+  r.setProperty('--hdr-band', 'linear-gradient(135deg, rgba('+aRgb+',.32) 0%, rgba('+aRgb+',.10) 45%, rgba('+cRgb+',.14) 100%)');
 
   // ── Body pattern ──
   document.body.style.backgroundColor   = theme.bg;
@@ -8395,7 +8402,20 @@ function _warmAudio() {
 // context is already running. Rapid calls queue rather than overlap.
 function playBuyinSound(playerIdx) {
   try {
-    if (!_audioCtx || _audioCtx.state !== 'running') return; // context not warm — skip silently
+    if (!_audioCtx) _warmAudio();
+    if (!_audioCtx) return;
+    if (_audioCtx.state === 'suspended') {
+      // iOS suspends aggressively; resume() is async, so play once it lands rather
+      // than bailing (the old hard-skip here is why chimes went silent mid-game).
+      _audioCtx.resume().then(function(){ _scheduleChime(playerIdx); }).catch(function(){});
+      return;
+    }
+    _scheduleChime(playerIdx);
+  } catch(e) {}
+}
+function _scheduleChime(playerIdx) {
+  try {
+    if (!_audioCtx || _audioCtx.state !== 'running') return;
     const ctx   = _audioCtx;
     const notes = _BUYIN_NOTES[playerIdx % _BUYIN_NOTES.length];
     // Queue after previous sound so rapid buyins each get their own distinct chime
