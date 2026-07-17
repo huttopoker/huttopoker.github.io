@@ -533,7 +533,8 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .btn { width:100%; padding:17px; border:none; border-radius:16px;
   font-family:var(--font-body); font-size:16px; font-weight:700; cursor:pointer; user-select:none;
   letter-spacing:.3px; transition:all .2s cubic-bezier(.4,0,.2,1); display:block; text-align:center;
-  box-shadow:var(--shd); }
+  box-shadow:var(--shd); -webkit-tap-highlight-color:transparent; }
+.btn:active { transform:scale(.97); } /* baseline pressed feedback — variants may override */
 /* Primary CTA — theme-reactive accent, solid & opaque so pale team accents still read as confident */
 .btn-gold {
   background: linear-gradient(135deg, rgb(var(--c-gold-rgb,255,215,0)) 0%, rgb(var(--c-gold-rgb,255,215,0)) 60%, rgb(var(--c-gold-rgb-dark,199,168,0)) 100%);
@@ -708,6 +709,12 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .swipe-commit-r .p-card-main, .swipe-commit-l .p-card-main { opacity:0; transition:opacity .12s ease; }
 .swipe-commit-r .pc-act-r { opacity:1 !important; transform:scale(1.06) translateX(0) !important; transition:transform .16s cubic-bezier(.34,1.56,.64,1) !important; }
 .swipe-commit-l .pc-act-l { opacity:1 !important; transform:scale(1.06) translateX(0) !important; transition:transform .16s cubic-bezier(.34,1.56,.64,1) !important; }
+/* One-time swipe discoverability hint — first row nudges right with the green
+   fill peeking out, teaching "swipe right = buy in" without a tutorial overlay. */
+@keyframes hintSlide { 0%,100%{transform:translateX(0)} 30%{transform:translateX(38px)} 58%{transform:translateX(0)} 78%{transform:translateX(14px)} }
+@keyframes hintFill  { 0%,100%{width:0;opacity:0} 30%{width:86px;opacity:.6} 58%{width:0;opacity:0} 78%{width:30px;opacity:.35} }
+.swipe-hint .p-card-main { animation:hintSlide 1.4s cubic-bezier(.36,.9,.32,1) .6s 1; }
+.swipe-hint .pc-fill-r   { animation:hintFill  1.4s cubic-bezier(.36,.9,.32,1) .6s 1; }
 /* Buyin count pop animation */
 @keyframes numPop { 0%{transform:scale(1)} 35%{transform:scale(1.5)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
 .num-pop { animation:numPop .32s cubic-bezier(.34,1.56,.64,1); }
@@ -2646,21 +2653,57 @@ function loadThemePhoto(theme) {
   photoEl.style.opacity = '1';
 }
 
+/* ── WCAG contrast guard ──
+   Every theme is hand-picked from real team palettes, so some accents/sub-text
+   land below readable contrast on their dark backgrounds. Rather than hand-tune
+   32 palettes forever, applyTheme() runs each text-bearing color through this
+   guard: lighten toward white until it clears the WCAG ratio for its role.
+   Backgrounds are always dark here, so lightening is always the right direction. */
+function _relLum(r, g, b) {
+  const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+function _contrastRatio(rgb1, rgb2) {
+  const l1 = _relLum(rgb1[0], rgb1[1], rgb1[2]), l2 = _relLum(rgb2[0], rgb2[1], rgb2[2]);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+function _hexArr(hex) {
+  return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+}
+function _arrHex(a) {
+  return '#' + a.map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join('');
+}
+function ensureContrast(fgHex, bgHex, target) {
+  let fg = _hexArr(fgHex);
+  const bg = _hexArr(bgHex);
+  for (let i = 0; i < 24 && _contrastRatio(fg, bg) < target; i++) {
+    fg = fg.map(c => c + (255 - c) * 0.10);
+  }
+  return _arrHex(fg);
+}
+
 function applyTheme(theme) {
   currentTheme = theme;
   const r = document.documentElement.style;
-  const aRgb = theme.accentRgb || hexToRgb(theme.accent);
-  const cRgb  = theme.compRgb  || hexToRgb(theme.comp || theme.accentL);
+
+  // Guarded colors — WCAG AA for text roles, 3:1 for accent-as-UI
+  const gText    = ensureContrast(theme.text,    theme.bg, 7);
+  const gTextSub = ensureContrast(theme.textSub, theme.bg, 4.5);
+  const gAccent  = ensureContrast(theme.accent,  theme.bg, 3.2);
+  const gAccentL = ensureContrast(theme.accentL, theme.bg, 4.5);
+
+  const aRgb = hexToRgb(gAccent);
+  const cRgb  = theme.compRgb  || hexToRgb(theme.comp || gAccentL);
 
   // ── New design system tokens ──
   r.setProperty('--bg',           theme.bg);
   r.setProperty('--s1',           theme.s1);
   r.setProperty('--s2',           theme.s2);
   r.setProperty('--border',       theme.border);
-  r.setProperty('--accent',       theme.accent);
-  r.setProperty('--accent-l',     theme.accentL);
-  r.setProperty('--text',         theme.text);
-  r.setProperty('--text-sub',     theme.textSub);
+  r.setProperty('--accent',       gAccent);
+  r.setProperty('--accent-l',     gAccentL);
+  r.setProperty('--text',         gText);
+  r.setProperty('--text-sub',     gTextSub);
   r.setProperty('--table',        theme.table);
   r.setProperty('--table-text',   theme.tableText);
   r.setProperty('--pattern',      theme.pattern);
@@ -2668,15 +2711,15 @@ function applyTheme(theme) {
   r.setProperty('--overlay',      theme.overlay);
 
   // ── Bridge to existing CSS var names (backward compat) ──
-  r.setProperty('--c-gold',     theme.accent);
+  r.setProperty('--c-gold',     gAccent);
   r.setProperty('--c-gold-rgb', aRgb);
   r.setProperty('--c-gold-lt',  'rgba('+aRgb+',.15)');
   r.setProperty('--c-gold-md',  'rgba('+aRgb+',.28)');
   // Precomputed 72%-brightness variant for solid gradient depth (avoids color-mix() for Safari<16.2)
   const _aParts = aRgb.split(',').map(function(n){ return Math.round(parseInt(n,10)*0.72); });
   r.setProperty('--c-gold-rgb-dark', _aParts.join(','));
-  r.setProperty('--c-accent',   theme.accent);
-  r.setProperty('--c-comp',     theme.comp || theme.accentL);
+  r.setProperty('--c-accent',   gAccent);
+  r.setProperty('--c-comp',     theme.comp || gAccentL);
   r.setProperty('--c-comp-rgb', cRgb);
   r.setProperty('--theme-glow', 'rgba('+aRgb+',.5)');
 
@@ -2689,10 +2732,10 @@ function applyTheme(theme) {
   r.setProperty('--c-bg2',  theme.s1.replace('0.88','0.96'));
   r.setProperty('--c-bg3',  theme.s1);
   r.setProperty('--c-bg4',  theme.s2);
-  r.setProperty('--c-txt',  theme.text);
-  r.setProperty('--c-txt2', theme.textSub);
-  r.setProperty('--c-muted', theme.textSub);
-  r.setProperty('--c-muted2','rgba(255,255,255,0.38)');
+  r.setProperty('--c-txt',  gText);
+  r.setProperty('--c-txt2', gTextSub);
+  r.setProperty('--c-muted', gTextSub);
+  r.setProperty('--c-muted2','rgba(255,255,255,0.52)');
   r.setProperty('--c-surf',  'rgba('+aRgb+',.07)');
   r.setProperty('--c-surf2', 'rgba('+aRgb+',.12)');
   r.setProperty('--c-surf3', 'rgba('+aRgb+',.18)');
@@ -4380,9 +4423,12 @@ async function maybeAutoJoinView() {
 /* ═══════════════════════════════════════
    MATH HELPERS
 ═══════════════════════════════════════ */
-function dimes(v) { return Math.round(v*10); }
-function fromD(v) { return v/10; }
-function rd(v) { return Math.round(v*10)/10; }
+/* All money flows through these three helpers as INTEGER CENTS so float error can
+   never accumulate. (Previously tenths-of-a-dollar — that silently rounded $5.25
+   to $5.30 on entry. Function names kept to avoid churning every call site.) */
+function dimes(v) { return Math.round(v*100); }
+function fromD(v) { return v/100; }
+function rd(v) { return Math.round(v*100)/100; }
 // Parse any money string the user might type: "$5", "5$", "5.0", "1,500", "72.5", etc.
 function parseMoney(raw) {
   if (raw === null || raw === undefined || raw === '') return 0;
@@ -4399,7 +4445,7 @@ function fmt(v) {
 }
 function fmtS(v) {
   const r = rd(v);
-  if (Math.abs(r) < 0.05) return '$0';
+  if (Math.abs(r) < 0.005) return '$0';
   const n = Math.abs(r);
   const s = Number.isInteger(n) ? String(n) : n.toFixed(2);
   return (r > 0 ? '+' : '-') + '$' + s;
@@ -8142,7 +8188,7 @@ function renderGame() {
 
         var nowCommit = absDx >= commit;
         if (nowCommit && !_tcommitted) { _tcommitted = true; haptic('medium'); }
-        if (!nowCommit && _tcommitted)  { _tcommitted = false; }
+        if (!nowCommit && _tcommitted)  { _tcommitted = false; haptic('light'); } // feel the un-commit too
 
         // Curves: fill starts slow (resistance), badge appears early (guidance)
         var fillPct  = Math.pow(pct, 1.4);
@@ -8211,6 +8257,17 @@ function renderGame() {
 
     list.appendChild(card);
   });
+
+  // One-time discoverability hint: nudge the first swipeable row so the host
+  // learns "swipe right = buy in" without a tutorial. Once per page load.
+  if (isHostDevice && !window._swipeHintShown) {
+    const firstCard = list.querySelector('.p-card:not(.early-out)');
+    if (firstCard) {
+      window._swipeHintShown = true;
+      firstCard.classList.add('swipe-hint');
+      setTimeout(function(){ firstCard.classList.remove('swipe-hint'); }, 2400);
+    }
+  }
 
   // \u2500\u2500 Add Player card \u2014 ghost card at bottom of list, host only
   if (isHostDevice) {
@@ -8449,7 +8506,7 @@ function confirmEarlyOut(n) {
   const potIn = potTotal();
   const alreadyOut = session.players.filter(x=>x.earlyOut).reduce((s,x)=>s+(x.cashOut||0),0);
   const remaining = rd(potIn - alreadyOut);
-  if (val > remaining + 0.05) {
+  if (val > remaining + 0.005) {
     notify('Amount exceeds remaining pot ('+fmt(remaining)+')','err'); return;
   }
   if (!confirm(n+' cashes out '+fmt(val)+'? They will be locked out of further buyins.')) return;
@@ -8534,7 +8591,7 @@ function goCashout() {
 function renderCashout() {
   const potIn = potTotal();
   const potOut = rd(session.players.reduce((s,p)=>s+(session.cashOuts[p.name]||0),0));
-  const diff=rd(potOut-potIn), abs=Math.abs(diff), ok=abs<0.05;
+  const diff=rd(potOut-potIn), abs=Math.abs(diff), ok=abs<0.005;
   const entered = session.players.filter(p=>session.cashOuts[p.name]!=null).length;
   const pct = potIn>0 ? Math.min(potOut/potIn,1.25)*100 : 0;
 
@@ -8584,7 +8641,7 @@ function onCoInput(name, val) {
   // Live update progress
   const potIn=potTotal();
   const potOut=rd(session.players.reduce((s,p)=>s+(session.cashOuts[p.name]||0),0));
-  const diff=rd(potOut-potIn),abs=Math.abs(diff),ok=abs<0.05;
+  const diff=rd(potOut-potIn),abs=Math.abs(diff),ok=abs<0.005;
   const pct=potIn>0?Math.min(potOut/potIn,1.25)*100:0;
   const entered=session.players.filter(p=>session.cashOuts[p.name]!=null).length;
   document.getElementById('co-prog').innerHTML=
@@ -8667,7 +8724,7 @@ function computeSmartAdj() {
   const potOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
   const diff=rd(potOut-potIn); // positive = OVER (too much out), negative = SHORT (too little out)
   const abs=Math.abs(diff);
-  if (abs<0.05) return null;
+  if (abs<0.005) return null;
 
   const isOver=diff>0;
   const amountD=dimes(abs);
@@ -8741,19 +8798,22 @@ function buildAdjTable() {
   const adj = computeSmartAdj();
   if (!adj) return '';
   const { isOver, abs, whoLabel, pctLabel, shares } = adj;
-  const rows = shares.map(({ name, shareAmt, pct }) =>
-    '<div class="adj-row"><span>'+escH(name)+'<span style="color:var(--c-muted);font-size:9px"> '+pct+'%</span></span>'+
-    '<span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+(isOver?'−':'+')+'$'+(Number.isInteger(shareAmt)?shareAmt:shareAmt.toFixed(2))+'</span></div>'
-  ).join('');
+  const rows = shares.map(({ player, name, shareAmt, pct }) => {
+    const oldCO = (player && player.cashOut) || 0;
+    const newCO = rd(isOver ? Math.max(0, oldCO - shareAmt) : oldCO + shareAmt);
+    return '<div class="adj-row"><span>'+escH(name)+'<span style="color:var(--c-muted);font-size:9px"> '+pct+'%</span></span>'+
+      '<span><span style="color:var(--c-muted);text-decoration:line-through;font-size:10px">'+fmt(oldCO)+'</span>'+
+      ' <span style="color:'+(isOver?'var(--c-red)':'var(--c-green)')+';font-weight:700">'+fmt(newCO)+' ('+(isOver?'−':'+')+fmt(shareAmt)+')</span></span></div>';
+  }).join('');
   return '<div class="adj-banner">'+
-    '<b style="color:var(--c-gold)">'+(isOver?'Over':'Short')+' by '+fmt(abs)+'</b> &mdash; '+
-    (isOver?'Deducted from '+whoLabel:'Absorbed by '+whoLabel)+' ('+pctLabel+'):<br>'+
+    '<b style="color:var(--c-gold)">Pot '+(isOver?'over':'short')+' by '+fmt(abs)+'</b> &mdash; '+
+    'Smart Adjustment would have the '+whoLabel+' '+(isOver?'give it back':'absorb it')+' ('+pctLabel+'):'+
     '<div style="margin-top:8px">'+rows+'</div></div>';
 }
 
 function updateReviewBal() {
   const pIn=potTotal(), pOut=rd(session.players.reduce((s,p)=>s+(p.cashOut||0),0));
-  const diff=rd(pOut-pIn),abs=Math.abs(diff),ok=abs<0.05,small=abs>=0.05&&abs<11;
+  const diff=rd(pOut-pIn),abs=Math.abs(diff),ok=abs<0.005,small=abs>=0.005&&abs<11;
 
   var _statusBg  = ok ? 'rgba(34,197,94,.14)'   : diff>0 ? 'rgba(239,68,68,.14)'   : 'rgba(245,158,11,.14)';
   var _statusBdr = ok ? 'rgba(34,197,94,.35)'   : diff>0 ? 'rgba(239,68,68,.35)'   : 'rgba(245,158,11,.35)';
@@ -8845,8 +8905,8 @@ function showSmartAdjModal() {
   const badgeClr=isOver?'var(--c-red)':'var(--c-gold)';
   const badgeTxt=(isOver?'\u25b2 OVER ':'\u25bc SHORT ')+fmt(abs);
   const whyTxt=isOver
-    ?"Cashouts exceed buyins by "+fmt(abs)+". Winners' cashouts are reduced proportionally \u2014 the over-count comes out of what they take home, not from losers."
-    :"Cashouts are short of buyins by "+fmt(abs)+". Winners' cashouts are increased proportionally \u2014 they absorb the unaccounted chips.";
+    ?"The cash counted is "+fmt(abs)+" more than what was bought in \u2014 usually a buy-in entered twice or an over-counted stack. The top winner"+(n>1?"s give":" gives")+" it back so the pot balances to the cent."
+    :"The cash counted is "+fmt(abs)+" less than what was bought in \u2014 usually a missed buy-in or an under-counted stack. The top winner"+(n>1?"s absorb":" absorbs")+" it so every dollar is accounted for.";
 
   const el=document.createElement('div');
   el.className='sadj-modal-bg';
@@ -8857,11 +8917,11 @@ function showSmartAdjModal() {
         '<div class="sadj-title">\u2728 Smart Adjustment</div>'+
         '<span class="sadj-badge" style="background:'+badgeBg+';color:'+badgeClr+'">'+badgeTxt+'</span>'+
       '</div>'+
-      '<div class="sadj-why">'+whyTxt+'<br><span style="color:rgba(255,255,255,.55);font-weight:700">Split: '+pctLabel+' across top '+n+' winner'+(n>1?'s':'')+'</span></div>'+
+      '<div class="sadj-why">'+whyTxt+'<br><span style="color:rgba(255,255,255,.55);font-weight:700">'+(n>1?'Split '+pctLabel+' between the top '+n+' winners':'Applied 100% to the top winner')+'</span></div>'+
       playerRows+
       '<div style="display:flex;gap:8px;margin-top:16px">'+
         '<button class="btn btn-ghost" style="flex:1" onclick="document.getElementById(\'sadj-modal\').remove()">Cancel</button>'+
-        '<button class="btn btn-gold" style="flex:2;white-space:nowrap;font-size:13px" onclick="doSmartBalance()">\u2728 Apply \u00b7 '+fmt(potIn)+'</button>'+
+        '<button class="btn btn-gold" style="flex:2;white-space:nowrap;font-size:13px" onclick="doSmartBalance()">\u2728 Balance to '+fmt(potIn)+'</button>'+
       '</div>'+
     '</div>';
   el.addEventListener('click',()=>el.remove());
@@ -8883,7 +8943,7 @@ function doSmartBalance() {
 async function confirmEnd(forced) {
   const pID=session.players.reduce((s,p)=>s+dimes(rd(p.buyins*(session.buyin||BUYIN))),0);
   const pOD=session.players.reduce((s,p)=>s+dimes(rd(p.cashOut||0)),0);
-  if(Math.abs(pOD-pID)>1&&!forced){notify('Pot still unbalanced — difference exceeds $0.10','err');return;}
+  if(Math.abs(pOD-pID)>1&&!forced){notify('Pot still unbalanced — difference exceeds $0.01','err');return;}
   // ── TEST MODE guard — show results locally, never persist
   if (isTestMode) {
     session.ended = true;
@@ -9293,16 +9353,16 @@ function renderResults() {
   if (session.adjLog && session.adjLog.entries && session.adjLog.entries.length) {
     const al = session.adjLog;
     const isOver = al.isOver;
-    const totalFmt = '$'+(Number.isInteger(rd(al.total))?rd(al.total):rd(al.total).toFixed(1));
+    const totalFmt = fmt(al.total);
     adjBanner = '<div class="adj-log-banner">'+
       '<div class="adj-log-title">'+
         '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--c-gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'+
-        'Smart Adj &mdash; Pot '+(isOver?'Over':'Short')+' by '+totalFmt+
+        'Smart Adjustment &mdash; pot was '+(isOver?'over':'short')+' by '+totalFmt+
       '</div>'+
       al.entries.map(e=>
         '<div class="adj-log-row">'+
           '<span class="adj-log-name">'+escH(e.name)+'<span class="adj-log-pct">('+e.pct+'%)</span></span>'+
-          '<span class="adj-log-amt '+(isOver?'short':'over')+'">'+(isOver?'−':'+')+'$'+(Number.isInteger(rd(e.amt))?rd(e.amt):rd(e.amt).toFixed(1))+'</span>'+
+          '<span class="adj-log-amt '+(isOver?'short':'over')+'">'+(isOver?'−':'+')+fmt(e.amt)+'</span>'+
         '</div>'
       ).join('')+
       '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:6px">'+
@@ -9690,12 +9750,12 @@ function buildSettleHistory() {
         (g.adjLog && g.adjLog.entries && g.adjLog.entries.length
           ? '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px">'+
               '<div style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--c-gold);font-weight:700;margin-bottom:5px">'+
-                '✦ Smart Adj — Pot '+(g.adjLog.isOver?'Over':'Short')+' $'+(Number.isInteger(rd(g.adjLog.total))?rd(g.adjLog.total):rd(g.adjLog.total).toFixed(1))+
+                '✦ Smart Adjustment — pot '+(g.adjLog.isOver?'over':'short')+' by '+fmt(g.adjLog.total)+
               '</div>'+
               g.adjLog.entries.map(e=>
                 '<div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;padding:2px 0">'+
                   '<span style="color:var(--c-txt)">'+escH(e.name)+'<span style="color:var(--c-muted);font-size:9px"> ('+e.pct+'%)</span></span>'+
-                  '<span style="font-weight:700;color:'+(g.adjLog.isOver?'var(--c-red)':'var(--c-green)')+'">'+(g.adjLog.isOver?'−':'+')+'$'+(Number.isInteger(rd(e.amt))?rd(e.amt):rd(e.amt).toFixed(1))+'</span>'+
+                  '<span style="font-weight:700;color:'+(g.adjLog.isOver?'var(--c-red)':'var(--c-green)')+'">'+(g.adjLog.isOver?'−':'+')+fmt(e.amt)+'</span>'+
                 '</div>'
               ).join('')+
             '</div>'
