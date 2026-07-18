@@ -621,11 +621,14 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .s4 { grid-template-columns:repeat(4,1fr); }
 /* Stat chip — clean solid surface */
 .chip {
-  background:rgba(15,20,40,.9);
-  border:1px solid rgba(255,255,255,.09);
-  border-bottom:2px solid rgba(var(--c-gold-rgb,139,92,246),.45);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 22%),
+    linear-gradient(160deg, rgba(var(--c-gold-rgb,139,92,246),.10) 0%, rgba(15,20,40,.92) 60%);
+  border:1px solid rgba(255,255,255,.10);
+  border-bottom:2px solid rgba(var(--c-gold-rgb,139,92,246),.55);
   border-radius:14px; padding:12px 10px 10px; flex:1; min-width:0;
   text-align:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .chip-lbl { font-family:var(--font-body); font-size:11px; color:rgba(255,255,255,.5);
   text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px;
@@ -724,6 +727,16 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 @keyframes hintFill  { 0%,100%{width:0;opacity:0} 30%{width:86px;opacity:.6} 58%{width:0;opacity:0} 78%{width:30px;opacity:.35} }
 .swipe-hint .p-card-main { animation:hintSlide 1.4s cubic-bezier(.36,.9,.32,1) .6s 1; }
 .swipe-hint .pc-fill-r   { animation:hintFill  1.4s cubic-bezier(.36,.9,.32,1) .6s 1; }
+/* Winner podium — continuous champagne-gold glow + a gentle medal bob, so the
+   #1 spot feels celebratory and alive rather than a static card. */
+.podium-winner { position:relative; animation:winnerGlow 2.6s ease-in-out infinite; }
+@keyframes winnerGlow {
+  0%,100% { box-shadow:0 0 18px rgba(245,158,11,.28), inset 0 0 0 1px rgba(255,215,0,.10); }
+  50%     { box-shadow:0 0 34px rgba(245,158,11,.5), 0 0 60px rgba(245,158,11,.18), inset 0 0 0 1px rgba(255,215,0,.28); }
+}
+.podium-medal { display:inline-block; animation:medalBob 2.6s ease-in-out infinite; }
+@keyframes medalBob { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-4px) rotate(3deg)} }
+@media (prefers-reduced-motion: reduce) { .podium-winner,.podium-medal { animation:none; } }
 /* Buyin count pop animation */
 @keyframes numPop { 0%{transform:scale(1)} 35%{transform:scale(1.5)} 65%{transform:scale(.88)} 100%{transform:scale(1)} }
 .num-pop { animation:numPop .32s cubic-bezier(.34,1.56,.64,1); }
@@ -2635,6 +2648,7 @@ let setupCount = 2;
 let selectedPlayers = [];
 let spinTimer = null;
 let homeSpinTimer = null;
+let _lastLivePot = null; // previous live-pot value, for the count-up roll on change
 let homeChosenHost = null;
 let pollRefreshTimer = null;
 
@@ -3989,6 +4003,7 @@ async function bootApp() {
       // Host lost local session — silently restore it and show resume banner
       session = Object.assign({}, gs, { cashOuts: {} });
       hydrateCashOutsFromPlayers(session);
+      _lastLivePot = null;
       if (gs.startedAt) gameStartTime = new Date(gs.startedAt);
       liveSessionId = liveRow.session_id;
       isHostDevice = true;
@@ -4211,6 +4226,7 @@ async function maybeAutoJoinView() {
   const gs = liveRow.game_state || {};
   session = Object.assign({}, gs, { cashOuts:{}, ended:false });
   hydrateCashOutsFromPlayers(session);
+  _lastLivePot = null;
   if (gs.startedAt) gameStartTime = new Date(gs.startedAt);
   liveSessionId = liveRow.session_id;
   isHostDevice = (liveRow.host_device_id === DEVICE_ID);
@@ -4255,6 +4271,31 @@ function fmtS(v) {
   const n = Math.abs(r);
   const s = Number.isInteger(n) ? String(n) : n.toFixed(2);
   return (r > 0 ? '+' : '-') + '$' + s;
+}
+// Animated money count-up — rolls a value from `from` to `to`, formatting each
+// frame with `fmtFn` (fmt or fmtS). The premium "money ticking up" feel on hero
+// numbers. Respects reduced-motion and never fights fractional cents (eases in cents).
+function animateMoney(el, from, to, fmtFn, ms) {
+  if (!el) return;
+  fmtFn = fmtFn || fmt; ms = ms || 620;
+  const toC = Math.round(to * 100), fromC = Math.round((from || 0) * 100);
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || fromC === toC) {
+    el.textContent = fmtFn(to); return;
+  }
+  // Token guards against overlapping animations on the same element; the fallback
+  // timeout guarantees the correct final value even if requestAnimationFrame is
+  // throttled (e.g. a backgrounded tab), so the pot can never get stuck mid-roll.
+  const token = (el.__animTok = (el.__animTok || 0) + 1);
+  const t0 = performance.now();
+  const ease = x => 1 - Math.pow(1 - x, 3); // easeOutCubic — fast start, gentle land
+  (function frame(now) {
+    if (el.__animTok !== token) return;
+    const p = Math.min((now - t0) / ms, 1);
+    el.textContent = fmtFn((fromC + (toC - fromC) * ease(p)) / 100);
+    if (p < 1) requestAnimationFrame(frame);
+    else el.textContent = fmtFn(to);
+  })(t0);
+  setTimeout(function(){ if (el.__animTok === token) el.textContent = fmtFn(to); }, ms + 120);
 }
 function mKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function yKey(d) { d=d||new Date(); return String(d.getFullYear()); }
@@ -7667,6 +7708,7 @@ function startGame() {
   };
   liveSessionId = String(session.id);
   _milestonesFired = new Set();
+  _lastLivePot = null; // fresh game — don't roll the pot on first render
   haptic('success');
   requestNotifyPermission();
   renderGame(); show('game');
@@ -7834,7 +7876,7 @@ function renderGame() {
     '<div class="g-live-bar">'+
       '<div>'+
         '<div class="g-live-pot-lbl">Total Pot</div>'+
-        '<div class="g-live-pot">'+fmt(pot)+'</div>'+
+        '<div class="g-live-pot" id="g-live-pot-val">'+fmt(pot)+'</div>'+
         '<div class="g-live-meta">'+fmt(session.buyin||BUYIN)+' buy-in</div>'+
       '</div>'+
       '<div class="g-live-host">'+
@@ -7843,6 +7885,12 @@ function renderGame() {
       '</div>'+
     '</div>';
   document.getElementById('g-host-bar').innerHTML = '';
+  // Roll the live pot from its previous value to the new one when it changes —
+  // reinforces each buy-in with the money visibly climbing.
+  if (typeof _lastLivePot === 'number' && _lastLivePot !== pot) {
+    animateMoney(document.getElementById('g-live-pot-val'), _lastLivePot, pot, fmt, 420);
+  }
+  _lastLivePot = pot;
 
   // ── Player count label
   const pcEl = document.getElementById('g-player-count');
@@ -9125,7 +9173,7 @@ function renderResults() {
   const dur  = _fmtDuration(session.durationSecs);
 
   document.getElementById('res-stats').innerHTML =
-    '<div class="chip"><div class="chip-lbl">Total Pot</div><div class="chip-val gold">'+fmt(pIn)+'</div></div>'+
+    '<div class="chip"><div class="chip-lbl">Total Pot</div><div class="chip-val gold" id="res-pot-val">'+fmt(pIn)+'</div></div>'+
     (()=>{
       let _dLabel = session.date||'';
       try { const _dp=new Date(session.date); if(!isNaN(_dp)) _dLabel=_dp.toLocaleDateString('en-US',{month:'short',day:'numeric'}); } catch(e){}
@@ -9244,11 +9292,11 @@ function renderResults() {
       const net = rd(p.cashOut - p.buyins*(session.buyin||BUYIN));
       const pc = podiumColors[realIdx];
       const isWinner = realIdx === 0;
-      playersHtml += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;'+
+      playersHtml += '<div class="'+(isWinner?'podium-winner':'')+'" style="flex:1;display:flex;flex-direction:column;align-items:center;'+
         'background:'+pc.bg+';border:1.5px solid '+pc.border+';border-radius:16px;'+
         'padding:'+(isWinner?'18px 8px 14px':'14px 8px 12px')+';box-shadow:'+pc.shadow+';'+
         'min-height:'+heights[oi]+'">'+
-        '<div style="font-size:'+(isWinner?'32px':'26px')+'">'+pc.medal+'</div>'+
+        '<div style="font-size:'+(isWinner?'32px':'26px')+'"'+(isWinner?' class="podium-medal"':'')+'>'+pc.medal+'</div>'+
         '<div style="font-weight:800;font-size:'+fSizes[oi]+';text-align:center;margin-top:4px;color:'+pc.color+'">'+escH(p.name)+'</div>'+
         '<div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:'+(net>=0?'var(--c-green)':'var(--c-red)')+';margin-top:4px">'+fmtS(net)+'</div>'+
         '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:2px">'+p.buyins+' buyin'+(p.buyins!==1?'s':'')+'</div>'+
@@ -9321,6 +9369,8 @@ function renderResults() {
 
   switchTab('s');
   setTimeout(() => launchConfetti(srt), 400);
+  // Roll the total pot up from zero — the celebratory "counting the money" beat.
+  setTimeout(() => animateMoney(document.getElementById('res-pot-val'), 0, pIn, fmt, 800), 260);
 }
 
 async function captureResultsScreenshot() {
