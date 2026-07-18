@@ -241,6 +241,14 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
   pointer-events:none; opacity:0;
   transition:opacity 1.2s ease;
 }
+/* Slow aurora drift — the mesh blobs breathe so the backdrop feels alive, not static. */
+.aurora-drift { animation:auroraDrift 26s ease-in-out infinite alternate; }
+@keyframes auroraDrift {
+  0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%; }
+  50%  { background-position: 30% 20%, 70% 30%, 60% 70%, 25% 65%, 50% 50%; }
+  100% { background-position: 12% 40%, 88% 12%, 80% 88%, 10% 80%, 50% 50%; }
+}
+@media (prefers-reduced-motion: reduce) { .aurora-drift { animation:none; } }
 /* ── STICKY APP HEADER ── */
 #app-header {
   position:fixed; top:0; left:0; right:0; z-index:4000;
@@ -467,9 +475,11 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; poi
 /* Compact live info bar — replaces big pot hero */
 .g-live-bar {
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; margin-bottom:10px;
-  background: linear-gradient(135deg, rgba(var(--c-bg-rgb,7,8,12),.97) 0%, rgba(var(--c-gold-rgb,255,215,0),.07) 100%);
-  border:1px solid rgba(var(--c-gold-rgb,255,215,0),.22);
+  padding:12px 16px; margin-bottom:10px; position:relative; overflow:hidden;
+  background:
+    radial-gradient(ellipse 90% 140% at 100% 0%, rgba(var(--c-comp-rgb,6,182,212),.18) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(var(--c-gold-rgb,255,215,0),.16) 0%, rgba(var(--c-bg-rgb,7,8,12),.97) 55%);
+  border:1px solid rgba(var(--c-gold-rgb,255,215,0),.34);
   border-radius:14px;
   box-shadow: 0 0 0 1px rgba(var(--c-gold-rgb,255,215,0),.06), 0 4px 20px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
 }
@@ -1031,14 +1041,23 @@ body:not(.nav-open) .wrap { transform:none; }
   box-shadow:0 1px 5px rgba(0,0,0,.35); }
 .p-btn.on .p-btn-check { display:flex; }
 .p-btn-name { line-height:1.2; max-width:68px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; font-size:11px; }
-/* ★ host badge on selected player chips — tap to crown, tap again to uncrown */
-.host-star { position:absolute; top:0; left:2px; width:24px; height:24px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center; z-index:2;
-  color:rgba(255,255,255,.45); background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.2);
-  transition:all .15s var(--ease-out); -webkit-tap-highlight-color:transparent; }
-.host-star.is-host { color:#1A1200; background:linear-gradient(135deg,#FFD700,#F59E0B);
-  border-color:rgba(255,215,0,.8); box-shadow:0 0 12px rgba(255,215,0,.6); transform:scale(1.12); }
-.host-star:active { transform:scale(.85); }
+/* ★ host badge — large tap target overlapping the top-left of the avatar. Big
+   invisible hit-padding so it's easy to hit; visible pill is 30px. */
+.host-star { position:absolute; top:-6px; left:-6px; width:44px; height:44px; z-index:3;
+  display:flex; align-items:flex-start; justify-content:flex-start; padding:2px;
+  background:none; border:none; cursor:pointer;
+  transition:transform .15s var(--ease-out); -webkit-tap-highlight-color:transparent; }
+.host-star::after { content:''; width:30px; height:30px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(8,8,14,.82); border:1.5px solid rgba(255,255,255,.28);
+  box-shadow:0 2px 8px rgba(0,0,0,.4); transition:all .15s var(--ease-out); }
+.host-star svg { position:absolute; top:9px; left:9px; width:16px; height:16px; z-index:1;
+  color:rgba(255,255,255,.55); transition:color .15s; pointer-events:none; }
+.host-star.is-host::after { background:linear-gradient(135deg,#FFE066,#F59E0B);
+  border-color:#FFD700; box-shadow:0 0 16px rgba(255,215,0,.7), 0 2px 8px rgba(0,0,0,.35); }
+.host-star.is-host svg { color:#1A1200; }
+.host-star.is-host { transform:scale(1.06); }
+.host-star:active { transform:scale(.88); }
 .p-btn.full { opacity:.3; cursor:not-allowed; }
 .guest-badge { font-family:var(--font-mono); font-size:8px; color:var(--c-blue); display:block; margin-top:1px; letter-spacing:.5px; text-transform:uppercase; }
 .count-select { width:100%; padding:13px 15px; background:var(--c-bg3);
@@ -2419,14 +2438,20 @@ function loadThemePhoto(theme) {
   const photoEl = document.getElementById('bg-photo');
   if (!photoEl) return;
   const ar = theme.accentRgb || hexToRgb(theme.accent);
+  const cr = theme.compRgb   || hexToRgb(theme.comp || theme.accentL);
   const br = hexToRgb(theme.bg);
-  // Two accent spotlights + center vignette — atmospheric glow using theme colors
+  // Aurora mesh — four colored blobs (accent + complement) drifting slowly over a
+  // vignette, so the backdrop has living depth instead of a flat wash.
   photoEl.style.backgroundImage = [
-    'radial-gradient(ellipse at 15% 12%, rgba('+ar+',.32) 0%, transparent 52%)',
-    'radial-gradient(ellipse at 88% 90%, rgba('+ar+',.20) 0%, transparent 46%)',
-    'radial-gradient(ellipse at 50% 50%, rgba('+br+',0) 15%, rgba('+br+',.55) 68%, rgba('+br+',.92) 100%)'
+    'radial-gradient(ellipse 60% 50% at 12% 8%,  rgba('+ar+',.40) 0%, transparent 55%)',
+    'radial-gradient(ellipse 55% 45% at 92% 18%, rgba('+cr+',.30) 0%, transparent 52%)',
+    'radial-gradient(ellipse 60% 55% at 82% 92%, rgba('+ar+',.28) 0%, transparent 55%)',
+    'radial-gradient(ellipse 50% 45% at 18% 88%, rgba('+cr+',.22) 0%, transparent 52%)',
+    'radial-gradient(ellipse at 50% 50%, rgba('+br+',0) 12%, rgba('+br+',.55) 66%, rgba('+br+',.94) 100%)'
   ].join(',');
+  photoEl.style.backgroundSize = '160% 160%, 150% 150%, 165% 165%, 150% 150%, 100% 100%';
   photoEl.style.opacity = '1';
+  photoEl.classList.add('aurora-drift');
 }
 
 /* ── WCAG contrast guard ──
@@ -7437,13 +7462,16 @@ function buildPGrid() {
       b.onclick = () => unarchivePlayer(name);
     } else {
       b.className = 'p-btn' + (sel ? ' on' : '');
-      const avBg  = sel ? 'rgba('+pal.rgb+',1)' : 'rgba('+pal.rgb+',.18)';
+      // Gradient avatar — dimensional identity color, not a flat disc.
+      const avBg  = sel
+        ? 'linear-gradient(145deg, rgba('+pal.rgb+',1) 0%, rgba('+pal.rgb+',.72) 55%, rgba('+pal.rgb+',.92) 100%)'
+        : 'linear-gradient(145deg, rgba('+pal.rgb+',.28), rgba('+pal.rgb+',.12))';
       const avClr = sel ? '#fff' : pal.hex;
       const isH   = sel && chosenHost === name;
       // Selected players get a ★ badge — tap it to make them host (tap again to unset).
       const starHtml = sel
         ? '<span class="host-star'+(isH?' is-host':'')+'" role="button" aria-label="'+(isH?'Unset':'Set')+' '+escH(name)+' as host" title="'+(isH?'Hosting tonight — tap to unset':'Tap to host')+'">'+
-            '<svg width="11" height="11" viewBox="0 0 24 24" fill="'+(isH?'#1A1200':'none')+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'+
+            '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'+
           '</span>'
         : '';
       b.innerHTML =
@@ -7841,7 +7869,7 @@ function renderGame() {
 
     const _nameInit = escH(p.name.charAt(0).toUpperCase());
     const _pal = nameColor(p.name);
-    const _avatarBg = 'rgba('+_pal.rgb+',.22)';
+    const _avatarBg = 'linear-gradient(145deg, rgba('+_pal.rgb+',.42), rgba('+_pal.rgb+',.14))';
 
     if (p.earlyOut) {
       // ── Locked early-out card
