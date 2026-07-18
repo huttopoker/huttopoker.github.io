@@ -542,8 +542,16 @@ h1,h2,h3,.page-title,.spin-name { overflow:visible; padding-bottom:4px; line-hei
 .btn { width:100%; padding:17px; border:none; border-radius:16px;
   font-family:var(--font-body); font-size:16px; font-weight:700; cursor:pointer; user-select:none;
   letter-spacing:.3px; transition:all .2s cubic-bezier(.4,0,.2,1); display:block; text-align:center;
-  box-shadow:var(--shd); -webkit-tap-highlight-color:transparent; }
+  box-shadow:var(--shd); -webkit-tap-highlight-color:transparent;
+  position:relative; overflow:hidden; }
 .btn:active { transform:scale(.97); } /* baseline pressed feedback — variants may override */
+/* Material-style tap ripple, injected by JS on press for premium control feedback. */
+.tap-ripple { position:absolute; border-radius:50%; pointer-events:none; z-index:0;
+  background:radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,.20) 45%, transparent 70%);
+  transform:translate(-50%,-50%) scale(0); animation:tapRipple .55s cubic-bezier(.3,.7,.4,1) forwards; }
+.btn-gold .tap-ripple, .snav-btn.gold .tap-ripple { background:radial-gradient(circle, rgba(0,0,0,.28) 0%, rgba(0,0,0,.10) 45%, transparent 70%); }
+@keyframes tapRipple { to { transform:translate(-50%,-50%) scale(1); opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .tap-ripple { display:none; } }
 /* Primary CTA — theme-reactive accent, solid & opaque so pale team accents still read as confident */
 .btn-gold {
   background: linear-gradient(135deg, rgb(var(--c-gold-rgb,255,215,0)) 0%, rgb(var(--c-gold-rgb,255,215,0)) 60%, rgb(var(--c-gold-rgb-dark,199,168,0)) 100%);
@@ -1481,6 +1489,27 @@ body:not(.nav-open) .wrap { transform:none; }
   background:#fff; border-radius:50%; transition:.3s; box-shadow:0 1px 5px rgba(0,0,0,.25); }
 input:checked + .tog-sl { background:var(--c-green); }
 input:checked + .tog-sl::before { transform:translateX(22px); }
+/* ── Dashboard KPI tiles — raised cards with accent sheen + count-up numbers ── */
+.dash-kpi {
+  position:relative; overflow:hidden; text-align:center; padding:12px 10px 11px;
+  border-radius:14px; border:1px solid rgba(255,255,255,.10);
+  border-bottom:2px solid rgba(var(--c-gold-rgb,139,92,246),.5);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 24%),
+    linear-gradient(160deg, rgba(var(--c-gold-rgb,139,92,246),.12) 0%, var(--c-bg2) 62%);
+  box-shadow:0 4px 16px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.dash-kpi-val { font-family:var(--font-mono); font-size:20px; font-weight:900; color:var(--c-txt);
+  line-height:1; font-variant-numeric:tabular-nums; }
+.dash-kpi-lbl { font-family:var(--font-body); font-size:10px; color:var(--c-muted);
+  text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+/* Shimmer skeleton — a moving light sweep for loading placeholders */
+.skel { position:relative; overflow:hidden; background:rgba(255,255,255,.05); border-radius:8px; }
+.skel::after { content:''; position:absolute; inset:0; transform:translateX(-100%);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  animation:skelSweep 1.35s ease-in-out infinite; }
+@keyframes skelSweep { 100% { transform:translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .skel::after { animation:none; } }
 /* ── LEADERBOARD — table rows ── */
 .lb-row {
   display:grid; grid-template-columns:28px 1fr auto;
@@ -4176,6 +4205,23 @@ window.onunhandledrejection = function(e) {
 // Some iOS versions suppress click when a parent has touch handlers
 document.addEventListener('touchstart', function(){}, {passive:true});
 
+// Material-style tap ripple on solid buttons — emanates from the exact press point.
+// Scoped to .btn / .snav-btn (rectangular, overflow-hidden) so it never clips content
+// on chip-style controls that intentionally overflow (e.g. the host ★).
+document.addEventListener('pointerdown', function(e) {
+  const btn = e.target.closest('.btn, .snav-btn');
+  if (!btn || btn.disabled) return;
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2.2;
+  const r = document.createElement('span');
+  r.className = 'tap-ripple';
+  r.style.width = r.style.height = size + 'px';
+  r.style.left = (e.clientX - rect.left) + 'px';
+  r.style.top  = (e.clientY - rect.top) + 'px';
+  btn.appendChild(r);
+  setTimeout(function(){ r.remove(); }, 600);
+}, {passive:true});
+
 // Kill switch: an earlier build registered a service worker for offline/installable
 // support. That's not this app's model — it risks serving stale cached JS to
 // returning players. Unregister anything already installed on a user's device.
@@ -4296,6 +4342,35 @@ function animateMoney(el, from, to, fmtFn, ms) {
     else el.textContent = fmtFn(to);
   })(t0);
   setTimeout(function(){ if (el.__animTok === token) el.textContent = fmtFn(to); }, ms + 120);
+}
+// Integer count-up (Games / Players counters). Same throttle-proof guarantees.
+function animateInt(el, to, ms) {
+  if (!el) return;
+  ms = ms || 700;
+  const from = 0;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || to === from) {
+    el.textContent = String(to); return;
+  }
+  const token = (el.__animTok = (el.__animTok || 0) + 1);
+  const t0 = performance.now();
+  const ease = x => 1 - Math.pow(1 - x, 3);
+  (function frame(now) {
+    if (el.__animTok !== token) return;
+    const p = Math.min((now - t0) / ms, 1);
+    el.textContent = String(Math.round(from + (to - from) * ease(p)));
+    if (p < 1) requestAnimationFrame(frame); else el.textContent = String(to);
+  })(t0);
+  setTimeout(function(){ if (el.__animTok === token) el.textContent = String(to); }, ms + 120);
+}
+// Fire the dashboard KPI count-ups if the tiles are present (called after the
+// home dashboard renders). Reads targets from data-to so markup stays the source of truth.
+function animateDashKpis() {
+  const g = document.getElementById('dk-games');
+  const pot = document.getElementById('dk-pot');
+  const pl = document.getElementById('dk-players');
+  if (g)  animateInt(g, parseInt(g.dataset.to, 10) || 0, 700);
+  if (pl) animateInt(pl, parseInt(pl.dataset.to, 10) || 0, 700);
+  if (pot) animateMoney(pot, 0, parseFloat(pot.dataset.to) || 0, fmt, 760);
 }
 function mKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function yKey(d) { d=d||new Date(); return String(d.getFullYear()); }
@@ -4825,7 +4900,7 @@ function setHTab(tab) {
   const _ahPage = document.getElementById('ah-page');
   if (_ahPage) _ahPage.textContent = _tabLabels[tab] || '';
   const el = document.getElementById('home-body');
-  if (tab==='dashboard') { el.innerHTML = buildDashboardTab(); }
+  if (tab==='dashboard') { el.innerHTML = buildDashboardTab(); requestAnimationFrame(animateDashKpis); }
   else if (tab==='poll') {
     el.innerHTML = buildPollTab();
     // Update Let's Play label if YES voters are ready
@@ -5884,17 +5959,17 @@ function buildDashboardTab() {
     html += '<div class="dash-section">'+
       // KPI strip
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">'+
-        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
-          '<div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-gold,#FFD700)">'+totalGames+'</div>'+
-          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Games</div>'+
+        '<div class="dash-kpi">'+
+          '<div class="dash-kpi-val" id="dk-games" style="color:var(--c-gold,#FFD700)" data-to="'+totalGames+'">'+totalGames+'</div>'+
+          '<div class="dash-kpi-lbl">Games</div>'+
         '</div>'+
-        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
-          '<div style="font-family:var(--font-mono);font-size:16px;font-weight:900;color:var(--c-txt)">'+fmt(totalPot)+'</div>'+
-          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Total Pot</div>'+
+        '<div class="dash-kpi">'+
+          '<div class="dash-kpi-val" id="dk-pot" style="font-size:16px" data-to="'+totalPot+'">'+fmt(totalPot)+'</div>'+
+          '<div class="dash-kpi-lbl">Total Pot</div>'+
         '</div>'+
-        '<div style="background:var(--c-bg2);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 10px;text-align:center;box-shadow:var(--shd)">'+
-          '<div style="font-family:var(--font-mono);font-size:20px;font-weight:900;color:var(--c-txt)">'+activePcount+'</div>'+
-          '<div style="font-family:var(--font-body);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Players</div>'+
+        '<div class="dash-kpi">'+
+          '<div class="dash-kpi-val" id="dk-players" data-to="'+activePcount+'">'+activePcount+'</div>'+
+          '<div class="dash-kpi-lbl">Players</div>'+
         '</div>'+
       '</div>'+
       // Leaderboard
