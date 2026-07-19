@@ -4900,7 +4900,16 @@ function setHTab(tab) {
   const _ahPage = document.getElementById('ah-page');
   if (_ahPage) _ahPage.textContent = _tabLabels[tab] || '';
   const el = document.getElementById('home-body');
-  if (tab==='dashboard') { el.innerHTML = buildDashboardTab(); requestAnimationFrame(animateDashKpis); }
+  if (tab==='dashboard') {
+    // Guarded: a render error must never blank the home screen or block the header nav.
+    try { el.innerHTML = buildDashboardTab(); requestAnimationFrame(animateDashKpis); }
+    catch(e) {
+      console.error('[dashboard] render failed:', e);
+      el.innerHTML = '<div style="text-align:center;padding:50px 20px"><div style="font-size:44px;margin-bottom:12px">🃏</div>'+
+        '<div style="font-weight:800;font-size:18px;color:var(--c-txt);margin-bottom:16px">Welcome to Poker Night</div>'+
+        '<button onclick="setHTab(\'poll\')" class="btn btn-gold" style="max-width:220px;margin:0 auto">Set up a Game →</button></div>';
+    }
+  }
   else if (tab==='poll') {
     el.innerHTML = buildPollTab();
     // Update Let's Play label if YES voters are ready
@@ -6052,7 +6061,7 @@ function buildDashboardTab() {
   }
 
   /* ── EMPTY STATE ── */
-  if (!st && !inVoters.length) {
+  if (!st && !(todayPoll && todayPoll.length)) {
     html = '<div style="text-align:center;padding:60px 20px 40px">'+
       '<div style="font-size:52px;margin-bottom:16px">🃏</div>'+
       '<div style="font-weight:800;font-size:20px;color:var(--c-txt);margin-bottom:8px">Welcome to Poker Night</div>'+
