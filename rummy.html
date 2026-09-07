@@ -152,10 +152,19 @@ svg{vertical-align:middle;}
 .sb-head span:not(:first-child){text-align:center;}
 .sb-row{display:grid;grid-template-columns:1fr 54px 54px 40px;gap:6px;align-items:center;
   padding:10px 12px;border-radius:14px;margin-bottom:6px;position:relative;overflow:hidden;
-  background:var(--c-surf);border:1px solid var(--c-bdr);transition:background .2s;}
-.sb-row.out{opacity:.5;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);}
-.sb-row.mustplay{border-color:rgba(245,158,11,.5);background:linear-gradient(90deg,rgba(245,158,11,.10) 0%,var(--c-surf) 60%);}
-.sb-row.leaderlow{border-color:rgba(34,197,94,.4);}
+  background:var(--c-surf);border:1px solid var(--c-bdr);border-left:3px solid transparent;transition:background .2s,border-color .2s;}
+/* Eliminated — locked & red, unmistakably "can't play" */
+.sb-row.out{background:linear-gradient(90deg,rgba(239,68,68,.12) 0%,rgba(255,255,255,.02) 55%);
+  border-color:rgba(239,68,68,.25);border-left-color:var(--c-red);}
+.sb-row.out .sb-name{color:rgba(255,255,255,.5);}
+.sb-row.out .sb-av{filter:grayscale(.6);opacity:.65;}
+/* Must-play — amber, "can play but can't drop" */
+.sb-row.mustplay{border-color:rgba(245,158,11,.55);border-left-color:var(--c-orange);
+  background:linear-gradient(90deg,rgba(245,158,11,.16) 0%,var(--c-surf) 60%);}
+.sb-row.mustplay .sb-av{box-shadow:0 0 0 2px rgba(245,158,11,.5);}
+/* Split-ready leader (≤2 drop choices) — green edge */
+.sb-row.leaderlow{border-left-color:var(--c-green);}
+.sb-lock{color:var(--c-red);opacity:.85;}
 .sb-name-wrap{display:flex;align-items:center;gap:9px;min-width:0;}
 .sb-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:var(--font-heading);font-size:13px;font-weight:800;flex-shrink:0;border:1.5px solid;}
@@ -238,6 +247,37 @@ svg{vertical-align:middle;}
 .link-back{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
   color:var(--c-comp);text-decoration:none;background:rgba(var(--c-comp-rgb),.1);border:1px solid rgba(var(--c-comp-rgb),.25);
   border-radius:10px;padding:7px 12px;}
+/* ── Round-by-round matrix ── */
+.rmx-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--c-bdr);}
+.rmx{border-collapse:collapse;width:100%;font-family:var(--font-mono);font-size:12px;min-width:100%;}
+.rmx th,.rmx td{padding:8px 6px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--c-bdr);}
+.rmx thead th{position:sticky;top:0;background:var(--c-bg2);color:var(--c-muted);font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;z-index:1;}
+.rmx th.rmx-h,.rmx td.rmx-h{position:sticky;left:0;background:var(--c-bg2);text-align:left;padding-left:12px;z-index:2;font-weight:700;color:var(--c-txt);}
+.rmx thead th.rmx-h{z-index:3;}
+.rmx td.rmx-win{color:var(--c-green);font-weight:800;}
+.rmx td.rmx-drop{color:var(--c-orange);}
+.rmx td.rmx-zero{color:var(--c-muted2);}
+.rmx tbody tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.rmx tfoot td{border-top:2px solid var(--c-bdr2);font-weight:800;color:var(--c-txt);background:var(--c-bg2);}
+.rmx tfoot td.out{color:var(--c-red);}
+.rmx-legend{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;}
+/* ── Stats screen ── */
+.stat-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-kpi{position:relative;overflow:hidden;text-align:center;padding:12px 8px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.1);border-bottom:2px solid rgba(var(--c-gold-rgb),.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 24%),linear-gradient(160deg,rgba(var(--c-gold-rgb),.12) 0%,var(--c-bg2) 62%);
+  box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.stat-kpi-val{font-family:var(--font-mono);font-size:19px;font-weight:900;color:var(--c-txt);line-height:1;}
+.stat-kpi-lbl{font-family:var(--font-body);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.lb-row{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:9px 12px;border-radius:12px;margin-bottom:5px;background:var(--c-surf);border:1px solid var(--c-bdr);}
+.lb-rank{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--c-muted);text-align:center;}
+.lb-net{font-family:var(--font-mono);font-size:15px;font-weight:800;}
+.lb-bar-track{height:5px;border-radius:3px;background:rgba(255,255,255,.06);margin-top:5px;overflow:hidden;}
+.lb-bar-fill{height:100%;border-radius:3px;}
+.hist-card{background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:12px;padding:11px 14px;margin-bottom:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.hist-date{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);}
+.hist-win{font-size:14px;font-weight:700;color:var(--c-txt);}
 </style>
 </head>
 <body>
@@ -256,6 +296,9 @@ svg{vertical-align:middle;}
   </div>
   <div class="ah-right">
     <span class="ah-page" id="ah-page"></span>
+    <button class="ah-icon-btn" onclick="openStats()" title="Stats &amp; history" aria-label="Stats and history">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/></svg>
+    </button>
     <button class="ah-icon-btn" onclick="cycleTheme()" title="Change theme" aria-label="Change theme">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20 2.5 2.5 0 0 0 2-4 2.5 2.5 0 0 1 2-4h2a4 4 0 0 0 4-4 10 10 0 0 0-10-8z"/></svg>
     </button>
@@ -297,7 +340,10 @@ svg{vertical-align:middle;}
     <div id="live-pot"></div>
     <div class="section-lbl" style="margin-top:4px">
       <span id="live-count">0 in play</span>
-      <button class="btn-ghost" style="border:none;background:none;color:var(--c-comp);font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:2px 0;font-weight:700" onclick="openLateral()">+ Lateral entry</button>
+      <span style="display:flex;gap:12px">
+        <button style="border:none;background:none;color:var(--c-comp);font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:2px 0;font-weight:700" onclick="openRounds()">▤ Rounds</button>
+        <button style="border:none;background:none;color:var(--c-comp);font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:2px 0;font-weight:700" onclick="openLateral()">+ Lateral entry</button>
+      </span>
     </div>
     <div class="sb-head"><span>Player</span><span>Points</span><span>Drops</span><span></span></div>
     <div id="scoreboard"></div>
@@ -306,6 +352,9 @@ svg{vertical-align:middle;}
 
   <!-- ══ RESULTS ══ -->
   <div id="screen-results" class="screen"></div>
+
+  <!-- ══ STATS / HISTORY ══ -->
+  <div id="screen-stats" class="screen"></div>
 
 </div>
 
@@ -441,10 +490,10 @@ function loadRoster(){
 
 /* ═══════════════ SCREENS ═══════════════ */
 function show(id){
-  ['setup','live','results'].forEach(function(s){document.getElementById('screen-'+s).classList.remove('active');});
+  ['setup','live','results','stats'].forEach(function(s){document.getElementById('screen-'+s).classList.remove('active');});
   document.getElementById('screen-'+id).classList.add('active');
   document.getElementById('action-bar').style.display = (id==='live')?'flex':'none';
-  var labels={setup:'',live:'Live',results:'Results'};
+  var labels={setup:'',live:'Live',results:'Results',stats:'Stats'};
   document.getElementById('ah-page').textContent=labels[id]||'';
   window.scrollTo(0,0);
 }
@@ -564,7 +613,7 @@ function renderLive(){
 function sbRow(p){
   var pal=nameColor(p.name);
   var dc=rDropChoices(p.points);
-  var cls='sb-row'+(p.out?' out':'')+(p.mustPlay?' mustplay':'')+(!p.out&&dc>=2?' leaderlow':'');
+  var cls='sb-row'+(p.out?' out':'')+(p.mustPlay?' mustplay':'')+(!p.out&&!p.mustPlay&&dc>=2?' leaderlow':'');
   var streakDots='';
   if(!p.out&&p.streak>0){streakDots='<span class="streak-dots">';for(var i=0;i<p.streak;i++)streakDots+='<span class="streak-dot"></span>';streakDots+='</span>';}
   var sub;
@@ -579,11 +628,13 @@ function sbRow(p){
     else mid='<div class="sb-drop-num">'+dc+'</div>';
   }
   var statusCell='';
-  if(!p.out&&p.mustPlay)statusCell='<span class="badge-must">MUST<br>PLAY</span>';
+  if(p.out)statusCell='<span class="sb-lock" title="Eliminated — out of the game"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>';
+  else if(p.mustPlay)statusCell='<span class="badge-must">MUST<br>PLAY</span>';
+  var lockIco=p.out?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'';
   return '<div class="'+cls+'" data-player="'+escH(p.name)+'">'+
     '<div class="sb-name-wrap">'+
       '<div class="sb-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
-      '<div style="min-width:0"><div class="sb-name">'+escH(p.name)+streakDots+'</div><div class="sb-sub">'+sub+'</div></div>'+
+      '<div style="min-width:0"><div class="sb-name">'+escH(p.name)+streakDots+lockIco+'</div><div class="sb-sub">'+sub+'</div></div>'+
     '</div>'+
     '<div class="sb-pts" style="color:'+ptsColor+'" data-pts="'+escH(p.name)+'">'+p.points+'</div>'+
     '<div class="sb-drops">'+mid+'</div>'+
@@ -821,6 +872,7 @@ function endGame(payouts,mode){
   // verify sum == pot (defensive)
   var sum=payouts.reduce(function(a,p){return a+p.cents;},0);
   if(sum!==game.potCents){console.error('[rummy] payout mismatch',sum,game.potCents);}
+  saveToHistory(game);
   renderResults();show('results');haptic('success');launchConfetti();
 }
 function renderResults(){
@@ -903,6 +955,133 @@ function closeSheet(){
   document.getElementById('sheet-root').innerHTML='';
   var bar=document.getElementById('action-bar');
   if(bar&&document.getElementById('screen-live').classList.contains('active')&&game&&!game.ended)bar.style.display='flex';
+}
+
+/* ═══════════════ ROUND-BY-ROUND MATRIX ═══════════════ */
+function shortName(n){var t=String(n).split(' ')[0];return t.length>7?t.slice(0,6)+'…':t;}
+function renderRoundMatrix(g){
+  if(!g.hands||!g.hands.length)return '<div class="pill-info" style="width:100%;justify-content:center;box-sizing:border-box">No hands recorded yet</div>';
+  var players=g.players.map(function(p){return p.name;});
+  var head='<th class="rmx-h">Hand</th>'+players.map(function(n){return '<th title="'+escH(n)+'">'+escH(shortName(n))+'</th>';}).join('');
+  var body=g.hands.map(function(h){
+    var by={};h.results.forEach(function(r){by[r.name]=r;});
+    var cells=players.map(function(n){
+      var r=by[n];
+      if(!r)return '<td class="rmx-zero">·</td>';
+      if(r.type==='win')return '<td class="rmx-win">W</td>';
+      if(r.type==='drop')return '<td class="rmx-drop">20↓</td>';
+      if(r.add===0)return '<td class="rmx-zero">0</td>';
+      return '<td>+'+r.add+'</td>';
+    }).join('');
+    return '<tr><td class="rmx-h">'+h.round+'</td>'+cells+'</tr>';
+  }).join('');
+  var foot='<td class="rmx-h">Total</td>'+g.players.map(function(p){return '<td class="'+(p.out?'out':'')+'">'+p.points+(p.out?' ✕':'')+'</td>';}).join('');
+  return '<div class="rmx-scroll"><table class="rmx"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody>'+
+    '<tfoot><tr>'+foot+'</tr></tfoot></table></div>'+
+    '<div class="rmx-legend"><span style="color:var(--c-green)">W = won hand</span><span style="color:var(--c-orange)">20↓ = initial drop</span><span>+N = points that hand</span><span style="color:var(--c-red)">✕ = out</span></div>';
+}
+function openRounds(){
+  if(!game||!game.hands.length){notify('No hands recorded yet','info');return;}
+  openSheet('<div class="sheet-title">Round history</div><div class="sheet-sub">Every hand, and the points each player took.</div>'+renderRoundMatrix(game)+'<button class="btn btn-ghost mt" onclick="closeSheet()">Close</button>');
+}
+
+/* ═══════════════ HISTORY (rummy-only, separate from poker) ═══════════════ */
+var RUMMY_HIST_KEY='rummy-hist-v1';
+function loadHistory(){try{var a=JSON.parse(localStorage.getItem(RUMMY_HIST_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function saveHistoryArr(a){try{localStorage.setItem(RUMMY_HIST_KEY,JSON.stringify(a));}catch(e){}}
+function saveToHistory(g){
+  var cashed={};g.result.payouts.forEach(function(p){cashed[p.name]=p.cents;});
+  var rec={
+    id:g.startedAt,
+    dateLabel:new Date(g.startedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    potCents:g.potCents,buyCents:g.buyCents,mode:g.result.mode,
+    durationSecs:Math.floor((g.endedAt-g.startedAt)/1000),
+    players:g.players.map(function(p){return {name:p.name,points:p.points,out:p.out,payoutCents:cashed[p.name]||0,laterals:p.laterals||0};}),
+    hands:g.hands
+  };
+  var hist=loadHistory();hist.unshift(rec);if(hist.length>200)hist=hist.slice(0,200);saveHistoryArr(hist);
+}
+// Aggregate per-player stats across all finished games.
+function computeRummyStats(){
+  var hist=loadHistory();var byP={};
+  hist.forEach(function(g){
+    // find top payout that game (for "win" credit)
+    var top=0;g.players.forEach(function(p){if(p.payoutCents>top)top=p.payoutCents;});
+    g.players.forEach(function(p){
+      var s=byP[p.name]||(byP[p.name]={name:p.name,games:0,wins:0,cashed:0,elims:0,wonCents:0,stakedCents:0,pts:0});
+      s.games++;
+      s.stakedCents+=g.buyCents*(1+(p.laterals||0));
+      s.wonCents+=p.payoutCents;
+      s.pts+=p.points;
+      if(p.payoutCents>0)s.cashed++;
+      if(p.payoutCents===top&&top>0)s.wins++;
+      if(p.out)s.elims++;
+    });
+  });
+  var arr=Object.keys(byP).map(function(k){var s=byP[k];s.netCents=s.wonCents-s.stakedCents;s.avgPts=s.games?Math.round(s.pts/s.games):0;return s;});
+  arr.sort(function(a,b){return b.netCents-a.netCents;});
+  return {games:hist.length,history:hist,players:arr};
+}
+
+/* ═══════════════ STATS SCREEN ═══════════════ */
+function openStats(){renderStats();show('stats');}
+function statsBack(){
+  if(game&&!game.ended){renderLive();show('live');}
+  else if(game&&game.ended){show('results');}
+  else show('setup');
+}
+function renderStats(){
+  var st=computeRummyStats();
+  var el=document.getElementById('screen-stats');
+  if(!st.games){
+    el.innerHTML='<button class="back-btn" onclick="statsBack()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>'+
+      '<div class="page-title">Stats</div><div class="page-sub">Rummy analytics — kept separate from poker</div>'+
+      '<div class="empty-wrap"><div class="empty-emoji">📊</div><div style="font-weight:800;font-size:18px;color:var(--c-txt);margin-bottom:6px">No games yet</div>'+
+      '<div style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted)">Finish a game to build your history &amp; leaderboard.</div></div>';
+    return;
+  }
+  var totalPot=st.history.reduce(function(a,g){return a+g.potCents;},0);
+  var topWin=st.players.slice().sort(function(a,b){return b.wins-a.wins;})[0];
+  var maxAbs=Math.max.apply(null,st.players.map(function(p){return Math.abs(p.netCents);}))||1;
+  var lb=st.players.map(function(p,i){
+    var pos=p.netCents>=0;
+    var pct=Math.round(Math.abs(p.netCents)/maxAbs*100);
+    return '<div class="lb-row"><div class="lb-rank">'+(i+1)+'</div>'+
+      '<div style="min-width:0"><div style="font-weight:700;color:var(--c-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(p.name)+'</div>'+
+      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--c-muted);margin-top:2px">'+p.games+'g · '+p.wins+'W · '+p.elims+' out · avg '+p.avgPts+' pts</div>'+
+      '<div class="lb-bar-track"><div class="lb-bar-fill" style="width:'+pct+'%;background:'+(pos?'var(--c-green)':'var(--c-red)')+'"></div></div></div>'+
+      '<div class="lb-net" style="color:'+(pos?'var(--c-green)':'var(--c-red)')+'">'+(pos?'+':'−')+fmt(Math.abs(p.netCents)/100)+'</div></div>';
+  }).join('');
+  var games=st.history.map(function(g,i){
+    var winner=g.players.slice().sort(function(a,b){return b.payoutCents-a.payoutCents;})[0];
+    return '<div class="hist-card" onclick="openGameDetail('+i+')">'+
+      '<div style="min-width:0"><div class="hist-win">'+(g.mode==='winner'?'🏆 ':'🤝 ')+escH(winner?winner.name:'—')+'</div>'+
+      '<div class="hist-date">'+escH(g.dateLabel)+' · '+g.players.length+'p · '+(g.mode==='winner'?'winner':g.result?'':'split')+'</div></div>'+
+      '<div style="text-align:right"><div style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--c-gold)">'+fmt(g.potCents/100)+'</div>'+
+      '<div class="hist-date">pot</div></div></div>';
+  }).join('');
+  el.innerHTML=
+    '<button class="back-btn" onclick="statsBack()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>'+
+    '<div class="page-title">Stats</div><div class="page-sub">Rummy analytics — separate from poker</div>'+
+    '<div class="stat-kpi-grid">'+
+      '<div class="stat-kpi"><div class="stat-kpi-val" style="color:var(--c-gold)">'+st.games+'</div><div class="stat-kpi-lbl">Games</div></div>'+
+      '<div class="stat-kpi"><div class="stat-kpi-val">'+fmt(totalPot/100)+'</div><div class="stat-kpi-lbl">Total Pot</div></div>'+
+      '<div class="stat-kpi"><div class="stat-kpi-val" style="font-size:15px">'+escH(topWin&&topWin.wins?shortName(topWin.name):'—')+'</div><div class="stat-kpi-lbl">Most Wins</div></div>'+
+    '</div>'+
+    '<div class="section-lbl">Leaderboard — net winnings</div>'+lb+
+    '<div class="section-lbl" style="margin-top:18px">Game history</div>'+games;
+}
+function openGameDetail(i){
+  var st=computeRummyStats();var g=st.history[i];if(!g)return;
+  var sorted=g.players.slice().sort(function(a,b){return b.payoutCents-a.payoutCents;});
+  var rows=sorted.map(function(p){
+    return '<div class="split-row"><span style="font-weight:700;color:'+(p.out?'var(--c-txt2)':'var(--c-txt)')+'">'+escH(p.name)+' <span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+p.points+' pts</span></span>'+
+      '<span class="split-payout" style="color:'+(p.payoutCents>0?'var(--c-green)':'var(--c-muted2)')+'">'+(p.payoutCents>0?fmt(p.payoutCents/100):'—')+'</span></div>';
+  }).join('');
+  openSheet('<div class="sheet-title">'+escH(g.dateLabel)+'</div><div class="sheet-sub">'+(g.mode==='winner'?'Winner takes all':'Smart split')+' · '+g.players.length+' players · pot '+fmt(g.potCents/100)+'</div>'+
+    rows+
+    '<div class="section-lbl" style="margin-top:16px">Round-by-round</div>'+renderRoundMatrix(g)+
+    '<button class="btn btn-ghost mt" onclick="closeSheet()">Close</button>');
 }
 
 /* ═══════════════ RESUME PROMPT ═══════════════ */
