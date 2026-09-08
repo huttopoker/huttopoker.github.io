@@ -2296,13 +2296,33 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     </div>
   </button>
 
+  <button type="button" class="mdd-row" onclick="closeHomeMore();exportBackup();">
+    <div class="mdd-icon" style="background:rgba(34,197,94,.12);color:#4ADE80">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Export Backup</div>
+      <div class="mdd-desc">Download all games as a file</div>
+    </div>
+  </button>
+
+  <button type="button" class="mdd-row" onclick="closeHomeMore();importBackup();">
+    <div class="mdd-icon" style="background:rgba(139,92,246,.12);color:#A78BFA">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Import Backup</div>
+      <div class="mdd-desc">Restore games from a file</div>
+    </div>
+  </button>
+
   <button type="button" class="mdd-row" onclick="closeHomeMore();forceRefreshData();">
     <div class="mdd-icon" style="background:rgba(6,182,212,.12);color:#67E8F9">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
     </div>
     <div class="mdd-text">
       <div class="mdd-label">Refresh Data</div>
-      <div class="mdd-desc">Clear cache &amp; reload from server</div>
+      <div class="mdd-desc">Reload from server (online only)</div>
     </div>
   </button>
 
@@ -4147,11 +4167,56 @@ function setSyncPill(on) {
    CACHE
 ═══════════════════════════════════════ */
 function forceRefreshData() {
+  // SAFETY: never destroy the local copy when the server is unreachable — that cache
+  // may be the ONLY copy of the games. Refuse when offline, and always snapshot first.
+  if (!isOnline) {
+    notify('Can’t refresh — server unreachable. Your data is kept safe on this device.','err');
+    return;
+  }
+  if (!confirm('Clear the local cache and reload fresh from the server?\n\nA backup is saved first, and this only runs because the server is reachable.')) return;
+  try { var cur = localStorage.getItem('pn-v3'); if (cur) localStorage.setItem('pn-v3-backup', cur); } catch(e){}
   try { localStorage.removeItem('pn-v3'); } catch(e){}
   try { localStorage.removeItem('pn-active-v1'); } catch(e){}
   try { localStorage.removeItem('pn-pay-status'); } catch(e){}
   notify('Refreshing data from server…','info');
   setTimeout(function(){ location.reload(); }, 600);
+}
+
+// ── LOCAL BACKUP / RESTORE — device-side safety net, independent of any server. ──
+var _BACKUP_KEYS = ['pn-v3','pn-active-v1','pn-pay-status','pn-my-player','pn-default-buyin','pn-theme-lock','pn-device-id'];
+function exportBackup() {
+  var data = { _app:'hutto-poker', _exportedAt:new Date().toISOString(), _games:(allSessions||[]).length };
+  _BACKUP_KEYS.forEach(function(k){ try { var v = localStorage.getItem(k); if (v !== null) data[k] = v; } catch(e){} });
+  try {
+    var blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'hutto-poker-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+    notify('✅ Backup saved — '+data._games+' games downloaded','ok');
+  } catch(e) { notify('Backup failed: '+e.message,'err'); }
+}
+function importBackup() {
+  var inp = document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
+  inp.onchange = function() {
+    var f = inp.files && inp.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function() {
+      try {
+        var data = JSON.parse(reader.result);
+        if (!data || typeof data !== 'object' || !data['pn-v3']) { notify('That file isn’t a valid Hutto Poker backup','err'); return; }
+        var n = 0; try { n = (JSON.parse(data['pn-v3']).sessions||[]).length; } catch(e){}
+        if (!confirm('Restore this backup? It has '+n+' games.\n\nThis replaces the current data on this device (a snapshot of the current data is kept as pn-v3-backup).')) return;
+        try { var cur = localStorage.getItem('pn-v3'); if (cur) localStorage.setItem('pn-v3-backup', cur); } catch(e){}
+        Object.keys(data).forEach(function(k){ if (k.indexOf('pn-')===0) { try { localStorage.setItem(k, data[k]); } catch(e){} } });
+        notify('✅ Restored — reloading…','ok');
+        setTimeout(function(){ location.reload(); }, 900);
+      } catch(e) { notify('Could not read backup: '+e.message,'err'); }
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
 }
 
 function saveCache() {
