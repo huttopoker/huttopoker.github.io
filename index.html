@@ -2296,6 +2296,16 @@ input:checked + .tog-sl::before { transform:translateX(22px); }
     </div>
   </button>
 
+  <button type="button" class="mdd-row" onclick="closeHomeMore();syncToCloud();">
+    <div class="mdd-icon" style="background:rgba(6,182,212,.12);color:#67E8F9">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><polyline points="8 15 12 11 16 15"/><line x1="12" y1="11" x2="12" y2="19"/></svg>
+    </div>
+    <div class="mdd-text">
+      <div class="mdd-label">Sync to Cloud</div>
+      <div class="mdd-desc">Push any local-only games up now</div>
+    </div>
+  </button>
+
   <button type="button" class="mdd-row" onclick="closeHomeMore();exportBackup();">
     <div class="mdd-icon" style="background:rgba(34,197,94,.12);color:#4ADE80">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -3856,6 +3866,48 @@ async function dbInsertSession(s) {
     {session_id: String(s.id), session_data: s, played_at: new Date().toISOString()}
   );
 }
+// ── SYNC: merge cloud + local by game id, and push local-only games up. ──
+// Union keeps every game from both sides (cloud is canonical for shared games; any
+// local game the cloud doesn't have is preserved and later backfilled). Sorted by id
+// (ids are creation timestamps) so history stays chronological.
+function mergeSessions(localArr, cloudArr) {
+  var byId = {};
+  (cloudArr || []).forEach(function(s){ if (s && s.id != null) byId[String(s.id)] = s; });
+  (localArr || []).forEach(function(s){ if (s && s.id != null && !byId[String(s.id)]) byId[String(s.id)] = s; });
+  var merged = Object.keys(byId).map(function(k){ return byId[k]; });
+  merged.sort(function(a,b){ return (Number(a.id)||0) - (Number(b.id)||0); });
+  return merged;
+}
+// Push finished local games that aren't in the cloud yet. Returns count pushed.
+async function backfillMissingSessions(localArr, cloudArr) {
+  var cloudIds = {};
+  (cloudArr || []).forEach(function(s){ if (s && s.id != null) cloudIds[String(s.id)] = 1; });
+  var missing = (localArr || []).filter(function(s){
+    return s && s.id != null && s.ended && !cloudIds[String(s.id)];
+  });
+  var pushed = 0;
+  for (var i = 0; i < missing.length; i++) {
+    try { await dbInsertSession(missing[i]); pushed++; }
+    catch(e) { console.warn('[sync] backfill failed for', missing[i].id, e.message); }
+  }
+  if (pushed) notify('☁️ Synced '+pushed+' local game'+(pushed>1?'s':'')+' to the cloud', 'ok');
+  return pushed;
+}
+// Manual on-demand sync (⋯ menu): pull cloud, merge, push anything missing.
+async function syncToCloud() {
+  notify('☁️ Syncing…', 'info');
+  try {
+    var cloud = await dbLoadSessions();
+    if (cloud === null) { notify('Server unreachable — try again in a moment', 'err'); return; }
+    var localArr = allSessions.slice();
+    allSessions = mergeSessions(localArr, cloud);
+    isOnline = true; setSyncPill(true); saveCache();
+    var pushed = await backfillMissingSessions(localArr, cloud);
+    try { buildDashboardTab(); } catch(_){}
+    try { buildHistoryTab && buildHistoryTab(); } catch(_){}
+    if (!pushed) notify('✅ Up to date — '+allSessions.length+' games in sync', 'ok');
+  } catch(e) { notify('Sync failed: '+(e.message||e), 'err'); }
+}
 async function dbCreateAccount(name, hash, len, isCustom) {
   await sbPost('player_accounts', {
     player_name: name, pin_hash: hash, pin_length: len,
@@ -3971,7 +4023,13 @@ async function bootApp() {
       Promise.all([dbLoadSessions(), dbLoadAccounts(), dbLoadPoll(todayStr()), dbLoadPayments(6)]),
       _dbTimeout
     ]);
-    if (sess !== null)  { allSessions = sess; dbOk = true; }
+    var _localSess = (function(){ try { return (loadCache().sessions)||[]; } catch(_) { return allSessions||[]; } })();
+    if (sess !== null)  {
+      // MERGE cloud + local (union by id) instead of overwriting — so any games played
+      // while the backend was down/paused are never dropped, and get pushed back up.
+      allSessions = mergeSessions(_localSess, sess);
+      dbOk = true;
+    }
     if (accts !== null) { accounts = accts; dbOk = true; }
     todayPoll = poll || todayPoll;
     if (pays  !== null) { cachedPayments = pays; }
@@ -3982,6 +4040,8 @@ async function bootApp() {
     patchMay30Payments().catch(function(){});
     if (dbOk) {
       isOnline = true; setSyncPill(true); saveCache();
+      // Push any local-only games up to the restored cloud (backfill missing).
+      if (sess !== null) backfillMissingSessions(_localSess, sess).catch(function(){});
       // Re-render home tabs with fresh DB data so deleted sessions disappear
       try { buildDashboardTab(); } catch(_) {}
       try { buildHistoryTab && buildHistoryTab(); } catch(_) {}
