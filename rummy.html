@@ -278,31 +278,30 @@ svg{vertical-align:middle;}
 .rh-card-pts{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);font-weight:600;margin-left:6px;}
 .rh-preview{font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--c-gold);flex-shrink:0;min-width:52px;text-align:right;}
 .rh-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-/* Severity-coded result tiles — color tells you the damage before you read the label:
-   green (cheap exit) → amber → red (worst), so a tap is fast and sure mid-game. */
-.rh-opt2{position:relative;padding:11px 6px 10px;border-radius:13px;border:1.5px solid transparent;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;-webkit-tap-highlight-color:transparent;
+/* Result tiles — flat, neutral boxes; color lives only in the point value and in
+   the filled "selected" state, not as an outline around every box. Single-row
+   label+value so the box hugs its content instead of floating in empty padding. */
+.rh-opt2{position:relative;padding:14px 10px;border-radius:13px;border:1.5px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.035);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;box-sizing:border-box;
   transition:transform .12s var(--ease-out),box-shadow .12s var(--ease-out),background .12s,border-color .12s;}
-.rh-opt2:active{transform:scale(.95);}
-.rh-opt2-lbl{font-family:var(--font-body);font-size:11px;font-weight:700;letter-spacing:.2px;opacity:.85;}
-.rh-opt2-val{font-family:var(--font-mono);font-size:18px;font-weight:800;line-height:1.15;}
-.rh-opt2[data-rhtype="drop"]{background:rgba(34,197,94,.09);border-color:rgba(34,197,94,.3);color:#8FEAB3;}
+.rh-opt2:active{transform:scale(.96);}
+.rh-opt2-lbl{font-family:var(--font-body);font-size:13px;font-weight:700;color:var(--c-txt2);}
+.rh-opt2-val{font-family:var(--font-mono);font-size:16px;font-weight:800;}
 .rh-opt2[data-rhtype="drop"] .rh-opt2-val{color:#4ADE80;}
-.rh-opt2[data-rhtype="drop"].on{background:linear-gradient(135deg,#22C55E,#15803D);border-color:rgba(34,197,94,.9);color:#fff;box-shadow:0 5px 18px rgba(34,197,94,.38);transform:translateY(-1px);}
-.rh-opt2[data-rhtype="drop"].on .rh-opt2-val{color:#fff;}
-.rh-opt2[data-rhtype="mid"]{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.32);color:#FFCF8A;}
 .rh-opt2[data-rhtype="mid"] .rh-opt2-val{color:#FBBF24;}
-.rh-opt2[data-rhtype="mid"].on{background:linear-gradient(135deg,#F59E0B,#C2650A);border-color:rgba(245,158,11,.9);color:#fff;box-shadow:0 5px 18px rgba(245,158,11,.38);transform:translateY(-1px);}
-.rh-opt2[data-rhtype="mid"].on .rh-opt2-val{color:#fff;}
-.rh-opt2[data-rhtype="full"]{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.32);color:#FFAEAE;}
 .rh-opt2[data-rhtype="full"] .rh-opt2-val{color:#F87171;}
-.rh-opt2[data-rhtype="full"].on{background:linear-gradient(135deg,#EF4444,#B91C1C);border-color:rgba(239,68,68,.9);color:#fff;box-shadow:0 5px 18px rgba(239,68,68,.38);transform:translateY(-1px);}
-.rh-opt2[data-rhtype="full"].on .rh-opt2-val{color:#fff;}
+.rh-opt2.on{border-color:transparent;color:#fff;box-shadow:0 5px 16px rgba(0,0,0,.3);}
+.rh-opt2.on .rh-opt2-lbl{color:rgba(255,255,255,.88);}
+.rh-opt2.on .rh-opt2-val{color:#fff;}
+.rh-opt2[data-rhtype="drop"].on{background:linear-gradient(135deg,#22C55E,#15803D);}
+.rh-opt2[data-rhtype="mid"].on{background:linear-gradient(135deg,#F59E0B,#C2650A);}
+.rh-opt2[data-rhtype="full"].on{background:linear-gradient(135deg,#EF4444,#B91C1C);}
 .rh-opt2.disabled{opacity:.25;cursor:not-allowed;filter:grayscale(.5);}
 .rh-opt2.disabled:active{transform:none;}
-.rh-opt2-custom{padding:0;display:flex;align-items:center;border-radius:13px;border:1.5px solid var(--c-bdr2);background:var(--c-bg3);transition:border-color .12s,box-shadow .12s;}
-.rh-custom2{width:100%;padding:12px 6px;border-radius:12px;border:none;background:transparent;
-  color:var(--c-txt);font-family:var(--font-mono);font-size:14px;font-weight:700;text-align:center;outline:none;}
+.rh-opt2-custom{padding:0;display:flex;align-items:center;border-radius:13px;border:1.5px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);min-height:48px;box-sizing:border-box;transition:border-color .12s,box-shadow .12s;}
+.rh-custom2{width:100%;height:100%;padding:0 10px;border-radius:12px;border:none;background:transparent;
+  color:var(--c-txt);font-family:var(--font-mono);font-size:14px;font-weight:700;text-align:center;outline:none;box-sizing:border-box;}
 .rh-opt2-custom.on{border-color:var(--c-gold);box-shadow:0 0 0 3px rgba(var(--c-gold-rgb),.15);}
 
 /* split result card */
@@ -316,7 +315,7 @@ svg{vertical-align:middle;}
 .cashout-row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:14px;margin-bottom:8px;cursor:pointer;
   background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);transition:background .15s var(--ease-out),border-color .15s var(--ease-out),box-shadow .15s var(--ease-out);}
 .cashout-row:active{transform:scale(.99);}
-.cashout-row.on{background:linear-gradient(135deg,rgba(34,197,94,.14) 0%,rgba(34,197,94,.04) 100%);border-color:rgba(34,197,94,.45);box-shadow:0 2px 14px rgba(34,197,94,.14);}
+.cashout-row.on{background:rgba(34,197,94,.08);box-shadow:0 2px 12px rgba(34,197,94,.1);}
 .cashout-native{position:absolute;opacity:0;width:1px;height:1px;}
 .cashout-check{width:23px;height:23px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
   border:2px solid var(--c-bdr2);background:transparent;transition:all .15s var(--ease-out);}
