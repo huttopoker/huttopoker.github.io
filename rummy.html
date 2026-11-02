@@ -184,12 +184,12 @@ svg{vertical-align:middle;}
 .drops-help{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.5;
   padding:9px 12px;margin-bottom:8px;background:rgba(var(--c-gold-rgb),.06);border:1px solid var(--c-bdr);border-radius:10px;}
 .drops-help b{color:var(--c-gold);}
-.sb-head{display:grid;grid-template-columns:1fr 54px 54px 40px;gap:6px;padding:0 12px 6px;
+.sb-head{display:grid;grid-template-columns:1fr 44px 46px 36px;gap:5px;padding:0 10px 6px;
   font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
   color:var(--c-muted);align-items:end;}
 .sb-head span:not(:first-child){text-align:center;line-height:1.15;}
-.sb-row{display:grid;grid-template-columns:1fr 54px 54px 40px;gap:6px;align-items:center;
-  padding:10px 12px;border-radius:14px;margin-bottom:6px;position:relative;overflow:hidden;
+.sb-row{display:grid;grid-template-columns:1fr 44px 46px 36px;gap:5px;align-items:center;
+  padding:10px 10px;border-radius:14px;margin-bottom:6px;position:relative;overflow:hidden;
   background:var(--c-surf);border:1px solid var(--c-bdr);border-left:3px solid transparent;transition:background .2s,border-color .2s;}
 /* Eliminated — locked & red, unmistakably "can't play" */
 .sb-row.out{background:linear-gradient(90deg,rgba(239,68,68,.12) 0%,rgba(255,255,255,.02) 55%);
@@ -273,25 +273,63 @@ svg{vertical-align:middle;}
 .rh-winner-btn.on .rh-winner-av{box-shadow:0 0 0 3px var(--c-green),0 0 0 6px rgba(34,197,94,.22);}
 .rh-winner-name{font-size:11px;font-weight:700;color:var(--c-txt2);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rh-winner-btn.on .rh-winner-name{color:var(--c-green);}
-.rh-card{background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px;margin-bottom:10px;}
-.rh-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.rh-card-pts{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);font-weight:600;margin-left:4px;}
-.rh-preview{font-family:var(--font-mono);font-size:12px;font-weight:800;color:var(--c-gold);flex-shrink:0;min-width:46px;text-align:right;}
+.rh-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 10px;margin-bottom:10px;}
+.rh-card-top{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.rh-card-pts{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);font-weight:600;margin-left:6px;}
+.rh-preview{font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--c-gold);flex-shrink:0;min-width:52px;text-align:right;}
 .rh-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.rh-opt2{padding:13px 6px;border-radius:11px;border:1.5px solid var(--c-bdr2);background:transparent;color:var(--c-muted);
-  font-family:var(--font-mono);font-size:13px;font-weight:700;cursor:pointer;transition:all .1s;text-align:center;}
-.rh-opt2.on{border-color:var(--c-gold);background:var(--c-gold);color:#fff;}
-.rh-opt2.disabled{opacity:.28;cursor:not-allowed;}
-.rh-opt2-custom{padding:0;display:flex;align-items:center;border:none;background:none;}
-.rh-custom2{width:100%;padding:13px 6px;border-radius:11px;border:1.5px solid var(--c-bdr2);background:var(--c-bg3);
-  color:var(--c-txt);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none;}
-.rh-opt2-custom.on .rh-custom2{border-color:var(--c-gold);}
+/* Severity-coded result tiles — color tells you the damage before you read the label:
+   green (cheap exit) → amber → red (worst), so a tap is fast and sure mid-game. */
+.rh-opt2{position:relative;padding:11px 6px 10px;border-radius:13px;border:1.5px solid transparent;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s var(--ease-out),box-shadow .12s var(--ease-out),background .12s,border-color .12s;}
+.rh-opt2:active{transform:scale(.95);}
+.rh-opt2-lbl{font-family:var(--font-body);font-size:11px;font-weight:700;letter-spacing:.2px;opacity:.85;}
+.rh-opt2-val{font-family:var(--font-mono);font-size:18px;font-weight:800;line-height:1.15;}
+.rh-opt2[data-rhtype="drop"]{background:rgba(34,197,94,.09);border-color:rgba(34,197,94,.3);color:#8FEAB3;}
+.rh-opt2[data-rhtype="drop"] .rh-opt2-val{color:#4ADE80;}
+.rh-opt2[data-rhtype="drop"].on{background:linear-gradient(135deg,#22C55E,#15803D);border-color:rgba(34,197,94,.9);color:#fff;box-shadow:0 5px 18px rgba(34,197,94,.38);transform:translateY(-1px);}
+.rh-opt2[data-rhtype="drop"].on .rh-opt2-val{color:#fff;}
+.rh-opt2[data-rhtype="mid"]{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.32);color:#FFCF8A;}
+.rh-opt2[data-rhtype="mid"] .rh-opt2-val{color:#FBBF24;}
+.rh-opt2[data-rhtype="mid"].on{background:linear-gradient(135deg,#F59E0B,#C2650A);border-color:rgba(245,158,11,.9);color:#fff;box-shadow:0 5px 18px rgba(245,158,11,.38);transform:translateY(-1px);}
+.rh-opt2[data-rhtype="mid"].on .rh-opt2-val{color:#fff;}
+.rh-opt2[data-rhtype="full"]{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.32);color:#FFAEAE;}
+.rh-opt2[data-rhtype="full"] .rh-opt2-val{color:#F87171;}
+.rh-opt2[data-rhtype="full"].on{background:linear-gradient(135deg,#EF4444,#B91C1C);border-color:rgba(239,68,68,.9);color:#fff;box-shadow:0 5px 18px rgba(239,68,68,.38);transform:translateY(-1px);}
+.rh-opt2[data-rhtype="full"].on .rh-opt2-val{color:#fff;}
+.rh-opt2.disabled{opacity:.25;cursor:not-allowed;filter:grayscale(.5);}
+.rh-opt2.disabled:active{transform:none;}
+.rh-opt2-custom{padding:0;display:flex;align-items:center;border-radius:13px;border:1.5px solid var(--c-bdr2);background:var(--c-bg3);transition:border-color .12s,box-shadow .12s;}
+.rh-custom2{width:100%;padding:12px 6px;border-radius:12px;border:none;background:transparent;
+  color:var(--c-txt);font-family:var(--font-mono);font-size:14px;font-weight:700;text-align:center;outline:none;}
+.rh-opt2-custom.on{border-color:var(--c-gold);box-shadow:0 0 0 3px rgba(var(--c-gold-rgb),.15);}
 
 /* split result card */
 .split-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:12px;
   margin-bottom:8px;background:var(--c-surf);border:1px solid var(--c-bdr);}
 .split-payout{font-family:var(--font-mono);font-size:18px;font-weight:800;color:var(--c-green);}
 .split-share{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);}
+
+/* cash-out checklist (Smart Split sheet) — a real toggle, not a stock checkbox,
+   with an unmistakable on/off read for a decision made fast mid-game. */
+.cashout-row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:14px;margin-bottom:8px;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);transition:background .15s var(--ease-out),border-color .15s var(--ease-out),box-shadow .15s var(--ease-out);}
+.cashout-row:active{transform:scale(.99);}
+.cashout-row.on{background:linear-gradient(135deg,rgba(34,197,94,.14) 0%,rgba(34,197,94,.04) 100%);border-color:rgba(34,197,94,.45);box-shadow:0 2px 14px rgba(34,197,94,.14);}
+.cashout-native{position:absolute;opacity:0;width:1px;height:1px;}
+.cashout-check{width:23px;height:23px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--c-bdr2);background:transparent;transition:all .15s var(--ease-out);}
+.cashout-check svg{opacity:0;transform:scale(.5);transition:all .15s var(--ease-out);}
+.cashout-row.on .cashout-check{background:var(--c-green);border-color:var(--c-green);box-shadow:0 2px 10px rgba(34,197,94,.45);}
+.cashout-row.on .cashout-check svg{opacity:1;transform:scale(1);}
+.cashout-info{flex:1;min-width:0;}
+.cashout-name{font-size:14.5px;font-weight:700;color:var(--c-txt);display:block;}
+.cashout-meta{font-family:var(--font-mono);font-size:9.5px;color:var(--c-muted);}
+.cashout-right{text-align:right;flex-shrink:0;}
+.cashout-amt{font-family:var(--font-mono);font-size:19px;font-weight:800;color:var(--c-green);line-height:1;display:block;}
+.cashout-tag{font-family:var(--font-body);font-size:8.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;margin-top:3px;color:var(--c-muted2);}
+.cashout-row.on .cashout-tag{color:var(--c-green);}
 
 /* ── NOTIF ── */
 #notif{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);left:12px;right:12px;
@@ -924,15 +962,15 @@ function rhCard(p){
   return '<div class="rh-card" data-rh="'+escH(p.name)+'">'+
     '<div class="rh-card-top">'+
       '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
-      '<div style="min-width:0;flex:1"><span class="rh-name">'+escH(p.name)+'</span><span class="rh-card-pts">'+p.points+' pts now</span>'+(mp?'<div class="rh-must-note">⚠ must play — drops disabled</div>':'')+'</div>'+
+      '<div style="min-width:0;flex:1"><span class="rh-name">'+escH(p.name)+'</span><span class="rh-card-pts">'+p.points+' pts now</span>'+(mp?'<div class="rh-must-note">⚠ must play — initial drop disabled</div>':'')+'</div>'+
       '<div class="rh-preview" data-rhprev>'+preview+'</div>'+
     '</div>'+
     '<div class="rh-card-grid">'+
-      '<button class="rh-opt2'+(ch.type==='drop'?' on':'')+(mp?' disabled':'')+'" data-rhtype="drop" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'drop\')"')+'>Drop 20</button>'+
-      '<button class="rh-opt2'+(ch.type==='mid'?' on':'')+(mp?' disabled':'')+'" data-rhtype="mid" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'mid\')"')+'>Mid 40</button>'+
-      '<button class="rh-opt2'+(ch.type==='full'?' on':'')+'" data-rhtype="full" onclick="rhPick(\''+escQ(p.name)+'\',\'full\')">Full 80</button>'+
+      '<button class="rh-opt2'+(ch.type==='drop'?' on':'')+(mp?' disabled':'')+'" data-rhtype="drop" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'drop\')"')+'><span class="rh-opt2-lbl">Drop</span><span class="rh-opt2-val">+20</span></button>'+
+      '<button class="rh-opt2'+(ch.type==='mid'?' on':'')+'" data-rhtype="mid" onclick="rhPick(\''+escQ(p.name)+'\',\'mid\')"><span class="rh-opt2-lbl">Mid</span><span class="rh-opt2-val">+40</span></button>'+
+      '<button class="rh-opt2'+(ch.type==='full'?' on':'')+'" data-rhtype="full" onclick="rhPick(\''+escQ(p.name)+'\',\'full\')"><span class="rh-opt2-lbl">Full</span><span class="rh-opt2-val">+80</span></button>'+
       '<div class="rh-opt2-custom'+(ch.type==='played'?' on':'')+'">'+
-        '<input class="rh-custom2" type="number" inputmode="numeric" min="0" max="120" placeholder="Custom pts" value="'+(ch.type==='played'&&ch.custom!==''?ch.custom:'')+'" oninput="rhCustom(\''+escQ(p.name)+'\',this.value)"/>'+
+        '<input class="rh-custom2" type="number" inputmode="numeric" min="0" max="120" placeholder="Custom" value="'+(ch.type==='played'&&ch.custom!==''?ch.custom:'')+'" oninput="rhCustom(\''+escQ(p.name)+'\',this.value)"/>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -1183,14 +1221,13 @@ function openSplit(){
   _splitSel={}; act.forEach(function(p){_splitSel[p.name]=true;}); // default: everyone cashes out (= full split)
   var rows=act.map(function(p,i){
     var pal=nameColor(p.name);
-    return '<label class="split-row" style="cursor:pointer">'+
-      '<span style="display:flex;align-items:center;gap:10px;min-width:0">'+
-        '<input type="checkbox" checked onchange="splitToggle(\''+escQ(p.name)+'\',this.checked)" style="width:19px;height:19px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer"/>'+
-        '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
-        '<span style="min-width:0"><span style="font-weight:700;color:var(--c-txt);display:block">'+escH(p.name)+'</span>'+
-        '<span class="split-share">'+p.points+' pts · '+rDropChoices(p.points)+' drops · '+weights[i]+'/'+wsum+'</span></span>'+
-      '</span>'+
-      '<span class="split-payout">'+fmt(fromCents(pay[i]))+'</span>'+
+    return '<label class="cashout-row on">'+
+      '<input type="checkbox" class="cashout-native" checked onchange="splitToggle(\''+escQ(p.name)+'\',this)"/>'+
+      '<span class="cashout-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'+
+      '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
+      '<span class="cashout-info"><span class="cashout-name">'+escH(p.name)+'</span>'+
+        '<span class="cashout-meta">'+p.points+' pts · '+rDropChoices(p.points)+' drops · weight '+weights[i]+'/'+wsum+'</span></span>'+
+      '<span class="cashout-right"><span class="cashout-amt">'+fmt(fromCents(pay[i]))+'</span><span class="cashout-tag">Cash out</span></span>'+
     '</label>';
   }).join('');
   var isThree=act.length===3;
@@ -1203,7 +1240,15 @@ function openSplit(){
     '</div>';
   openSheet(html);
 }
-function splitToggle(name,checked){_splitSel[name]=checked;}
+function splitToggle(name,inp){
+  var checked=inp.checked;
+  _splitSel[name]=checked;
+  var row=inp.closest('.cashout-row');
+  if(row){
+    row.classList.toggle('on',checked);
+    var tag=row.querySelector('.cashout-tag');if(tag)tag.textContent=checked?'Cash out':'Playing on';
+  }
+}
 function commitSplitSelection(){
   var act=activePlayers().slice().sort(function(a,b){return a.points-b.points;});
   var pts=act.map(function(p){return p.points;});
