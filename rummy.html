@@ -8,6 +8,41 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!--
+═══════════════════════════════════════════════════════════════
+  SUPABASE SQL — Run once in the SQL Editor
+  (Project: https://oatuytowzyuneldnoptw.supabase.co — same project as
+  the poker app, but dedicated tables. Rummy never reads/writes poker's
+  tables and poker never reads/writes these.)
+═══════════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS rummy_sessions (
+  id           BIGSERIAL PRIMARY KEY,
+  session_id   TEXT NOT NULL UNIQUE,
+  session_data JSONB NOT NULL,
+  played_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rummy_live_sessions (
+  id             BIGSERIAL PRIMARY KEY,
+  session_id     TEXT NOT NULL UNIQUE,
+  host_device_id TEXT NOT NULL,
+  game_state     JSONB NOT NULL,
+  started_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE rummy_sessions      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rummy_live_sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "rrds" ON rummy_sessions      FOR SELECT USING (true);
+CREATE POLICY "rins" ON rummy_sessions      FOR INSERT WITH CHECK (true);
+CREATE POLICY "rdel" ON rummy_sessions      FOR DELETE USING (true);
+CREATE POLICY "rlrd" ON rummy_live_sessions FOR SELECT USING (true);
+CREATE POLICY "rlin" ON rummy_live_sessions FOR INSERT WITH CHECK (true);
+CREATE POLICY "rlup" ON rummy_live_sessions FOR UPDATE USING (true);
+CREATE POLICY "rlde" ON rummy_live_sessions FOR DELETE USING (true);
+-->
 <style>
 :root{
   --font-body:'Inter',system-ui,sans-serif;
@@ -167,6 +202,12 @@ svg{vertical-align:middle;}
 .sb-row.mustplay .sb-av{box-shadow:0 0 0 2px rgba(245,158,11,.5);}
 /* Split-ready leader (≤2 drop choices) — green edge */
 .sb-row.leaderlow{border-left-color:var(--c-green);}
+/* Cashed out early — locked in, green, distinct from "eliminated" red */
+.sb-row.cashedout{background:linear-gradient(90deg,rgba(34,197,94,.14) 0%,rgba(255,255,255,.02) 55%);
+  border-color:rgba(34,197,94,.3);border-left-color:var(--c-green);}
+.sb-row.cashedout .sb-av{filter:grayscale(.2);opacity:.9;}
+.badge-cashed{font-family:var(--font-mono);font-size:10px;font-weight:800;color:var(--c-green);
+  background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:8px;padding:3px 6px;letter-spacing:.2px;white-space:nowrap;}
 .sb-lock{color:var(--c-red);opacity:.85;}
 .sb-name-wrap{display:flex;align-items:center;gap:9px;min-width:0;}
 .sb-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -186,6 +227,9 @@ svg{vertical-align:middle;}
   background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 5px;letter-spacing:.5px;}
 .streak-dots{display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle;}
 .streak-dot{width:5px;height:5px;border-radius:50%;background:var(--c-orange);}
+/* bust-risk bar — points/201 at a glance, spans the full row under the grid */
+.sb-bar-track{grid-column:1 / -1;height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:7px;overflow:hidden;}
+.sb-bar-fill{height:100%;border-radius:2px;transition:width .3s var(--ease-out);}
 @keyframes numPop{0%{transform:scale(1)}35%{transform:scale(1.4)}65%{transform:scale(.9)}100%{transform:scale(1)}}
 .num-pop{animation:numPop .32s cubic-bezier(.34,1.56,.64,1);}
 
@@ -221,6 +265,27 @@ svg{vertical-align:middle;}
 .rh-custom{width:52px;padding:6px 4px;border-radius:9px;border:1.5px solid var(--c-bdr2);background:var(--c-bg3);
   color:var(--c-txt);font-family:var(--font-mono);font-size:12px;text-align:center;outline:none;}
 .rh-must-note{font-family:var(--font-mono);font-size:8px;color:var(--c-orange);margin-top:2px;}
+
+/* record-hand redesign: winner picker + full-width per-player cards */
+.rh-winner-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;}
+.rh-winner-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:4px;font-family:var(--font-body);}
+.rh-winner-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;font-family:var(--font-heading);transition:box-shadow .15s ease;}
+.rh-winner-btn.on .rh-winner-av{box-shadow:0 0 0 3px var(--c-green),0 0 0 6px rgba(34,197,94,.22);}
+.rh-winner-name{font-size:11px;font-weight:700;color:var(--c-txt2);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rh-winner-btn.on .rh-winner-name{color:var(--c-green);}
+.rh-card{background:var(--c-surf);border:1px solid var(--c-bdr);border-radius:14px;padding:12px;margin-bottom:10px;}
+.rh-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rh-card-pts{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);font-weight:600;margin-left:4px;}
+.rh-preview{font-family:var(--font-mono);font-size:12px;font-weight:800;color:var(--c-gold);flex-shrink:0;min-width:46px;text-align:right;}
+.rh-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.rh-opt2{padding:13px 6px;border-radius:11px;border:1.5px solid var(--c-bdr2);background:transparent;color:var(--c-muted);
+  font-family:var(--font-mono);font-size:13px;font-weight:700;cursor:pointer;transition:all .1s;text-align:center;}
+.rh-opt2.on{border-color:var(--c-gold);background:var(--c-gold);color:#fff;}
+.rh-opt2.disabled{opacity:.28;cursor:not-allowed;}
+.rh-opt2-custom{padding:0;display:flex;align-items:center;border:none;background:none;}
+.rh-custom2{width:100%;padding:13px 6px;border-radius:11px;border:1.5px solid var(--c-bdr2);background:var(--c-bg3);
+  color:var(--c-txt);font-family:var(--font-mono);font-size:13px;text-align:center;outline:none;}
+.rh-opt2-custom.on .rh-custom2{border-color:var(--c-gold);}
 
 /* split result card */
 .split-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:12px;
@@ -475,6 +540,27 @@ function rDistribute(potCents,weights){var total=weights.reduce(function(a,b){re
 function rSplitEligible(activePointsArr){var n=activePointsArr.length;if(n===3)return activePointsArr.every(function(p){return rDropChoices(p)<=2;});if(n===2)return true;return false;}
 function rSplitWeights(activePointsArr){return activePointsArr.map(function(p){return rDropChoices(p)+1;});}
 function rSplitPayoutCents(potCents,activePointsArr){return rDistribute(potCents,rSplitWeights(activePointsArr));}
+/* $5-denominated split: every share lands on a multiple of 500 cents (sum still exact). */
+function rDistributeStep(potCents,weights,stepCents){
+  stepCents=stepCents||1;
+  var total=weights.reduce(function(a,b){return a+b;},0);
+  if(total<=0)return weights.map(function(){return 0;});
+  var steps=Math.floor(potCents/stepCents);
+  var remainderCents=potCents-steps*stepCents;
+  var raw=weights.map(function(w){return steps*w/total;});
+  var out=raw.map(function(x){return Math.floor(x);});
+  var used=out.reduce(function(a,b){return a+b;},0);
+  var rem=steps-used;
+  var order=raw.map(function(x,i){return {i:i,f:x-Math.floor(x)};}).sort(function(a,b){return b.f-a.f||a.i-b.i;});
+  for(var k=0;k<rem;k++)out[order[k%order.length].i]++;
+  var outCents=out.map(function(s){return s*stepCents;});
+  if(remainderCents>0){
+    var maxIdx=0;for(var i=1;i<weights.length;i++)if(weights[i]>weights[maxIdx])maxIdx=i;
+    outCents[maxIdx]+=remainderCents;
+  }
+  return outCents;
+}
+function rSplitPayoutCents5(potCents,activePointsArr){return rDistributeStep(potCents,rSplitWeights(activePointsArr),500);}
 /* money */
 function cents(v){return Math.round(v*100);}
 function fromCents(c){return c/100;}
@@ -557,7 +643,7 @@ function startGame(){
   if(selected.length<2){notify('Pick at least 2 players','err');return;}
   game={
     starterNames:selected.slice(),
-    players:selected.map(function(n){return {name:n,points:0,streak:0,mustPlay:false,out:false,laterals:0};}),
+    players:selected.map(function(n){return {name:n,points:0,streak:0,mustPlay:false,out:false,cashedOut:false,cashedOutCents:0,laterals:0};}),
     buyCents:cents(stake),
     potCents:cents(stake)*selected.length,
     starters:selected.length,
@@ -574,12 +660,90 @@ function startGame(){
   haptic('success');
   renderLive();show('live');
   startTimer();
+  dbCreateRummyLiveSession(String(game.startedAt),game).then(function(ok){
+    if(!ok)notify('⚠️ Live sync unavailable — run the Rummy SQL script in Supabase to enable it','warn');
+  });
 }
 
 /* ═══════════════ PERSISTENCE ═══════════════ */
-function saveGame(){try{localStorage.setItem('rummy-game',JSON.stringify(game));}catch(e){}}
+function saveGame(){try{localStorage.setItem('rummy-game',JSON.stringify(game));}catch(e){} pushLiveSync();}
 function loadGame(){try{var g=JSON.parse(localStorage.getItem('rummy-game')||'null');if(g&&g.players&&!g.ended)return g;}catch(e){}return null;}
 function clearGame(){try{localStorage.removeItem('rummy-game');}catch(e){}}
+
+/* ═══════════════ CLOUD SYNC (Supabase) — rummy-only tables, fully separate from poker's ═══════════════ */
+var SB_URL='https://oatuytowzyuneldnoptw.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdHV5dG93enl1bmVsZG5vcHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTQxMTksImV4cCI6MjA4OTc5MDExOX0.oe4Hh8cb8TcOoufc6OBIfq0kBWdx2-X07Nes3fyuaBM';
+var DEVICE_ID=(function(){
+  try{var id=localStorage.getItem('rummy-device-id');if(!id){id='rdev-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);localStorage.setItem('rummy-device-id',id);}return id;}
+  catch(e){return 'rdev-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);}
+})();
+function sbH(x){return Object.assign({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},x||{});}
+async function sbGet(path){var r=await fetch(SB_URL+'/rest/v1/'+path,{headers:sbH()});if(!r.ok){var t=await r.text().catch(function(){return '';});throw new Error('GET '+r.status+': '+t.slice(0,120));}return r.json();}
+async function sbPost(path,body,extra){var r=await fetch(SB_URL+'/rest/v1/'+path,{method:'POST',headers:sbH(Object.assign({'Prefer':'return=minimal'},extra||{})),body:JSON.stringify(body)});if(!r.ok){var t=await r.text().catch(function(){return '';});throw new Error('POST '+r.status+': '+t.slice(0,120));}var ct=r.headers.get('content-type')||'';return ct.indexOf('json')>=0?r.json():null;}
+async function sbDelete(path){var r=await fetch(SB_URL+'/rest/v1/'+path,{method:'DELETE',headers:sbH({'Prefer':'return=minimal'})});if(!r.ok){var t=await r.text().catch(function(){return '';});throw new Error('DELETE '+r.status+': '+t.slice(0,120));}}
+
+/* history (finished games) */
+async function dbInsertRummySession(s){await sbPost('rummy_sessions',{session_id:String(s.id),session_data:s,played_at:new Date().toISOString()});}
+async function dbLoadRummySessions(){
+  try{var rows=await sbGet('rummy_sessions?select=session_data,played_at&order=played_at.asc');return rows.map(function(r){return r.session_data;}).filter(Boolean);}
+  catch(e){console.warn('[rummy-cloud] sessions load failed:',e.message);return null;}
+}
+function mergeRummySessions(localArr,cloudArr){
+  var byId={};
+  (cloudArr||[]).forEach(function(s){if(s&&s.id!=null)byId[String(s.id)]=s;});
+  (localArr||[]).forEach(function(s){if(s&&s.id!=null&&!byId[String(s.id)])byId[String(s.id)]=s;});
+  var merged=Object.keys(byId).map(function(k){return byId[k];});
+  merged.sort(function(a,b){return (Number(b.id)||0)-(Number(a.id)||0);}); // newest first (matches loadHistory's unshift order)
+  return merged;
+}
+async function backfillMissingRummySessions(localArr,cloudArr){
+  var cloudIds={};(cloudArr||[]).forEach(function(s){if(s&&s.id!=null)cloudIds[String(s.id)]=1;});
+  var missing=(localArr||[]).filter(function(s){return s&&s.id!=null&&!cloudIds[String(s.id)];});
+  var pushed=0;
+  for(var i=0;i<missing.length;i++){ try{await dbInsertRummySession(missing[i]);pushed++;}catch(e){console.warn('[rummy-cloud] backfill failed for',missing[i].id,e.message);} }
+  return pushed;
+}
+async function syncRummyHistory(){
+  try{
+    var cloud=await dbLoadRummySessions();
+    if(cloud===null)return false;
+    var localArr=loadHistory();
+    var merged=mergeRummySessions(localArr,cloud);
+    if(merged.length>200)merged=merged.slice(0,200);
+    saveHistoryArr(merged);
+    var pushed=await backfillMissingRummySessions(localArr,cloud);
+    if(pushed)notify('☁️ Synced '+pushed+' local game'+(pushed>1?'s':'')+' to the cloud','ok');
+    return true;
+  }catch(e){console.warn('[rummy-cloud] sync failed:',e.message);return false;}
+}
+
+/* live session (cross-device) — one row per in-progress game, upserted on every save */
+async function dbCreateRummyLiveSession(sessionId,gameState){
+  try{
+    await sbPost('rummy_live_sessions?on_conflict=session_id',
+      {session_id:sessionId,host_device_id:DEVICE_ID,game_state:gameState,started_at:new Date().toISOString(),updated_at:new Date().toISOString()},
+      {'Prefer':'resolution=merge-duplicates,return=minimal'});
+    return true;
+  }catch(e){console.warn('[rummy-cloud] live sync failed:',e.message);return false;}
+}
+async function dbLoadLatestRummyLiveSession(){
+  try{var rows=await sbGet('rummy_live_sessions?select=*&order=updated_at.desc&limit=1');return rows&&rows[0]?rows[0]:null;}catch(e){return null;}
+}
+async function dbDeleteRummyLiveSession(sessionId){try{await sbDelete('rummy_live_sessions?session_id=eq.'+encodeURIComponent(sessionId));}catch(e){}}
+
+/* Debounced fire-and-forget push so a burst of saveGame() calls doesn't spam the network. */
+var _liveSyncTimer=null,_liveSyncPending=false;
+function pushLiveSync(){
+  if(!game||game.ended)return;
+  _liveSyncPending=true;
+  if(_liveSyncTimer)return;
+  _liveSyncTimer=setTimeout(function(){
+    _liveSyncTimer=null;
+    if(!_liveSyncPending||!game||game.ended)return;
+    _liveSyncPending=false;
+    dbCreateRummyLiveSession(String(game.startedAt),game);
+  },800);
+}
 
 /* ═══════════════ TIMER ═══════════════ */
 var timerIv=null;
@@ -593,8 +757,8 @@ function updateTimer(){
 }
 
 /* ═══════════════ LIVE / SCOREBOARD ═══════════════ */
-function activePlayers(){return game.players.filter(function(p){return !p.out;});}
-function refreshMustPlay(){game.players.forEach(function(p){p.mustPlay=!p.out&&rIsMustPlay(p.points,p.streak);});}
+function activePlayers(){return game.players.filter(function(p){return !p.out&&!p.cashedOut;});}
+function refreshMustPlay(){game.players.forEach(function(p){p.mustPlay=!p.out&&!p.cashedOut&&rIsMustPlay(p.points,p.streak);});}
 
 function renderLive(){
   refreshMustPlay();
@@ -609,11 +773,14 @@ function renderLive(){
       '<div class="pot-timer" id="g-timer">0m 00s</div>'+
       '<div class="pot-round">Hand '+game.round+' · '+act.length+' left</div>'+
     '</div></div>';
-  document.getElementById('live-count').textContent=act.length+' in play · '+(game.players.length-act.length)+' out';
+  var cashedOutN=game.players.filter(function(p){return p.cashedOut;}).length;
+  var outN=game.players.filter(function(p){return p.out;}).length;
+  document.getElementById('live-count').textContent=act.length+' in play'+(cashedOutN?' · '+cashedOutN+' cashed out':'')+(outN?' · '+outN+' out':'');
 
-  // sort: active by points asc (leaders first), then out by points asc
+  // sort: active by points asc (leaders first), then cashed-out, then out — all by points asc
   var order=game.players.slice().sort(function(a,b){
-    if(a.out!==b.out)return a.out?1:-1;
+    var ra=a.out?2:(a.cashedOut?1:0), rb=b.out?2:(b.cashedOut?1:0);
+    if(ra!==rb)return ra-rb;
     return a.points-b.points;
   });
   document.getElementById('scoreboard').innerHTML=order.map(function(p){return sbRow(p);}).join('');
@@ -627,15 +794,17 @@ function renderLive(){
 function sbRow(p){
   var pal=nameColor(p.name);
   var dc=rDropChoices(p.points);
-  var cls='sb-row'+(p.out?' out':'')+(p.mustPlay?' mustplay':'')+(!p.out&&!p.mustPlay&&dc>=2?' leaderlow':'');
+  var cls='sb-row'+(p.out?' out':'')+(p.cashedOut?' cashedout':'')+(p.mustPlay?' mustplay':'')+(!p.out&&!p.cashedOut&&!p.mustPlay&&dc>=2?' leaderlow':'');
   var streakDots='';
-  if(!p.out&&p.streak>0){streakDots='<span class="streak-dots">';for(var i=0;i<p.streak;i++)streakDots+='<span class="streak-dot"></span>';streakDots+='</span>';}
+  if(!p.out&&!p.cashedOut&&p.streak>0){streakDots='<span class="streak-dots">';for(var i=0;i<p.streak;i++)streakDots+='<span class="streak-dot"></span>';streakDots+='</span>';}
   var sub;
   if(p.out)sub='eliminated'+(p.laterals?' · re-entered '+p.laterals+'×':'');
+  else if(p.cashedOut)sub='cashed out early';
   else sub=(200-p.points)+' to bust'+(p.laterals?' · re-entered':'');
-  var ptsColor=p.out?'var(--c-red)':(p.points>MUST_PLAY_OVER?'var(--c-orange)':'var(--c-txt)');
+  var ptsColor=p.out?'var(--c-red)':(p.cashedOut?'var(--c-green)':(p.points>MUST_PLAY_OVER?'var(--c-orange)':'var(--c-txt)'));
   var mid;
   if(p.out)mid='<span class="badge-out">OUT</span>';
+  else if(p.cashedOut)mid='<span class="badge-cashed">'+fmt(fromCents(p.cashedOutCents))+'</span>';
   else{
     // drop pips (max 4) or number
     if(dc<=4){var pips='';for(var d=0;d<dc;d++)pips+='<span class="sb-pip"></span>';mid=dc>0?'<div class="sb-drop-pips">'+pips+'</div>':'<div class="sb-drop-num" style="color:var(--c-orange)">0</div>';}
@@ -643,8 +812,11 @@ function sbRow(p){
   }
   var statusCell='';
   if(p.out)statusCell='<span class="sb-lock" title="Eliminated — out of the game"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>';
+  else if(p.cashedOut)statusCell='<span title="Cashed out — locked in and left the table">💰</span>';
   else if(p.mustPlay)statusCell='<span class="badge-must">MUST<br>PLAY</span>';
   var lockIco=p.out?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--c-red)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'';
+  var barPct=Math.min(100,Math.round(p.points/RUMMY_LIMIT*100));
+  var barColor=p.out?'var(--c-red)':(p.cashedOut?'var(--c-green)':(p.points>MUST_PLAY_OVER?'var(--c-orange)':(p.points>=100?'#EAB308':'var(--c-green)')));
   return '<div class="'+cls+'" data-player="'+escH(p.name)+'">'+
     '<div class="sb-name-wrap">'+
       '<div class="sb-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
@@ -653,6 +825,7 @@ function sbRow(p){
     '<div class="sb-pts" style="color:'+ptsColor+'" data-pts="'+escH(p.name)+'">'+p.points+'</div>'+
     '<div class="sb-drops">'+mid+'</div>'+
     '<div class="sb-status">'+statusCell+'</div>'+
+    '<div class="sb-bar-track"><div class="sb-bar-fill" style="width:'+barPct+'%;background:'+barColor+'"></div></div>'+
   '</div>';
 }
 
@@ -677,7 +850,7 @@ function renderSplitSlot(){
   if(act.length===3){
     var pts=act.map(function(p){return p.points;});
     if(rSplitEligible(pts)){
-      slot.innerHTML='<button class="btn btn-gold" onclick="openSplit()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 7h20M2 17h20"/></svg> Smart Split available</button>';
+      slot.innerHTML='<button class="btn btn-gold" onclick="openSplit()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 7h20M2 17h20"/></svg> Smart Split / Cash Out available</button>';
     }else{
       var lead=act.slice().sort(function(a,b){return a.points-b.points;})[0];
       slot.innerHTML='<div class="pill-info" style="width:100%;justify-content:center;box-sizing:border-box">Split locked — '+escH(lead.name)+' still has '+rDropChoices(lead.points)+' drop choices (need ≤2 all round)</div>';
@@ -691,60 +864,113 @@ function renderSplitSlot(){
   slot.innerHTML='';
 }
 
-/* ═══════════════ RECORD HAND ═══════════════ */
+/* ═══════════════ RECORD HAND ═══════════════
+   Two clear steps instead of one cramped row: (1) tap the winner, big avatar picker;
+   (2) each remaining player gets a full-width card with large 2×2 result buttons and
+   a live "→ N pts" preview, instead of 4 tiny pills + a tiny number field squeezed
+   onto one line. */
 var rhChoices={}; // name -> {type, custom}
 function openRecordHand(){
   var act=activePlayers();
   if(act.length<2){notify('Not enough players','warn');return;}
   rhChoices={};
   act.forEach(function(p){rhChoices[p.name]={type:null,custom:''};});
-  var rows=act.map(function(p){
-    var pal=nameColor(p.name);
-    var mp=p.mustPlay;
-    return '<div class="rh-player" data-rh="'+escH(p.name)+'">'+
-      '<div class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</div>'+
-      '<div style="min-width:0;flex:1"><div class="rh-name">'+escH(p.name)+'</div>'+(mp?'<div class="rh-must-note">⚠ must play — drops disabled</div>':'')+'</div>'+
-      '<div class="rh-opts">'+
-        '<button class="rh-opt win" onclick="rhPick(\''+escQ(p.name)+'\',\'win\',this)">Win</button>'+
-        '<button class="rh-opt'+(mp?' disabled':'')+'" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'drop\',this)"')+'>Drop 20</button>'+
-        '<button class="rh-opt'+(mp?' disabled':'')+'" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'mid\',this)"')+'>Mid 40</button>'+
-        '<button class="rh-opt" onclick="rhPick(\''+escQ(p.name)+'\',\'full\',this)">Full 80</button>'+
-        '<input class="rh-custom" type="number" inputmode="numeric" min="0" max="120" placeholder="pts" oninput="rhCustom(\''+escQ(p.name)+'\',this.value,this)"/>'+
-      '</div>'+
-    '</div>';
-  }).join('');
+  renderRecordHandSheet();
+}
+function rhAddFor(ch){
+  if(!ch||!ch.type)return 0;
+  if(ch.type==='drop')return DROP_UNIT;
+  if(ch.type==='mid')return MID_DROP;
+  if(ch.type==='full')return FULL_COUNT;
+  if(ch.type==='played')return (+ch.custom||0);
+  return 0;
+}
+function renderRecordHandSheet(){
+  var act=activePlayers();
+  var winnerName=null;
+  act.forEach(function(p){if(rhChoices[p.name]&&rhChoices[p.name].type==='win')winnerName=p.name;});
+
+  var winnerRow='<div class="rh-winner-row">'+act.map(function(p){
+    var pal=nameColor(p.name);var on=p.name===winnerName;
+    return '<button class="rh-winner-btn'+(on?' on':'')+'" onclick="rhSetWinner(\''+escQ(p.name)+'\')">'+
+      '<span class="rh-winner-av" style="background:'+(on?'rgba('+pal.rgb+',1)':'rgba('+pal.rgb+',.18)')+';color:'+(on?'#fff':pal.hex)+'">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
+      '<span class="rh-winner-name">'+escH(p.name)+'</span>'+
+    '</button>';
+  }).join('')+'</div>';
+
+  var others=act.filter(function(p){return p.name!==winnerName;});
+  var body=winnerName
+    ? '<div class="section-lbl" style="margin-top:16px">Everyone else — tap each result</div>'+others.map(function(p){return rhCard(p);}).join('')
+    : '<div class="pill-info" style="width:100%;justify-content:center;box-sizing:border-box;margin-top:6px">Pick the winner above first</div>';
+
+  var allSet=!!winnerName&&others.every(function(p){return rhChoices[p.name]&&rhChoices[p.name].type;});
+
   openSheet(
     '<div class="sheet-title">Record Hand '+(game.round+1)+'</div>'+
-    '<div class="sheet-sub">Tap the winner, then each other player&rsquo;s result. Drop 20 = initial drop.</div>'+
-    rows+
+    '<div class="sheet-sub">1. Tap the winner. 2. Set everyone else&rsquo;s result.</div>'+
+    '<div class="section-lbl">Who won?</div>'+
+    winnerRow+body+
     '<div style="display:flex;gap:8px;margin-top:18px">'+
       '<button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">Cancel</button>'+
-      '<button class="btn btn-gold" style="flex:2" onclick="commitHand()">Save Hand</button>'+
+      '<button class="btn btn-gold" id="rh-save-btn" style="flex:2" '+(allSet?'':'disabled')+' onclick="commitHand()">Save Hand</button>'+
     '</div>'
   );
 }
-function rhClearRow(name){
+function rhCard(p){
+  var pal=nameColor(p.name);var mp=p.mustPlay;
+  var ch=rhChoices[p.name]||{type:null,custom:''};
+  var add=rhAddFor(ch);
+  var preview=ch.type?'→ '+(p.points+add)+' pts':'';
+  return '<div class="rh-card" data-rh="'+escH(p.name)+'">'+
+    '<div class="rh-card-top">'+
+      '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
+      '<div style="min-width:0;flex:1"><span class="rh-name">'+escH(p.name)+'</span><span class="rh-card-pts">'+p.points+' pts now</span>'+(mp?'<div class="rh-must-note">⚠ must play — drops disabled</div>':'')+'</div>'+
+      '<div class="rh-preview" data-rhprev>'+preview+'</div>'+
+    '</div>'+
+    '<div class="rh-card-grid">'+
+      '<button class="rh-opt2'+(ch.type==='drop'?' on':'')+(mp?' disabled':'')+'" data-rhtype="drop" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'drop\')"')+'>Drop 20</button>'+
+      '<button class="rh-opt2'+(ch.type==='mid'?' on':'')+(mp?' disabled':'')+'" data-rhtype="mid" '+(mp?'':'onclick="rhPick(\''+escQ(p.name)+'\',\'mid\')"')+'>Mid 40</button>'+
+      '<button class="rh-opt2'+(ch.type==='full'?' on':'')+'" data-rhtype="full" onclick="rhPick(\''+escQ(p.name)+'\',\'full\')">Full 80</button>'+
+      '<div class="rh-opt2-custom'+(ch.type==='played'?' on':'')+'">'+
+        '<input class="rh-custom2" type="number" inputmode="numeric" min="0" max="120" placeholder="Custom pts" value="'+(ch.type==='played'&&ch.custom!==''?ch.custom:'')+'" oninput="rhCustom(\''+escQ(p.name)+'\',this.value)"/>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+function rhSetWinner(name){
+  Object.keys(rhChoices).forEach(function(n){rhChoices[n]={type:null,custom:''};});
+  rhChoices[name]={type:'win',custom:''};
+  haptic('light');
+  renderRecordHandSheet();
+}
+function rhRefreshCard(name){
   var row=document.querySelector('[data-rh="'+cssEsc(name)+'"]');
   if(!row)return;
-  row.querySelectorAll('.rh-opt').forEach(function(b){b.classList.remove('on');});
-  var ci=row.querySelector('.rh-custom');if(ci)ci.value='';
+  var ch=rhChoices[name]||{type:null,custom:''};
+  row.querySelectorAll('.rh-opt2[data-rhtype]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-rhtype')===ch.type);});
+  var wrap=row.querySelector('.rh-opt2-custom');if(wrap)wrap.classList.toggle('on',ch.type==='played');
+  var inp=row.querySelector('.rh-custom2');if(inp&&ch.type!=='played')inp.value='';
+  var p=activePlayers().filter(function(x){return x.name===name;})[0];
+  var prev=row.querySelector('[data-rhprev]');
+  if(prev)prev.textContent=(ch.type&&p)?'→ '+(p.points+rhAddFor(ch))+' pts':'';
 }
-function rhPick(name,type,btn){
-  // only one winner allowed
-  if(type==='win'){
-    Object.keys(rhChoices).forEach(function(n){if(n!==name&&rhChoices[n].type==='win'){rhChoices[n].type=null;rhClearRow(n);}});
-  }
+function rhRefreshSaveBtn(){
+  var act=activePlayers();
+  var winnerSet=act.some(function(p){return rhChoices[p.name]&&rhChoices[p.name].type==='win';});
+  var allSet=winnerSet&&act.every(function(p){return rhChoices[p.name]&&rhChoices[p.name].type;});
+  var btn=document.getElementById('rh-save-btn');
+  if(btn)btn.disabled=!allSet;
+}
+function rhPick(name,type){
   rhChoices[name]={type:type,custom:''};
-  rhClearRow(name);
-  btn.classList.add('on');
   haptic('light');
+  rhRefreshCard(name);rhRefreshSaveBtn();
 }
-function rhCustom(name,val,inp){
-  var row=inp.closest('.rh-player');
-  row.querySelectorAll('.rh-opt').forEach(function(b){b.classList.remove('on');});
+function rhCustom(name,val){
   var n=parseInt(val,10);
-  if(val===''||isNaN(n)){rhChoices[name]={type:null,custom:''};return;}
-  rhChoices[name]={type:'played',custom:Math.max(0,n)};
+  if(val===''||isNaN(n))rhChoices[name]={type:null,custom:''};
+  else rhChoices[name]={type:'played',custom:Math.max(0,Math.min(120,n))};
+  rhRefreshCard(name);rhRefreshSaveBtn();
 }
 function cssEsc(s){return String(s).replace(/["\\]/g,'\\$&');}
 
@@ -757,22 +983,31 @@ function rebuildFromTimeline(){
   if(!game.timeline){game.timeline=[];}
   if(!game.starterNames){game.starterNames=game.players.map(function(p){return p.name;});}
   var byName={},order=[];
-  game.starterNames.forEach(function(n){ byName[n]={name:n,points:0,streak:0,mustPlay:false,out:false,laterals:0}; order.push(n); });
-  var pot=game.buyCents*game.starterNames.length, hands=[], round=0, lateralCount=0;
+  game.starterNames.forEach(function(n){ byName[n]={name:n,points:0,streak:0,mustPlay:false,out:false,cashedOut:false,cashedOutCents:0,laterals:0}; order.push(n); });
+  var pot=game.buyCents*game.starterNames.length, hands=[], round=0, lateralCount=0, cashouts=[];
   game.timeline.forEach(function(ev){
     if(ev.k==='lateral'){
-      var actPts=order.map(function(n){return byName[n];}).filter(function(p){return !p.out;}).map(function(p){return p.points;});
+      var actPts=order.map(function(n){return byName[n];}).filter(function(p){return !p.out&&!p.cashedOut;}).map(function(p){return p.points;});
       var lp=rLateralEntryPoints(actPts); if(lp===null)lp=ALIVE_MAX;
-      if(byName[ev.name]){var p=byName[ev.name];p.out=false;p.points=lp;p.streak=0;p.laterals=(p.laterals||0)+1;}
-      else{byName[ev.name]={name:ev.name,points:lp,streak:0,mustPlay:false,out:false,laterals:0};order.push(ev.name);}
+      if(byName[ev.name]){var p=byName[ev.name];p.out=false;p.cashedOut=false;p.cashedOutCents=0;p.points=lp;p.streak=0;p.laterals=(p.laterals||0)+1;}
+      else{byName[ev.name]={name:ev.name,points:lp,streak:0,mustPlay:false,out:false,cashedOut:false,cashedOutCents:0,laterals:0};order.push(ev.name);}
       pot+=game.buyCents; lateralCount++;
+    }else if(ev.k==='cashout'){
+      // Cents are locked at the moment of cash-out — replay re-applies the stored
+      // amount verbatim, it is never recomputed even if earlier hands are later edited.
+      ev.entries.forEach(function(entry){
+        var p=byName[entry.name];
+        if(p){p.cashedOut=true;p.cashedOutCents=entry.cents;}
+        pot-=entry.cents;
+      });
+      cashouts.push({round:round,entries:ev.entries});
     }else{ // hand
       round++;
       var rec={round:round,results:[]};
       ev.results.forEach(function(r){
         var p=byName[r.name];
         var add=(r.type==='drop')?DROP_UNIT:(r.type==='mid')?MID_DROP:(r.type==='full')?FULL_COUNT:(r.type==='win')?0:(+r.add||0);
-        if(p&&!p.out){
+        if(p&&!p.out&&!p.cashedOut){
           p.points+=add;
           if(r.type==='drop')p.streak++; else p.streak=0;
           if(rIsEliminated(p.points))p.out=true;
@@ -783,7 +1018,7 @@ function rebuildFromTimeline(){
     }
   });
   game.players=order.map(function(n){return byName[n];});
-  game.potCents=pot; game.round=round; game.hands=hands; game.lateralCount=lateralCount;
+  game.potCents=pot; game.round=round; game.hands=hands; game.lateralCount=lateralCount; game.cashouts=cashouts;
   refreshMustPlay();
 }
 
@@ -935,39 +1170,53 @@ function doLateral(name){
   haptic('success');notify('➕ '+name+' entered at '+lp+' pts · pot '+fmt(fromCents(game.potCents)),'ok');
 }
 
-/* ═══════════════ SMART SPLIT ═══════════════ */
+/* ═══════════════ SMART SPLIT / PARTIAL CASH-OUT ═══════════════
+   Every share is rounded to the nearest $5 (rSplitPayoutCents5), weighted by drop
+   choices. Each player can individually choose to lock in their share now ("cash
+   out") and leave, while anyone left unchecked keeps playing for what remains. */
+var _splitSel={};
 function openSplit(){
   var act=activePlayers().slice().sort(function(a,b){return a.points-b.points;});
   var pts=act.map(function(p){return p.points;});
-  var pay=rSplitPayoutCents(game.potCents,pts);
+  var pay=rSplitPayoutCents5(game.potCents,pts);
   var weights=rSplitWeights(pts);var wsum=weights.reduce(function(a,b){return a+b;},0);
+  _splitSel={}; act.forEach(function(p){_splitSel[p.name]=true;}); // default: everyone cashes out (= full split)
   var rows=act.map(function(p,i){
     var pal=nameColor(p.name);
-    return '<div class="split-row">'+
+    return '<label class="split-row" style="cursor:pointer">'+
       '<span style="display:flex;align-items:center;gap:10px;min-width:0">'+
+        '<input type="checkbox" checked onchange="splitToggle(\''+escQ(p.name)+'\',this.checked)" style="width:19px;height:19px;accent-color:var(--c-gold);flex-shrink:0;cursor:pointer"/>'+
         '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
         '<span style="min-width:0"><span style="font-weight:700;color:var(--c-txt);display:block">'+escH(p.name)+'</span>'+
         '<span class="split-share">'+p.points+' pts · '+rDropChoices(p.points)+' drops · '+weights[i]+'/'+wsum+'</span></span>'+
       '</span>'+
       '<span class="split-payout">'+fmt(fromCents(pay[i]))+'</span>'+
-    '</div>';
+    '</label>';
   }).join('');
   var isThree=act.length===3;
   var html='<div class="sheet-title">'+(isThree?'Smart Split':'End Game — Split')+'</div>'+
-    '<div class="sheet-sub">100% of the '+fmt(fromCents(game.potCents))+' pot, weighted by drop choices (fewer points → bigger share). Everyone agrees to end here.</div>'+
+    '<div class="sheet-sub">Shares are rounded to the nearest $5, weighted by drop choices (fewer points → bigger share). Uncheck anyone who wants to keep playing for the rest of the pot — only checked players cash out now.</div>'+
     rows+
     '<div style="display:flex;gap:8px;margin-top:18px">'+
       '<button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">'+(isThree?'Keep Playing':'Play On')+'</button>'+
-      '<button class="btn btn-green" style="flex:2" onclick="commitSplit()">Accept Split</button>'+
+      '<button class="btn btn-green" style="flex:2" onclick="commitSplitSelection()">Cash Out Checked</button>'+
     '</div>';
   openSheet(html);
 }
-function commitSplit(){
+function splitToggle(name,checked){_splitSel[name]=checked;}
+function commitSplitSelection(){
   var act=activePlayers().slice().sort(function(a,b){return a.points-b.points;});
   var pts=act.map(function(p){return p.points;});
-  var pay=rSplitPayoutCents(game.potCents,pts);
+  var pay=rSplitPayoutCents5(game.potCents,pts);
   var payouts=act.map(function(p,i){return {name:p.name,cents:pay[i],points:p.points,drops:rDropChoices(p.points)};});
-  endGame(payouts,'split');
+  var selectedNames=act.filter(function(p){return _splitSel[p.name];}).map(function(p){return p.name;});
+  if(!selectedNames.length){notify('Check at least one player to cash out','warn');return;}
+  if(selectedNames.length===act.length){ endGame(payouts,'split'); return; }
+  var entries=payouts.filter(function(p){return selectedNames.indexOf(p.name)>=0;});
+  game.timeline.push({k:'cashout',entries:entries});
+  rebuildFromTimeline();saveGame();closeSheet();renderLive();
+  haptic('success');
+  notify('💰 '+entries.map(function(e){return e.name+' '+fmt(fromCents(e.cents));}).join(', ')+' cashed out — game continues','ok');
 }
 function finishWinner(){
   var act=activePlayers();
@@ -979,28 +1228,42 @@ function goSetupConfirm(){
 }
 
 /* ═══════════════ END / RESULTS ═══════════════ */
+// Every payout ever made this game: early cash-outs (locked, from game.cashouts)
+// plus the final split/winner payout — together these always sum to the full
+// starting pot (buy-ins + laterals), since cashouts are deducted from potCents
+// as they happen and the final payout settles whatever's left.
+function allPayouts(g){
+  var early=[];
+  (g.cashouts||[]).forEach(function(c){c.entries.forEach(function(e){early.push({name:e.name,cents:e.cents,points:e.points,drops:e.drops,early:true});});});
+  var finalp=(g.result?g.result.payouts:[]).map(function(e){return {name:e.name,cents:e.cents,points:e.points,drops:e.drops,early:false};});
+  return early.concat(finalp);
+}
 function endGame(payouts,mode){
   game.ended=true;game.endedAt=Date.now();game.result={payouts:payouts,mode:mode};
   stopTimer();closeSheet();saveGame();
-  // verify sum == pot (defensive)
+  // verify sum == remaining pot (defensive) — cashouts already came out of potCents
   var sum=payouts.reduce(function(a,p){return a+p.cents;},0);
   if(sum!==game.potCents){console.error('[rummy] payout mismatch',sum,game.potCents);}
-  saveToHistory(game);
+  var rec=saveToHistory(game);
+  dbDeleteRummyLiveSession(String(game.startedAt)).catch(function(){});
+  dbInsertRummySession(rec).catch(function(e){console.warn('[rummy-cloud] history push failed:',e.message);});
   renderResults();show('results');haptic('success');launchConfetti();
 }
 function renderResults(){
   var r=game.result;
   var dur=Math.floor((game.endedAt-game.startedAt)/1000);
   var durStr=(Math.floor(dur/3600)>0?Math.floor(dur/3600)+'h ':'')+Math.floor((dur%3600)/60)+'m';
-  var sorted=r.payouts.slice().sort(function(a,b){return b.cents-a.cents;});
-  var winner=sorted[0];
+  var all=allPayouts(game);
+  var totalPotCents=game.potCents+(game.cashouts||[]).reduce(function(a,c){return a+c.entries.reduce(function(s,e){return s+e.cents;},0);},0);
+  var sorted=all.slice().sort(function(a,b){return b.cents-a.cents;});
+  var winner=r.mode==='winner'?r.payouts[0]:null;
   var podium=r.mode==='winner'
     ? '<div style="text-align:center;padding:10px 0 20px"><div style="font-size:52px;margin-bottom:6px" class="pod-medal">🏆</div>'+
         '<div style="font-family:var(--font-heading);font-size:26px;font-weight:900;color:var(--c-gold)">'+escH(winner.name)+'</div>'+
         '<div style="font-family:var(--font-mono);font-size:13px;color:var(--c-green);margin-top:4px">wins '+fmt(fromCents(winner.cents))+' · '+winner.points+' pts</div></div>'
     : '<div style="text-align:center;padding:6px 0 18px"><div style="font-size:44px;margin-bottom:4px">🤝</div>'+
         '<div style="font-family:var(--font-heading);font-size:22px;font-weight:800;color:var(--c-txt)">Smart Split</div>'+
-        '<div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-top:2px">'+r.payouts.length+'-way · '+fmt(fromCents(game.potCents))+' pot</div></div>';
+        '<div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-top:2px">'+r.payouts.length+'-way · '+fmt(fromCents(game.potCents))+' remaining pot</div></div>';
   var rows=sorted.map(function(p,i){
     var pal=nameColor(p.name);
     return '<div class="split-row">'+
@@ -1008,13 +1271,13 @@ function renderResults(){
         '<span style="font-family:var(--font-mono);font-size:12px;color:var(--c-muted);width:16px">'+(i+1)+'</span>'+
         '<span class="rh-av" style="background:rgba('+pal.rgb+',.22);color:'+pal.hex+';border-color:rgba('+pal.rgb+',.4)">'+escH(p.name.charAt(0).toUpperCase())+'</span>'+
         '<span style="min-width:0"><span style="font-weight:700;color:var(--c-txt);display:block">'+escH(p.name)+'</span>'+
-        '<span class="split-share">'+p.points+' pts · '+p.drops+' drops left</span></span>'+
+        '<span class="split-share">'+p.points+' pts · '+p.drops+' drops left'+(p.early?' · cashed out early':'')+'</span></span>'+
       '</span>'+
       '<span class="split-payout">'+fmt(fromCents(p.cents))+'</span>'+
     '</div>';
   }).join('');
   // eliminated (didn't cash) list
-  var cashed={};r.payouts.forEach(function(p){cashed[p.name]=1;});
+  var cashed={};all.forEach(function(p){cashed[p.name]=1;});
   var elim=game.players.filter(function(p){return !cashed[p.name];}).sort(function(a,b){return a.points-b.points;});
   var elimHtml='';
   if(elim.length){
@@ -1024,7 +1287,7 @@ function renderResults(){
   }
   document.getElementById('screen-results').innerHTML=
     '<div class="page-title" style="margin-bottom:2px">Results</div>'+
-    '<div class="page-sub">'+game.players.length+' players · '+durStr+' · pot '+fmt(fromCents(game.potCents))+'</div>'+
+    '<div class="page-sub">'+game.players.length+' players · '+durStr+' · pot '+fmt(fromCents(totalPotCents))+'</div>'+
     podium+
     '<div class="section-lbl">Payouts — 100% distributed</div>'+
     rows+elimHtml+
@@ -1040,8 +1303,8 @@ function _buildRummyCanvas(g){
   var PAD=px(22), FONT='Inter,system-ui,sans-serif', MONO='JetBrains Mono,monospace';
   var aRgb=currentTheme?currentTheme.accentRgb:'168,85,247', aHex=currentTheme?currentTheme.accent:'#A855F7';
   var cRgb=currentTheme?currentTheme.compRgb:'34,211,238', bg=currentTheme?currentTheme.bg:'#0E0620';
-  var r=g.result, sorted=r.payouts.slice().sort(function(a,b){return b.cents-a.cents;});
-  var cashed={}; r.payouts.forEach(function(p){cashed[p.name]=1;});
+  var r=g.result, all=allPayouts(g), sorted=all.slice().sort(function(a,b){return b.cents-a.cents;});
+  var cashed={}; all.forEach(function(p){cashed[p.name]=1;});
   var elim=g.players.filter(function(p){return !cashed[p.name];}).sort(function(a,b){return a.points-b.points;});
   var HDR=px(78), ROW=px(40), ELIMROW=px(32);
   var buyDate=new Date(g.startedAt||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -1064,8 +1327,9 @@ function _buildRummyCanvas(g){
     ctx.fill(new Path2D('M0 -13c-2 4-5.3 6-9.3 6.7 4 .7 7.3 2.7 9.3 6.7 2-4 5.3-6 9.3-6.7-4-.7-7.3-2.7-9.3-6.7z'));
     ctx.beginPath(); ctx.arc(-8,7,3.2,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(8,7,3.2,0,7); ctx.fill(); ctx.restore();
     ctx.fillStyle='#fff'; ctx.font='800 '+px(22)+'px '+FONT; ctx.textAlign='left'; ctx.fillText('Hutto Rummy',bx+bs+px(10),by+px(25));
-    var mode=(r.mode==='winner'?'Winner takes all':(r.payouts.length+'-way smart split'));
-    var meta=buyDate+' · '+g.players.length+' players · '+fmt(g.potCents/100)+' pot · '+mode;
+    var mode=(r.mode==='winner'?'Winner takes all':(all.length+'-way smart split'));
+    var totalPotCents=g.potCents+(g.cashouts||[]).reduce(function(a,c){return a+c.entries.reduce(function(s,e){return s+e.cents;},0);},0);
+    var meta=buyDate+' · '+g.players.length+' players · '+fmt(totalPotCents/100)+' pot · '+mode;
     ctx.fillStyle='rgba(255,255,255,.5)'; var ms=px(11.5); ctx.font='500 '+ms+'px '+MONO;
     while(ctx.measureText(meta).width>W-PAD*2&&ms>px(9)){ms-=1;ctx.font='500 '+ms+'px '+MONO;}
     ctx.fillText(meta,PAD,by+bs+px(16));
@@ -1210,16 +1474,19 @@ var RUMMY_HIST_KEY='rummy-hist-v1';
 function loadHistory(){try{var a=JSON.parse(localStorage.getItem(RUMMY_HIST_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
 function saveHistoryArr(a){try{localStorage.setItem(RUMMY_HIST_KEY,JSON.stringify(a));}catch(e){}}
 function saveToHistory(g){
-  var cashed={};g.result.payouts.forEach(function(p){cashed[p.name]=p.cents;});
+  var all=allPayouts(g);
+  var cashed={};all.forEach(function(p){cashed[p.name]=p.cents;});
+  var totalPotCents=g.potCents+(g.cashouts||[]).reduce(function(a,c){return a+c.entries.reduce(function(s,e){return s+e.cents;},0);},0);
   var rec={
     id:g.startedAt,
     dateLabel:new Date(g.startedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
-    potCents:g.potCents,buyCents:g.buyCents,mode:g.result.mode,
+    potCents:totalPotCents,buyCents:g.buyCents,mode:g.result.mode,
     durationSecs:Math.floor((g.endedAt-g.startedAt)/1000),
-    players:g.players.map(function(p){return {name:p.name,points:p.points,out:p.out,payoutCents:cashed[p.name]||0,laterals:p.laterals||0};}),
+    players:g.players.map(function(p){return {name:p.name,points:p.points,out:p.out,cashedOut:!!p.cashedOut,payoutCents:cashed[p.name]||0,laterals:p.laterals||0};}),
     hands:g.hands
   };
   var hist=loadHistory();hist.unshift(rec);if(hist.length>200)hist=hist.slice(0,200);saveHistoryArr(hist);
+  return rec;
 }
 // Aggregate per-player stats across all finished games.
 function computeRummyStats(){
@@ -1244,7 +1511,10 @@ function computeRummyStats(){
 }
 
 /* ═══════════════ STATS SCREEN ═══════════════ */
-function openStats(){renderStats();show('stats');}
+function openStats(){
+  renderStats();show('stats');
+  syncRummyHistory().then(function(ok){ if(ok&&document.getElementById('screen-stats').classList.contains('active'))renderStats(); }).catch(function(){});
+}
 function statsBack(){
   if(game&&!game.ended){renderLive();show('live');}
   else if(game&&game.ended){show('results');}
@@ -1299,7 +1569,7 @@ function openGameDetail(i){
   var st=computeRummyStats();var g=st.history[i];if(!g)return;
   var sorted=g.players.slice().sort(function(a,b){return b.payoutCents-a.payoutCents;});
   var rows=sorted.map(function(p){
-    return '<div class="split-row"><span style="font-weight:700;color:'+(p.out?'var(--c-txt2)':'var(--c-txt)')+'">'+escH(p.name)+' <span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+p.points+' pts</span></span>'+
+    return '<div class="split-row"><span style="font-weight:700;color:'+(p.out?'var(--c-txt2)':'var(--c-txt)')+'">'+escH(p.name)+' <span style="font-family:var(--font-mono);font-size:10px;color:var(--c-muted)">'+p.points+' pts'+(p.cashedOut?' · cashed out early':'')+'</span></span>'+
       '<span class="split-payout" style="color:'+(p.payoutCents>0?'var(--c-green)':'var(--c-muted2)')+'">'+(p.payoutCents>0?fmt(p.payoutCents/100):'—')+'</span></div>';
   }).join('');
   openSheet('<div class="sheet-title">'+escH(g.dateLabel)+'</div><div class="sheet-sub">'+(g.mode==='winner'?'Winner takes all':'Smart split')+' · '+g.players.length+' players · pot '+fmt(g.potCents/100)+'</div>'+
@@ -1331,6 +1601,31 @@ function resumeGame(){
 }
 function discardResume(){clearGame();closeSheet();}
 
+/* ═══════════════ RESUME A LIVE GAME FROM ANOTHER DEVICE ═══════════════ */
+var _pendingCloudGame=null;
+function offerResumeCloud(row){
+  var g=row.game_state;
+  var act=g.players.filter(function(p){return !p.out&&!p.cashedOut;}).length;
+  _pendingCloudGame=g;
+  openSheet(
+    '<div class="sheet-title">Live game on another device</div>'+
+    '<div class="sheet-sub">'+g.players.length+' players · hand '+g.round+' · '+act+' still in · pot '+fmt(fromCents(g.potCents))+'</div>'+
+    '<button class="btn btn-gold" onclick="resumeCloudGame()">Join / Resume Here</button>'+
+    '<button class="btn btn-ghost mt" onclick="_pendingCloudGame=null;closeSheet()">Not now</button>'
+  );
+}
+function resumeCloudGame(){
+  if(!_pendingCloudGame)return;
+  game=_pendingCloudGame;_pendingCloudGame=null;
+  closeSheet();stake=fromCents(game.buyCents);_lastPot=null;
+  if(!game.timeline){
+    game.starterNames=game.starterNames||game.players.map(function(p){return p.name;});
+    game.timeline=(game.hands||[]).map(function(h){return {k:'hand',results:h.results};});
+  }
+  saveGame();
+  renderLive();show('live');startTimer();
+}
+
 /* ═══════════════ TAP RIPPLE ═══════════════ */
 document.addEventListener('pointerdown',function(e){
   var btn=e.target.closest('.btn');
@@ -1347,7 +1642,16 @@ document.addEventListener('pointerdown',function(e){
   loadRoster();
   buildStakeRow();buildPGrid();
   var g=loadGame();
-  if(g)offerResume(g);
+  if(g){
+    offerResume(g);
+  }else{
+    // No local in-progress game — check the cloud for a live game started on another device.
+    dbLoadLatestRummyLiveSession().then(function(row){
+      if(!row||!row.game_state||row.game_state.ended||game)return;
+      offerResumeCloud(row);
+    }).catch(function(){});
+  }
+  syncRummyHistory().catch(function(){});
 })();
 window.addEventListener('error',function(e){console.error('[rummy]',e.message);});
 </script>
